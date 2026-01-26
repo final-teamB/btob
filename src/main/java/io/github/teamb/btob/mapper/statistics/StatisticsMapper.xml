@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.statistics.StatisticsMapper">
+	
+	<select id="selectStatsByType" parameterType="string" resultType="io.github.teamb.btob.dto.statistics.StatisticsDTO">
+		SELECT
+			stats_name statsName,
+            stats_value statsValue,
+            stats_date statsDate,
+            stats_type statsType
+        FROM TB_STATISTICS
+        WHERE stats_type = #{statsType} AND use_yn = 'Y'
+        ORDER BY stats_date ASC
+	</select>
+	
+	<select id="selectOrderStats" resultType="io.github.teamb.btob.dto.statistics.OrderStatisticsDTO">
+	    SELECT 
+	        stats_date statsDate, 
+	        total_order_count totalOrderCount,
+	        pending_count pendingCount,
+	        paid_count paidCount,
+	        preparing_count preparingCount,
+	        shipping_count shippingCount,
+	        delivered_count deliveredCount,
+	        executed_at executedAt FROM TB_ORDER_STATISTICS
+	    WHERE use_yn = 'Y'
+	    ORDER BY executed_at ASC 
+	</select>
+	
+	<insert id="refreshOrderStats">
+	    INSERT INTO TB_ORDER_STATISTICS (
+	        stats_type, stats_date, total_order_count, pending_count, 
+	        paid_count, preparing_count, shipping_count, delivered_count, user_no
+	    )
+	    SELECT 
+	        'DAY', 
+	        DATE(CURDATE()), COUNT(*),
+	        COUNT(CASE WHEN order_status = 'PENDING' THEN 1 END),
+	        COUNT(CASE WHEN order_status = 'PAID' THEN 1 END),
+	        COUNT(CASE WHEN order_status = 'PREPARING' THEN 1 END),
+	        COUNT(CASE WHEN order_status = 'SHIPPING' THEN 1 END),
+	        COUNT(CASE WHEN order_status = 'DELIVERED' THEN 1 END),
+	        #{userNo}
+	    FROM TB_ORDER_MST WHERE reg_dtime >= CURDATE()
+	    ON DUPLICATE KEY UPDATE 
+	        total_order_count = VALUES(total_order_count),
+	        pending_count = VALUES(pending_count),
+	        paid_count = VALUES(paid_count),
+	        preparing_count = VALUES(preparing_count),
+	        shipping_count = VALUES(shipping_count),
+	        delivered_count = VALUES(delivered_count),
+	        executed_at = NOW() 
+    </insert>
+</mapper>
