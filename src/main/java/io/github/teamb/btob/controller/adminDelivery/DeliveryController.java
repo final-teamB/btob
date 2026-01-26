@@ -28,7 +28,7 @@ public class DeliveryController {
 		List<DeliveryDTO> list = deliveryService.getDeliveryList();
 		model.addAttribute("deliveryList", list);
 		
-		return "adminDelivery/deliveryList";
+		return "test/adminDelivery/deliveryList";
 	}
 	
 	// 배송 정보 수정

@@ -25,32 +25,35 @@
             </tr>
         </thead>
         <tbody>
-            <c:forEach var="item" items="${deliveryList}">
-                <tr id="row-${item.deliveryId}">
-                    <td>${item.deliveryId}</td>
-                    <td>${item.orderId}</td>
-                    <td><small style="color:gray;">${item.deliveryStatus}</small></td>
-                    <td>
-                        <select id="status-${item.deliveryId}">
-                            <option value="READY" ${item.deliveryStatus == 'READY' ? 'selected' : ''}>상품준비중</option>
-                            <option value="L_SHIPPING" ${item.deliveryStatus == 'L_SHIPPING' ? 'selected' : ''}>국내배송중</option>
-                            <option value="L_WH" ${item.deliveryStatus == 'L_WH' ? 'selected' : ''}>국내창고입고</option>
-                            <option value="ABROAD" ${item.deliveryStatus == 'ABROAD' ? 'selected' : ''}>국제운송중</option>
-                            <option value="IN_CUSTOMS" ${item.deliveryStatus == 'IN_CUSTOMS' ? 'selected' : ''}>통관진행중</option>
-                            <option value="C_DONE" ${item.deliveryStatus == 'C_DONE' ? 'selected' : ''}>통관완료</option>
-                            <option value="D_SHIPPING" ${item.deliveryStatus == 'D_SHIPPING' ? 'selected' : ''}>배송중</option>
-                            <option value="COMPLETE" ${item.deliveryStatus == 'COMPLETE' ? 'selected' : ''}>배송완료</option>
-                        </select>
-                    </td>
-                    <td>
-                        <input type="text" id="tracking-${item.deliveryId}" value="${item.trackingNo}" placeholder="송장번호 입력">
-                    </td>
-                    <td>
-                        <button type="button" class="btn-save" onclick="updateDelivery('${item.deliveryId}')">저장</button>
-                    </td>
-                </tr>
-            </c:forEach>
-        </tbody>
+		    <c:forEach var="item" items="${deliveryList}">
+		        <tr id="row-${item.deliveryId}">
+		            <td>${item.deliveryId}</td>
+		            <td>${item.orderId}</td>
+		            <td>
+		                <strong>${item.statusName}</strong><br>
+		                <small style="color:gray;">(${item.deliveryStatus})</small>
+		            </td>
+		            <td>
+		                <select id="status-${item.deliveryId}">
+		                    <option value="READY" ${item.deliveryStatus == 'READY' ? 'selected' : ''}>상품준비중</option>
+		                    <option value="L_SHIPPING" ${item.deliveryStatus == 'L_SHIPPING' ? 'selected' : ''}>국내배송중</option>
+		                    <option value="L_WH" ${item.deliveryStatus == 'L_WH' ? 'selected' : ''}>국내창고입고</option>
+		                    <option value="ABROAD" ${item.deliveryStatus == 'ABROAD' ? 'selected' : ''}>국제운송중</option>
+		                    <option value="IN_CUSTOMS" ${item.deliveryStatus == 'IN_CUSTOMS' ? 'selected' : ''}>통관진행중</option>
+		                    <option value="C_DONE" ${item.deliveryStatus == 'C_DONE' ? 'selected' : ''}>통관완료</option>
+		                    <option value="D_SHIPPING" ${item.deliveryStatus == 'D_SHIPPING' ? 'selected' : ''}>배송중</option>
+		                    <option value="COMPLETE" ${item.deliveryStatus == 'COMPLETE' ? 'selected' : ''}>배송완료</option>
+		                </select>
+		            </td>
+		            <td>
+		                <input type="text" id="tracking-${item.deliveryId}" value="${item.trackingNo}" placeholder="송장번호 입력">
+		            </td>
+		            <td>
+		                <button type="button" class="btn-save" onclick="updateDelivery('${item.deliveryId}')">저장</button>
+		            </td>
+		        </tr>
+		    </c:forEach>
+		</tbody>
     </table>
 
     <script>

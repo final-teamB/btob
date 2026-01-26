@@ -29,7 +29,7 @@
 		SET 
 			delivery_status = #{deliveryStatus},
 			tracking_no = #{trackingNo},
-			upd_dtime = #{updDtime},
+			upd_dtime = NOW(),
 			upd_id = #{updId}
 		WHERE delivery_id = #{deliveryId}
 	</update>
