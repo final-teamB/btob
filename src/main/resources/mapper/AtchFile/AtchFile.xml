@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.jprtest.mapper.AtchFileMapper">
+    
+    
+    <!-- 2026.01.26. 파일 정보 단건 저장 -->
+    <insert id="insertFile" 
+    	parameterType="io.github.teamb.btob.jprtest.dto.AtchFileDto" 
+    	useGeneratedKeys="true" 
+    	keyProperty="fileId">
+    	
+	        INSERT INTO TB_ATCH_FILE_MST ( 
+	            ref_type_cd, 
+	            ref_id, 
+	            org_file_nm, 
+	            str_file_nm, 
+	            file_path, 
+	            file_ext, 
+	            file_size
+	        ) VALUES (
+	            #{refTypeCd}, 
+	            #{refId}, 
+	            #{orgFileNm}, 
+	            #{strFileNm}, 
+	            #{filePath}, 
+	            #{fileExt}, 
+	            #{fileSize}
+	        )
+        
+    </insert>
+    
+    <!-- 2026.01.26. 파일 단건 상세 조회 (다운로드용)-->
+    <select id="selectFileById" 
+    	parameterType="int" 
+    	resultType="io.github.teamb.btob.jprtest.dto.AtchFileDto">
+    	
+        	SELECT * FROM TB_ATCH_FILE_MST WHERE file_id = #{fileId}
+        
+    </select>
+
+	<!-- 2026.01.26. 참조 대상별 파일 목록 조회 -->
+    <select id="selectFileListByRef" 
+    	parameterType="map" 
+    	resultType="io.github.teamb.btob.jprtest.dto.AtchFileDto">
+        
+	        SELECT 
+	        	*
+	        FROM 
+	       		TB_ATCH_FILE_MST
+	        WHERE 1=1 
+		    AND ref_type_cd = #{refTypeCd} 
+		    AND ref_id = #{refId} 
+		    AND use_yn = 'Y'
+	        	
+    </select>
+
+    <!-- 2026.01.26. 파일 정보 삭제 (미사용으로 미표출 처리) -->
+    <update id="deleteFileById" parameterType="int">
+    
+		    UPDATE 
+		    	TB_ATCH_FILE_MST
+		    SET 
+		    	use_yn = 'N'
+		    WHERE file_id = #{fileId}
+	    
+	</update>
+    
+</mapper>
