@@ -31,10 +31,14 @@
 		<spring-ai.version>1.1.2</spring-ai.version>
 	</properties>
 	<dependencies>
-		<dependency>
+		
+		<!-- 테스트 때문에 주석 처리
+			<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+		-->
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -44,10 +48,13 @@
 			<artifactId>mybatis-spring-boot-starter</artifactId>
 			<version>3.0.5</version>
 		</dependency>
-		<dependency>
+		
+		<!-- 테스트 때문에 주석 처리
+			<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-openai</artifactId>
 		</dependency>
+		-->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -76,11 +83,80 @@
 			<version>3.0.5</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+		
+		<!-- 테스트 때문에 주석 처리
+			<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		-->
+		
+		
+		<!--JSP-->
+	    <dependency>
+	        <groupId>org.apache.tomcat.embed</groupId>
+	        <artifactId>tomcat-embed-jasper</artifactId>
+	    </dependency>
+	    
+	    <dependency>
+	        <groupId>jakarta.servlet.jsp.jstl</groupId>
+	        <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.glassfish.web</groupId>
+	        <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+	    </dependency>
+	
+	    <dependency>
+	        <groupId>jakarta.servlet</groupId>
+	        <artifactId>jakarta.servlet-api</artifactId>
+	        <scope>provided</scope>
+	    </dependency>
+
+		
+		
+		<!-- 엑셀 -->
+		<dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi</artifactId>
+        <version>5.2.5</version> </dependency>
+
+	    <dependency>
+	        <groupId>org.apache.poi</groupId>
+	        <artifactId>poi-ooxml</artifactId>
+	        <version>5.2.5</version> </dependency>
+	
+	    <dependency>
+	        <groupId>org.apache.poi</groupId>
+	        <artifactId>poi-ooxml-schemas</artifactId>
+	        <version>4.1.2</version> </dependency>
+	    
+	    <dependency>
+	        <groupId>commons-io</groupId>
+	        <artifactId>commons-io</artifactId>
+	        <version>2.15.1</version> 
+	    </dependency>
+		
+		
+		
+		
+		<!-- Flying Saucer Core (HTML to PDF 변환 엔진) -->
+		<dependency>
+		    <groupId>org.xhtmlrenderer</groupId>
+		    <artifactId>flying-saucer-core</artifactId>
+		    <version>9.1.22</version>
+		</dependency>
+		<!-- Flying Saucer PDF 확장 (iText 라이브러리 기반) -->
+		<dependency>
+		    <groupId>org.xhtmlrenderer</groupId>
+		    <artifactId>flying-saucer-pdf</artifactId>
+		    <version>9.1.22</version>
+		</dependency>
+		
+		
+		
+		
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
