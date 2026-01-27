@@ -9,6 +9,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/admin/stats")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class StatisticsController {
 	
@@ -29,7 +31,7 @@ public class StatisticsController {
 	// 종합 대시보드 (메인)
     @GetMapping("/main")
     public String statisticsMain() {
-        return "test/statistics/statistics"; // 종합 화면용 JSP
+        return "test/statistics/stats"; // 종합 화면용 JSP
     }
 	
 	// 1. 주문 현황 

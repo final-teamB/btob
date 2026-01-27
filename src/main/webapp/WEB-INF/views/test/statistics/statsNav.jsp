@@ -24,3 +24,4 @@
     if(path.includes('delivery')) document.getElementById('nav-delivery').classList.add('active');
     if(path.includes('user')) document.getElementById('nav-user').classList.add('active');
     if(path.includes('product')) document.getElementById('nav-product').classList.add('active');
+</script>

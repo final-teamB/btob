@@ -18,7 +18,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            fetch('/admin/stats/data')
+            fetch('${pageContext.request.contextPath}/admin/stats/data')
                 .then(res => res.json())
                 .then(data => {
                     createProductChart(data.productStats);

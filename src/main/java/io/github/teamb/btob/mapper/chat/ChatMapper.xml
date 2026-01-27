@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.chat.ChatMapper">
+	
+	<insert id="insertChatLog" parameterType="io.github.teamb.btob.dto.chat.ChatbotDTO">
+	    INSERT INTO TB_CHATBOT (question, answer, reg_dtime, user_no)
+	    VALUES (#{question}, #{answer}, NOW(), #{userNo})
+	</insert>
+</mapper>

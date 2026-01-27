@@ -179,12 +179,14 @@
 		    <version>9.1.22</version>
 		</dependency>
 		
-		
-		
-		
+		<!-- ai -->
+		 <dependency>
+		    <groupId>org.springframework.ai</groupId>
+		    <artifactId>spring-ai-starter-model-openai</artifactId>
+		  </dependency>
 		
 	</dependencies>
-	<!--<dependencyManagement>
+	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>org.springframework.ai</groupId>
@@ -194,7 +196,9 @@
 				<scope>import</scope>
 			</dependency>
 		</dependencies>
-	</dependencyManagement>-->
+	</dependencyManagement>
+
+
 
 	<build>
 		<plugins>
