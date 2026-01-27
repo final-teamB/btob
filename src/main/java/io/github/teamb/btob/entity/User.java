@@ -30,6 +30,18 @@ public class User {
 
     @Column(nullable = false, length = 100)
     private String email;
+    
+    @Column(length = 50)
+    private String position; // 직위
+
+    @Column(length = 255)
+    private String address;  // 주소
+
+    @Column(name = "business_number", length = 20)
+    private String businessNumber; // 사업자번호
+
+    @Column(name = "is_representative", length = 1)
+    private String isRepresentative; // 대표자 여부 (Y/N)
 
     @Column(name = "company_cd")
     private String companyCd;

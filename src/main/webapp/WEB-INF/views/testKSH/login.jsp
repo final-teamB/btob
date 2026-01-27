@@ -25,10 +25,10 @@
             </c:if>
 
             <form action="/login" method="post">
-                <div class="mb-3">
-				    <label for="username" class="form-label">이메일 (ID)</label>
-				    <input type="email" class="form-control" id="username" name="email" required placeholder="name@example.com">
-				</div>
+			    <div class="mb-3">
+			        <label for="username" class="form-label">이메일 (ID)</label>
+			        <input type="email" class="form-control" id="username" name="email" required placeholder="name@example.com">
+			    </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">비밀번호</label>
                     <input type="password" class="form-control" id="password" name="password" required>
