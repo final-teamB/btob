@@ -24,12 +24,24 @@ public class ExcelTestService  {
     // 추출할 데이터
     private final AtchFileMapper atchFileMapper;
 
+
     /**
-     * 양식 다운로드
+     * 
+     * 양식 다운로드 ( 서버에 저장한 양식 파일 )
+     * @author GD
+     * @since 2026. 1. 27.
+     * @param response
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 1. 27.  GD       최초 생성
      */
     public void processTempDownload(HttpServletResponse response) throws Exception {
     	
+    	// 1. 파일명 설정
     	String fileName = "고정양식테스트123.xlsx";
+    	
+    	// 2. 다운로드 실행
     	excelService.downloadExcelTemplate(response, fileName);
     }
     
@@ -55,7 +67,8 @@ public class ExcelTestService  {
 	            "strFileNm", 
 	            "filePath", 
 	            "fileExt", 
-	            "fileSize");
+	            "fileSize",
+	            "updDtime");
 
         // 2. 한글-영문 매핑 정보
         // 엑셀파일하고 동일하게 맞춰야함
@@ -66,11 +79,21 @@ public class ExcelTestService  {
         myHeader.put("변환파일명", "strFileNm"); 
         myHeader.put("파일경로", "filePath"); 
         myHeader.put("파일확장자", "fileExt"); 
-        myHeader.put("파일사이즈", "fileSize"); 
+        myHeader.put("파일사이즈", "fileSize");
+        myHeader.put("수정시간", "updDtime");
         
+        // 필수로 들어가야하는 값 ( 필수 항목 정의 )
+        List<String> requiredKeys = List.of("refTypeCd", 
+								        		"refId", 
+								        		"orgFileNm", 
+								        		"strFileNm", 
+								        		"filePath", 
+								        		"fileExt", 
+								        		"updDtime" );  
+								        
         // 3. 공통 모듈 호출 (검증 리스트 추가 전달)
         List<AtchFileDto> dtoList = excelService.uploadExcelToDto(
-                file, myHeader, validKeys, AtchFileDto.class
+                file, myHeader, validKeys, requiredKeys, AtchFileDto.class
             );
 
         // 데이터 저장
@@ -82,7 +105,16 @@ public class ExcelTestService  {
     
     
     /**
-     * 엑셀 다운로드 실행 로직
+     * 
+     * 조회 자료 엑셀 다운로드
+     * @author GD
+     * @since 2026. 1. 27.
+     * @param response
+     * @param param
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 1. 27.  GD       최초 생성
      */
     public void downloadUserExcel(HttpServletResponse response, Map<String, Object> param) throws Exception {
 
@@ -98,6 +130,7 @@ public class ExcelTestService  {
         headerMap.put("filePath", "파일경로"); 
         headerMap.put("fileExt", "파일확장자"); 
         headerMap.put("fileSize", "파일사이즈");
+        headerMap.put("regDtime", "생성시간");
 
         // 3. 파일명 설정 
         String fileName = "자료_엑셀_다운로드_테스트" + System.currentTimeMillis();

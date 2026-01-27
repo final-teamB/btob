@@ -16,7 +16,8 @@
 	            str_file_nm, 
 	            file_path, 
 	            file_ext, 
-	            file_size
+	            file_size,
+	            upd_dtime
 	        ) VALUES (
 	            #{refTypeCd}, 
 	            #{refId}, 
@@ -24,7 +25,8 @@
 	            #{strFileNm}, 
 	            #{filePath}, 
 	            #{fileExt}, 
-	            #{fileSize}
+	            #{fileSize},
+	            #{updDtime}
 	        )
         
     </insert>

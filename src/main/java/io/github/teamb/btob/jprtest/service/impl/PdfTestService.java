@@ -20,7 +20,17 @@ public class PdfTestService {
     private final PdfService pdfService;         // 공통 PDF 모듈
 
     /**
-     * PDF 생성 로직
+     * 
+     * PDF 생성
+     * @author GD
+     * @since 2026. 1. 27.
+     * @param request
+     * @param response
+     * @param param			자료 조건값 파라미터 MAP
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 1. 27.  GD       최초 생성
      */
     public void downloadPdf(HttpServletRequest request, 
     						HttpServletResponse response, 

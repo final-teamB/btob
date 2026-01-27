@@ -23,7 +23,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 // 1. 모든 정적 자원과 에러 페이지, 파비콘을 완전히 개방
-                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error", "/favicon.ico", "jjjtest").permitAll()
                 // 2. 나머지 모든 요청 permitAll()로 설정
                 .anyRequest().permitAll()
             )

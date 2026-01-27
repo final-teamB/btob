@@ -22,15 +22,10 @@ public interface ExcelService {
      // 엑셀 데이터를 특정 DTO 클래스 리스트로 반환
     <T> List<T> uploadExcelToDto(MultipartFile file, 
     								Map<String, String> headerMap, 
-    								List<String> validKeys, 
+    								List<String> validKeys,
+    								List<String> requiredKeys,
     								Class<T> clazz) throws Exception;
     
-    /**
-     * @param response     응답 객체
-     * @param fileName     다운로드될 파일명
-     * @param headerMap    헤더 매핑 (Key: 데이터의 영문키, Value: 엑셀에 노출할 한글명)
-     * @param dataList     출력할 데이터 리스트
-     */
     // 조회한 자료 엑셀다운로드
     void downloadExcel(HttpServletResponse response, 
     				String fileName, 

@@ -4,6 +4,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriUtils;
 import org.xhtmlrenderer.pdf.ITextRenderer;
@@ -55,6 +56,19 @@ public class PdfServiceImpl implements PdfService {
         generatePdfFromHtml(response, fileName, htmlContent);
     }
 
+    
+    /**
+     * 
+     * @author HTML 문자열을 PDF 바이트로 변환
+     * @since 2026. 1. 27.
+     * @param response
+     * @param fileName
+     * @param htmlContent
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 1. 27.  GD       최초 생성
+     */
     private void generatePdfFromHtml(HttpServletResponse response, 
             String fileName, 
             String htmlContent) throws Exception {
@@ -66,11 +80,15 @@ public class PdfServiceImpl implements PdfService {
 			try (OutputStream os = response.getOutputStream()) {
 			ITextRenderer renderer = new ITextRenderer();
 			
-			// [중요] 한글 폰트 설정 (윈도우 서버 기준 맑은 고딕 경로)
-			// 리눅스 서버라면 "/usr/share/fonts/..." 경로의 .ttf 파일을 지정해야 합니다.
-			renderer.getFontResolver().addFont("C:/Windows/Fonts/malgun.ttf", 
-			                       BaseFont.IDENTITY_H, 
-			                       BaseFont.EMBEDDED);
+			// 리소스 경로에서 폰트 파일을 읽어옴
+	        ClassPathResource fontResource = new ClassPathResource("fonts/NanumGothic.ttf");
+	        
+	        // 파일 시스템 경로가 아닌 URL 형태나 절대 경로로 변환하여 등록
+	        String fontPath = fontResource.getURL().toString();
+	        
+	        renderer.getFontResolver().addFont(fontPath, 
+	                               BaseFont.IDENTITY_H, 
+	                               BaseFont.EMBEDDED);
 			
 			renderer.setDocumentFromString(htmlContent);
 			renderer.layout();

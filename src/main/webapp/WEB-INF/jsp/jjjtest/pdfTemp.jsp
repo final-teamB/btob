@@ -8,7 +8,7 @@
     <style>
         @page { size: A4; margin: 15mm; }
         body { 
-            font-family: 'Malgun Gothic', sans-serif; 
+            font-family: 'NanumGothic', sans-serif; 
             line-height: 1.2;
             color: #333;
             margin: 0;

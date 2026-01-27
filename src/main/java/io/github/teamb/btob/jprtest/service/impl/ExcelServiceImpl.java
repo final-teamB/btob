@@ -3,6 +3,7 @@ package io.github.teamb.btob.jprtest.service.impl;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.springframework.web.util.UriUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -135,18 +137,25 @@ public class ExcelServiceImpl implements ExcelService {
         
         // 엑셀 헤더의 위치(Index)별 영문 Key를 저장할 배열
         String[] targetKeys = new String[columnCount];
+        // 에러 메시지용 한글 이름 저장
+        String[] headerNames = new String[columnCount];
         
         // 각 헤더셀 이름이 일치한지 확인하면서 영문 키 벨류 값 넣기
         // 사용자계정, 사용자이름 이런식으로 헤더가 되어 있으면
         // userId, userNm 으로 매칭시킵니다.
         for (int i = 0; i < columnCount; i++) {
-            String excelHeaderName = getCellValue(headerRow.getCell(i)).trim(); // 공백 제거 후 비교
             
+        	String excelHeaderName = getCellValue(headerRow.getCell(i)).trim(); // 공백 제거 후 비교
+            
+        	// 한글 헤더명 보관
+            headerNames[i] = excelHeaderName; 
+            
+            // 헤더명 비교처리 후 영문 키 저장
             if (headerMap.containsKey(excelHeaderName)) {
                 targetKeys[i] = headerMap.get(excelHeaderName);
             } else {
             	
-                // [보완] 매핑되지 않은 헤더가 들어왔을 때 예외를 던지거나 로그를 남김
+                // 매핑되지 않은 헤더가 들어왔을 때 예외를 던지거나 로그를 남김
             	throw new Exception("엑셀의 [" + excelHeaderName + "] 헤더는 허용되지 않는 명칭입니다.");
             }
         }
@@ -190,7 +199,11 @@ public class ExcelServiceImpl implements ExcelService {
                 break;
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    value = cell.getDateCellValue().toString();
+
+                	// ISO 표준 포맷으로 변환 , LocalDateTime이 기본적으로 읽을 수 있는 yyyy-MM-ddTHH:mm:ss 형식 
+                	Date date = cell.getDateCellValue();
+                    value = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+                    //value = cell.getDateCellValue().toString();
                 } else {
                 	// 지수 표기법 방지 (1234567.0 -> "1234567")
                 	value = String.format("%.0f", cell.getNumericCellValue());
@@ -215,6 +228,7 @@ public class ExcelServiceImpl implements ExcelService {
      * @param file
      * @param headerMap
      * @param validKeys
+     * @param requiredKeys
      * @param clazz 변환할 클래스 타입 <T> 반환할 DTO 타입 (예: AtchFileDto.class)
      * @return 엑셀 데이터가 담긴 DTO 리스트
      * @throws Exception
@@ -225,24 +239,74 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public <T> List<T> uploadExcelToDto(MultipartFile file, 
     								Map<String, String> headerMap, 
-                                    List<String> validKeys, 
+                                    List<String> validKeys,
+                                    List<String> requiredKeys,
                                     Class<T> clazz) throws Exception {
-        
-        // 1. 기존에 만든 Map 기반 업로드 메서드 호출
+    	
+    	// 1. 엑셀 데이터를 Map 리스트로 추출
         List<Map<String, Object>> dataList = this.uploadExcelFile(file, headerMap, validKeys);
         
         // 2. Map을 DTO로 변환 (Jackson ObjectMapper 활용)
         ObjectMapper mapper = new ObjectMapper();
+        // Java 8 date/time 모듈 등록 Convert 오류남
+        mapper.registerModule(new JavaTimeModule());
+        
         List<T> resultList = new ArrayList<>();
         
-        for (Map<String, Object> map : dataList) {
-            // mapper.convertValue가 Map의 Key와 DTO의 필드명을 매핑해줍니다.
-            resultList.add(mapper.convertValue(map, clazz));
+        for (int i = 0; i < dataList.size(); i++) {
+            
+        	Map<String, Object> map = dataList.get(i);
+            int rowNum = i + 2; // 엑셀 행 번호 (헤더 1행 제외하고 2행부터 데이터)
+
+            // 2. 필수값(Required Keys) 검증
+            if (requiredKeys != null) {
+            	
+                for (String reqKey : requiredKeys) {
+                	
+                    Object val = map.get(reqKey);
+                    
+                    if (val == null || val.toString().trim().isEmpty()) {
+                    	
+                        // 한글 헤더명을 찾아서 메시지에 노출 (가독성 향상)
+                        String hNm = findKoreanHeader(headerMap, reqKey);
+                        throw new Exception(rowNum + "행의 [" + hNm + "] 항목은 필수 입력값입니다.");
+                    }
+                }
+            }
+
+            // 3. DTO 변환 및 타입 검증 (숫자, 날짜 등 형식 오류 캐치)
+            try {
+                resultList.add(mapper.convertValue(map, clazz));
+            } catch (IllegalArgumentException e) {
+                // Jackson이 던지는 에러 메시지를 분석하여 사용자용 메시지로 변환
+                String errorMsg = e.getMessage();
+                throw new Exception(rowNum + "행의 데이터 형식이 올바르지 않습니다. (입력값 확인 필요)");
+            }
         }
         
         return resultList;
     }
     
+    /**
+     * 
+     * 엑셀 데이터 검증 체크 ( 데이터 타입, 필수값 체크 ) 
+     * @author GD
+     * @since 2026. 1. 27.
+     * @param headerMap
+     * @param engKey
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 1. 27.  GD       최초 생성
+     */
+    private String findKoreanHeader(Map<String, String> headerMap, String engKey) {
+    	
+        return headerMap.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(engKey))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(engKey);
+    }
     
     
     
@@ -270,6 +334,9 @@ public class ExcelServiceImpl implements ExcelService {
     	
     	// DTO 리스트를 Map 리스트로 변환 (ObjectMapper 활용)
         ObjectMapper mapper = new ObjectMapper();
+        // Java 8 date/time 모듈 등록 Convert 오류남
+        mapper.registerModule(new JavaTimeModule());
+        
         List<Map<String, Object>> convertedList = new ArrayList<>();
         
         if (dataList != null) {
