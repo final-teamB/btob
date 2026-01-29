@@ -82,7 +82,7 @@ public class ExcelTestService  {
         myHeader.put("파일사이즈", "fileSize");
         myHeader.put("수정시간", "updDtime");
         
-        // 필수로 들어가야하는 값 ( 필수 항목 정의 )
+        // 필수로 들어가야하는 값 ( 필수 항목 정의 == null 값 검증 부분임)
         List<String> requiredKeys = List.of("refTypeCd", 
 								        		"refId", 
 								        		"orgFileNm", 

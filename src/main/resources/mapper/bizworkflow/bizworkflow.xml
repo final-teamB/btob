@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.bizworkflow.BizWorkflowMapper">	
+
+	<!-- 동적쿼리 사용 시 적용할 테이블, 상태 컬럼, 식별자컬럼 확인 -->
+	<select id="selectTargetParams"
+		parameterType="String"
+		resultType="io.github.teamb.btob.dto.bizworkflow.EtpDynamicParamsDTO">
+			
+			SELECT 
+				target_table,
+				target_status_col,
+				target_pk_col
+			FROM
+				TB_ETP_TARGET_TABLE
+			WHERE
+				system_id = #{systemId}
+	
+	</select>
+
+	<!-- 견적 ~ 주문 상태코드 업데이트 시 요청 들어온 진행건의 현재 상태코드 확인 -->
+	<select id="selectCurrentStatusByRefId"
+		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusSelectDTO"
+		resultType="String">
+	
+			SELECT
+				${pkCol}
+			FROM
+				${targetTable}
+			WHERE 1=1 
+			AND ${targetPkCol} = #{refId}
+			AND reg_id = #{apprUserNo}
+	
+	</select>
+	
+	<!-- 견적/주문/구매/결제 현재상태코드의 다음단계 상태코드 조회 (승인) -->
+	<select id="selectNextStatus"
+		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusSeqDTO"
+		resultType="String">
+		
+			SELECT 
+				etp_stts_cd
+			FROM TB_ETP_STTS_CD
+			WHERE 1=1 
+			AND system_id = #{systemId}
+			AND seq > (
+							SELECT 
+								seq 
+							FROM 
+								TB_ETP_STTS_CD 
+							WHERE 1=1 
+							AND system_id = #{systemId} 
+							AND etp_stts_cd = #{currentEtpStatus}
+			  			)
+			ORDER BY seq ASC
+			LIMIT 1;
+		
+	</select>
+
+	<!-- 견적/주문/구매/결제 현재상태코드의 반려 상태코드 조회 ( 반려 ) -->
+	<select id="selectRejtStatus"
+		parameterType="String"
+		resultType="String">
+	
+			SELECT 
+				etp_stts_cd
+			FROM TB_ETP_STTS_CD
+			WHERE 1=1 
+			AND system_id = #{systemId}
+			AND seq = 99
+		
+	</select>
+
+	<!-- 견적/주문결제 상태코드 값 변경 -->
+	<update id="updateEtpStatus" 
+		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusUpdateDTO">
+		
+			UPDATE 
+				${targetTable}
+			SET
+				${targetStatusCol} = #{updateStatus}
+				,upd_dtime = CURRENT_TIMESTAMP
+				-- ,upd_id = #{userNo}
+			WHERE 1=1
+				AND use_yn = 'Y'
+				AND ${targetPkCol} = #{refId}
+				AND ${targetStatusCol} = #{currentEtpStatus}
+				
+	</update>
+	
+	
+	<insert id="insertEtpHist" 
+		parameterType="io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO">
+	
+			INSERT INTO TB_ETP_HIST (
+				 etp_id
+				,appr_user_id --승인자
+				,etp_stts_cd
+				,rejt_rsn
+				,reg_id	--요청자
+			) VALUES (
+				 #{refId}
+				,#{apprUserNo}
+				,#{requestEtpStatus}
+				,#{rejt_rsn}
+				,#{requestUserNo}
+			)
+	
+	</insert>
+
+</mapper>
