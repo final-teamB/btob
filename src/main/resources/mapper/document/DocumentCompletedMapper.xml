@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.document.DocumentCompletedMapper">
+	
+		<select id="getDocumentById" resultType="DocumentPreviewDTO">
+			SELECT 
+				d.doc_id,
+				d.doc_no,
+				d.doc_type,
+				d.memo,
+				d.reg_dtime,
+			    o.order_id,
+			    o.order_no, 
+			    o.order_status,
+			    c.cart_id,
+			    c.total_qty,
+			    c.total_price,
+			    c.fuel_id,
+			    f.fuel_nm
+			    u.user_name
+			FROM TB_DOCUMENT_MST d
+			LEFT JOIN TB_ORDER_MST o ON d.order_id = o.order_id
+			LEFT JOIN TB_CART c ON o.cart_id = c.cart_id
+			LEFT JOIN TB_OIL_MST f ON c.fuel_id = f.fuel_id
+			LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_name
+			WHERE o.doc_id = #{docId}
+			ORDER BY d.doc_id DESC;
+		</select>
+		
+		<select id="getDocumentList" resultType="DocumentListDTO">
+		    SELECT 
+		        d.doc_id,
+		        d.doc_no,
+		        d.doc_type,
+		        d.memo,
+		        d.reg_dtime,
+		        u.user_name 
+		    FROM TB_DOCUMENT_MST d
+		    LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_no
+		    ORDER BY d.doc_id DESC
+		</select>
+</mapper>

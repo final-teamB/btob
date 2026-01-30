@@ -52,13 +52,14 @@ public class TestController {
 		this.usersService = usersService;
 	}
 
-	  @GetMapping("/test")
+	    @GetMapping("/test")
 	    public String testPage(Model model) {
-		  model.addAttribute("tossCk", tossCk);
-	        return "testjg/test"; // JSP 호출
+	        model.addAttribute("pageTitle", "테스트 페이지");          // 브라우저 탭 제목
+	        model.addAttribute("content", "testjg/test.jsp");       // layout.jsp <main>에 들어갈 JSP
+	        model.addAttribute("tossCk", tossCk);                  // 기존에 쓰던 모델 값 그대로 추가
+	        return "layout/layout";                                 // layout.jsp 호출
 	    }
-	  	
-	
+		
 	    @PostMapping("/test")
 	    public String uploadExcel(@RequestParam("file") MultipartFile file, Model model) {
 	        try {
@@ -69,12 +70,17 @@ public class TestController {
 	        } catch(Exception e) {
 	            model.addAttribute("msg", "업로드 실패: " + e.getMessage());
 	        }
-	        return "test"; // JSP: 결과 페이지
+	        return "testjg/test"; // JSP: 결과 페이지
 	    }
 	  
 	    @GetMapping("/pdf")
 	    public String pdfPage() {
 	    	return "testjg/pdf"; // JSP 호출
+	    }
+	    
+	    @GetMapping("/testDataGrid")
+	    public String testDataGrid() {
+	    	return "testjg/testDataGrid"; // JSP 호출
 	    }
 	    
 	    @GetMapping("/pdfDown")
