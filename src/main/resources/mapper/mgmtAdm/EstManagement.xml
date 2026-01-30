@@ -5,39 +5,37 @@
 	<sql id="searchCondi">
 	
 		AND ( 
-			        a.est_no LIKE CONCAT('%', #{searchCondition}, '%')
-			        OR a.ctrt_nm LIKE CONCAT('%', #{searchCondition}, '%')
-					OR b.user_name LIKE CONCAT ('%', #{searchCondition}, '%' )
+			        b.est_no LIKE CONCAT('%', #{searchCondition}, '%')
+			        OR b.ctrt_nm LIKE CONCAT('%', #{searchCondition}, '%')
+					OR fnc_get_user_nm(b.request_user_id) LIKE CONCAT ('%', #{searchCondition}, '%' )
 					OR c.company_name LIKE CONCAT ('%', #{searchCondition}, '%')
 				)
 				
 	</sql>
 	
-	
-	<!-- 견적서 조회 -->
-	<select id="selectEstMstListAdm"
+	<!-- 견적서 관리 조회 -->
+	<select id="selectEstSearchConditionListAdm"
 		parameterType="java.util.Map"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.EstMgmtAdmDTO">
+		resultType="io.github.teamb.btob.dto.mgmtAdm.est.SearchConditionEstDTO">
 		
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
-				,a.est_no
-				,a.ctrt_nm
-				,a.ttl_est_amt
-				,a.est_stts_cd
-				,b.user_name,
-				,c.company_name
+				,b.est_no
+				,b.ctrt_nm
+				,b.company_name
+				,b.company_phone
+				,fnc_get_usernm(b.request_user_id) AS requestUserNm
 				,a.reg_dtime
-				,a.upd_dtime
 				,a.expire_dtime
-				,a.use_yn
+				,a.etp_stts_cd
+				,c.appr_dtime
 			FROM
 				TB_EST_MST a,
-				TB_USERS b,
-				TB_COMPANIES c
-			WHERE 1 = 1
-				AND a.reg_id = b.user_id
-				AND b.company_cd = c.company_cd
+				TB_EST_DOC b,
+				TB_ETP_HIST c
+			WHERE 1=1
+				AND a.est_doc_id = b.est_doc_id
+				AND a.est_id = c.etp_id
 				<if test="searchCondition != null and searchCondition.trim() != ''">
 			       <include refid="searchCondi" />
 			    </if>
@@ -47,7 +45,7 @@
 	</select>
 	
 	<!-- 견적서 조회 건수 -->
-	<select id="countEstMstListCntAdm"
+	<select id="selectEstSearchConditionListCntAdm"
 		parameterType="String"
 		resultType="int">
 		
@@ -55,71 +53,139 @@
 				COUNT(a.est_id)
 			FROM
 				TB_EST_MST a,
-				TB_USERS b,
-				TB_COMPANIES c
+				TB_EST_DOC b
 			WHERE 1 = 1
-				AND a.reg_id = b.user_id
-				AND b.company_cd = c.company_cd
+				AND a.est_doc_id = b.est_doc_id
 				<if test="searchCondition != null and searchCondition.trim() != ''">
 			       <include refid="searchCondi" />
 			    </if>
 		    
 	</select>
 	
-	<!-- 견적서 상세 조회 ( 견적서 출력 시에 사용 ) 
-		장바구니는 cart서비스에서 당겨올것
-		a.target_unit_prc 희망단가 를 물품하고 받아서 리스트로 당겨서
-		a.ttl_est_amt 예상총액 계산해야하는데 좀 회의 필요
-		사용자를 userNo로 판가름할지 userId로 할지 생각해야함
-		-->
-	<select id="selectEstMstInfoByIdAdm"
+	<!-- 견적서 상세 조회 -->
+	<select id="selectEstDocByIdAdm"
 		parameterType="int"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.EstMgmtAdmDTO">
+		resultType="io.github.teamb.btob.dto.mgmtAdm.est.EstDocDTO">
 		
 			SELECT 
-				,a.est_id	-- 견적서식별번호
-				,a.est_no	-- 견적서NO
-				,a.ctrt_nm	-- 계약명
-				,-- a.target_unit_prc	-- 희망단가
-				,-- a.ttl_est_amt	-- 예상총액
-				,a.estdt_memo	-- 요청상세내용
-				,a.est_stts_cd	-- 견적상태코드
-				,a.expire_dtime	-- 견적 유효 기한
-				,c.user_name	-- 요청자 서명
-				,d.company_name -- 요청 회사명
-				,d.company_phone -- 요청 회사 연락처
-				,e.user_name		-- 승인자
-				,b.rejt_rsn		-- 반려시 반려 사유
-				,a.reg_dtime		-- 생성일자
-				,a.upd_dtime		-- 수정일자
-				,a.upd_id		-- 수정자
-				,a.use_yn		-- 조회여부
+			    b.est_no          
+			    ,b.company_name    
+			    ,b.company_phone   
+			    ,fnc_get_usernm(b.request_user_id) AS requestUserNm 
+			    ,fnc_get_usernm(b.appr_user_id) AS apprUserNm    
+			    ,b.ctrt_nm         
+			    ,b.estdt_memo      
+			    ,fnc_get_productnm(c.product_id) AS productNm       
+			    ,c.product_qty      
+			    ,c.base_product_prc  
+			    ,c.base_product_amt  
+			    ,c.target_product_prc
+			    ,c.target_product_amt
+			    ,b.base_total_amount
+			    ,b.target_total_amount
 			FROM 
 				TB_EST_MST a,
-				TB_EST_HIST b,
-				TB_USERS c,
-				TB_COMPANIES d,
-				TB_USERS e
+				TB_EST_DOC b,
+				TB_EST_CART_ITEM c
 			WHERE 1=1
 			AND a.est_id = b.est_id
-			AND a.reg_id = c.user_no
-			AND c.company_cd = d.company_cd
-			AND b.appr_user_id = e.user_no
+			AND b.est_cart_id = c.est_cart_id
 			AND a.est_id = #{estId}
 		
 	</select>
 	
-	<select id="selectEstMstInfoCartList">
+	<!-- 1. 견적서 메인 장바구니 생성 -->
+	<insert id="insertEstCartAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstCartDTO"
+		useGeneratedKeys="true" 
+        keyProperty="estCartId">
+        
+			INSERT INTO TB_EST_CART (reg_id) VALUES (#{requestUserId})
+			
+	</insert>
 	
-		SELECT 
-			product_id -- 상품명
-			total_qty -- 수량
-			target_unit_prc -- 희망단가
-			ttl_est_amt -- 예상 견적 총액
-		FROM
-			TB_CART
-		WHERE 
+	<!-- 2. 견적서 장바구니 물품 등록 -->
+	<insert id="insertEstCartItemsAdm" 
+		parameterType="java.util.List">
+		
+		    INSERT INTO TB_EST_CART_ITEM (
+		        est_cart_id
+		        , product_id
+		        , product_qty
+		        , base_product_prc
+		        , base_product_amt
+		        , target_product_prc
+		        , target_product_amt
+		        , reg_id
+		    ) VALUES 
+		    <foreach collection="list" item="item" separator=",">
+		    (
+		        #{item.estCartId}
+		        , #{item.productId}
+		        , #{item.productQty}
+		        , #{item.baseProductPrc}
+		        , #{item.baseProductAmt}
+		        , #{item.targetProductPrc}
+		        , #{item.targetProductAmt}
+		        , #{item.regId}
+		    )
+		    </foreach>
+		    
+	</insert>
 	
-	</select>
-
+	<!-- 3. 견적서 문서 생성 -->
+	<insert id="insertEstDocAdm" 
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstDocDTO">
+		
+		    INSERT INTO TB_EST_DOC (
+		        est_no
+		        , company_name
+		        , company_phone
+		        , request_user_id
+		        , appr_user_id
+		        , ctrt_nm
+		        , est_cart_id
+		        , estdt_memo
+		        , base_total_amount
+		        , target_total_amount
+		        , reg_id
+		    ) VALUES (
+		        #{estNo}
+		        , #{companyName}
+		        , #{companyPhone}
+		        , #{requestUserId}
+		        , #{apprUserId}
+		        , #{ctrtNm}
+		        , #{estCartId}
+		        , #{estdtMemo}
+		        , #{baseTotalAmount}
+		        , #{targetTotalAmount}
+		        , #{requestUserId}
+		    )
+		    
+	</insert>
+	
+	<!-- 4. 견적서 메인 생성 -->
+	<insert id="insertEstMstAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstMstDTO">
+	
+			INSERT INTO TB_EST_MST ( 
+				est_doc_id,
+				etp_stts_cd ) VALUES 
+	
+	</insert>
+	
+	
+	<!-- 견적서 미사용 처리 -->
+	<update id="unUseEstAdm"
+		parameterType="int">
+		
+			UPDATE 
+				TB_EST_MST
+			SET
+				use_yn = 'N'
+			WHERE est_id = #{estId} 
+		
+	</update>
+	
 </mapper>

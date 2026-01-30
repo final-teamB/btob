@@ -12,5 +12,4 @@ public interface OrderManagementMapper {
 	
 	// 상세조회
 	void selectOrderMstInfoById(Integer orderId);
-
 }
