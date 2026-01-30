@@ -24,7 +24,7 @@ public class CommonServiceImpl implements CommonService{
 
 	/**
 	 * 
-	 * 셀렉박스 추출
+	 * 셀렉박스 추출 유틸리티 메서드
 	 * @author GD
 	 * @since 2026. 1. 28.
 	 * @param <T>
@@ -56,6 +56,17 @@ public class CommonServiceImpl implements CommonService{
 	}
 
 
+	/**
+	 * 
+	 * NULL 이나 공백 값 검증 유틸리티 메서드
+	 * @author GD
+	 * @since 2026. 1. 29.
+	 * @param paramMaps
+	 * @return boolean
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 1. 29.  GD       최초 생성
+	 */
 	@Override
 	public boolean nullEmptyChkValidate(Map<String, Object> paramMaps) {
 		

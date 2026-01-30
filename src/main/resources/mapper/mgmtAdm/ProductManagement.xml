@@ -4,65 +4,53 @@
 
 	<sql id="oilMstJoins">
 	
-	    INNER JOIN TB_OIL_MST_DETAIL e ON a.fuel_id = e.fuel_id
-				LEFT OUTER JOIN COMMON_TBL b ON 
-					a.fuel_cat_cd = b.comm_no 
+				LEFT OUTER JOIN COMMON_TBL b 
+					ON a.fuel_cat_cd = b.comm_no 
 					AND b.param3_value = 'FUEL_CAT'
-				LEFT OUTER JOIN COMMON_TBL c ON 
-					a.origin_cntry_cd = c.comm_no 
+				LEFT OUTER JOIN COMMON_TBL c 
+					ON a.origin_cntry_cd = c.comm_no 
 					AND c.param3_value = 'COUNTRY'
-				LEFT OUTER JOIN COMMON_TBL d ON 
-					a.vol_unit_cd = d.comm_no 
-					AND d.param3_value = 'UNIT'
-				LEFT OUTER JOIN COMMON_TBL f ON 
-					a.item_stts_cd = f.comm_no 
-					AND f.param3_value = 'ITEM_STTS'
+				LEFT OUTER JOIN COMMON_TBL d 
+					ON a.vol_unit_cd = d.comm_no 
+					AND d.param3_value = 'VOL_UNIT'
+				LEFT OUTER JOIN COMMON_TBL e 
+					ON a.item_stts_cd = e.comm_no 
+					AND e.param3_value = 'OIL_ITEM_STTS'
 					
 	</sql>
 	
 	<sql id="searchCondi">
 	
 		AND ( 
-			        a.fuel_cd LIKE CONCAT('%', #{searchCondition}, '%')
-			        OR a.fuel_nm LIKE CONCAT('%', #{searchCondition}, '%')
-					OR b.comm_name LIKE CONCAT ('%', #{searchCondition}, '%' )
-					OR c.comm_name LIKE CONCAT ('%', #{searchCondition}, '%')
+			        a.fuel_cd LIKE CONCAT('%', #{searchCondition}, '%') -- 유류코드
+			        OR a.fuel_nm LIKE CONCAT('%', #{searchCondition}, '%') -- 유류명칭
+					OR b.comm_name LIKE CONCAT ('%', #{searchCondition}, '%' ) -- 유류종류
+					OR c.comm_name LIKE CONCAT ('%', #{searchCondition}, '%') -- 원산지국가
 				)
 				
 	</sql>
 
 
 	<!-- 조회 -->
-	<select id="selectOilMstListAdm"
+	<select id="selectProductSearchConditionListAdm"
 		parameterType="java.util.Map"
-		resultType="io.github.teamb.btob.dto.productmgmt.ProductMgmtAdmDTO">
+		resultType="io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO">
 	
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
 				,a.fuel_id
 				,a.fuel_cd
 				,a.fuel_nm
-				,a.fuel_cat_cd
 				,b.comm_name AS fuel_cat_nm       /* 유류종류 명칭 */
-				,a.origin_cntry_cd
 				,c.comm_name AS origin_cntry_nm   /* 원산지 국가 명칭 */
 				,a.base_unit_prc
 				,a.curr_stock_vol
 				,a.safe_stock_vol
-				,a.vol_unit_cd
 				,d.comm_name AS vol_unit_nm       /* 유류단위 명칭 */
-				,a.item_stts_cd
-				,f.comm_name AS item_stts_nm      /* 재고상태 명칭 */
+				,e.comm_name AS item_stts_nm      /* 재고상태 명칭 */
 				,a.reg_dtime
-				,a.reg_id
 				,a.upd_dtime
-				,a.upd_id
 				,a.use_yn
-				,e.api_grv
-				,e.sulfur_p_cnt
-				,e.flash_pnt
-				,e.viscosity
-				,e.density_15c
 			FROM
 				TB_OIL_MST a
 			<include refid="oilMstJoins" />
@@ -76,7 +64,7 @@
 	</select>
 	
 	<!-- 조회 건수 -->
-	<select id="countOilMstListCntAdm" 
+	<select id="selectProductSearchConditionListCntAdm" 
 		parameterType="String"
 		resultType="int">
 		
@@ -93,42 +81,50 @@
 	</select>
 	
 	<!-- 상세조회 -->
-	<select id="selectOilMstInfoByIdAdm"
+	<select id="selectProductDetailInfoByIdAdm"
 		parameterType="int"
-		resultType="io.github.teamb.btob.dto.productmgmt.ProductMgmtAdmDTO">
+		resultType="io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO">
 	
 			SELECT
-					,a.fuel_id
-					,a.fuel_nm
-					,b.fuel_cat_nm
-					,c.origin_cntry_nm
-					,e.api_grv
-					,e.sulfur_p_cnt
-					,e.flash_pnt
-					,e.viscosity
-					,e.density_15c
-					,a.base_unit_prc
-					,a.curr_stock_vol
-					,a.safe_stock_vol
-					,d.vol_unit_nm
-					,f.item_stts_nm
-					,a.reg_dtime
-					,a.reg_id
-					,a.upd_dtime
-					,a.upd_id
-					,a.use_yn
-				FROM
-					TB_OIL_MST a
-				<include refid="oilMstJoins" />
-				WHERE 1 = 1
-					AND a.use_yn = 'Y'
-					AND a.fuel_id = #{fuelId}
+				a.fuel_id
+		        ,a.fuel_cd
+		        ,a.fuel_nm
+		        ,a.fuel_cat_cd
+		        ,fnc_get_commnm('FUEL_CAT', a.fuel_cat_cd) AS fuel_cat_nm   /* 유류종류 명칭 */
+		        ,a.origin_cntry_cd
+		        ,fnc_get_commnm('COUNTRY', a.origin_cntry_cd) AS origin_cntry_nm /* 원산지 국가 명칭 */
+		        ,a.base_unit_prc
+		        ,a.curr_stock_vol
+		        ,a.safe_stock_vol
+		        ,a.vol_unit_cd
+		        ,fnc_get_commnm('UNIT', a.vol_unit_cd) AS vol_unit_nm           /* 유류단위 명칭 */
+		        ,a.item_stts_cd
+		        ,fnc_get_commnm('ITEM_STTS', a.item_stts_cd) AS item_stts_nm    /* 재고상태 명칭 */
+		        ,a.reg_dtime
+		        ,a.reg_id
+		        ,fnc_get_usernm(a.reg_id) AS reg_nm                             
+		        ,a.upd_dtime
+		        ,a.upd_id
+		        ,fnc_get_usernm(a.upd_id) AS upd_nm                             
+		        ,a.use_yn
+		        ,f.api_grv
+		        ,f.sulfur_pcnt
+		        ,f.flash_pnt
+		        ,f.viscosity
+		        ,f.density_15c
+			FROM
+				TB_OIL_MST a
+				LEFT OUTER JOIN TB_OIL_MST_DETAIL b
+					ON a.fuel_id = b.fuel_id
+			WHERE 1=1
+			AND a.use_yn = 'Y'
+			AND a.fuel_id = #{fuelId}
 	
 	</select>
 	
-	<!-- 등록 -->
-	<insert id="insertOilMstProductAdm"
-		parameterType="io.github.teamb.btob.dto.productmgmt.ProductMgmtAdmDTO">
+	<!-- 상품 등록 -->
+	<insert id="insertProductAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO">
 		
 			INSERT INTO TB_OIL_MST (
 					fuel_cd
@@ -141,6 +137,7 @@
 					,vol_unit_cd
 					,item_stts_cd
 					,reg_id
+					,use_yn
 				) VALUES (
 					 #{fuelCd}
 					,#{fuelNm}
@@ -152,13 +149,14 @@
 					,#{volUnitCd}
 					,#{itemSttsCd}
 					,#{regId}
+					,#{useYn}
 				)
 	
 	</insert>
 	
-	<!-- 등록 -->
-	<insert id="insertOilMstDetailProductAdm"
-		parameterType="io.github.teamb.btob.dto.productmgmt.ProductMgmtAdmDTO">
+	<!-- 상품 상세정보 등록 -->
+	<insert id="insertProductDetailInfoAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO">
 		
 			INSERT INTO TB_OIL_MST_DETAIL (
 					,fuel_id
@@ -168,6 +166,7 @@
 					,viscosity
 					,density_15c
 					,reg_id
+					,use_yn
 				) VALUES (
 					 #{fuelId}
 					,#{apiGrv}
@@ -176,13 +175,14 @@
 					,#{viscosity}
 					,#{density15c}
 					,#{regId}
+					,#{useYn}
 				)    
 					
 	</insert>
 	
-	<!-- 수정 -->
-	<update id="updateOilMstProductAdm"
-		parameterType="io.github.teamb.btob.dto.productmgmt.ProductMgmtAdmDTO">
+	<!-- 상품 수정 -->
+	<update id="updateProductAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDTO">
 	
 			UPDATE 
 		        TB_OIL_MST
@@ -204,9 +204,9 @@
 			
 	</update>
 	
-	<!-- 수정 -->
-	<update id="updateOilMstDetailProductAdm"
-		parameterType="io.github.teamb.btob.dto.productmgmt.ProductMgmtAdmDTO">
+	<!-- 상품 상세정보 수정 -->
+	<update id="updateProductDetailInfoAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDetailInfoDTO">
 		
 			UPDATE 
 		        TB_OIL_MST_DETAIL
@@ -224,8 +224,8 @@
 		
 	</update>
 	
-	<!-- 미사용처리 -->
-	<update id="deleteOilMstProductByIdAdm"
+	<!-- 상품 미사용처리 -->
+	<update id="deleteProductByIdAdm"
 		parameterType="int">
 		
 			UPDATE
@@ -239,8 +239,8 @@
 		    	 
 	</update>
 	
-	<!-- 미사용처리 -->
-	<update id="deleteOilMstDetailProductByIdAdm"
+	<!-- 상품 상세정보 미사용처리 -->
+	<update id="deleteProductDetailInfoByIdAdm"
 		parameterType="int">
 	
 			UPDATE

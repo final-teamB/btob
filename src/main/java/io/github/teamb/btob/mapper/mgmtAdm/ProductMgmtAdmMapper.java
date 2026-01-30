@@ -5,30 +5,41 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import io.github.teamb.btob.dto.mgmtAdm.ProductMgmtAdmDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDetailInfoDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 
 @Mapper
 public interface ProductMgmtAdmMapper {
 	
-	// 상품 조회
+	// 상품 검색 조회
 	// Integer startRow, Integer limit, String searchCondition
-	List<ProductMgmtAdmDTO> selectOilMstListAdm(Map<String, Object> searchParams);
+	List<SearchConditionProductDTO> selectProductSearchConditionListAdm(Map<String, Object> searchParams);
 	
 	// 상품 조회 건수
-	Integer countOilMstListCntAdm(String searchCondition);
+	Integer selectProductSearchConditionListCntAdm(String searchCondition);
 	
 	// 상품 상세조회
-	ProductMgmtAdmDTO selectOilMstInfoByIdAdm(Integer fuelId);
+	SearchDetailInfoProductDTO selectProductDetailInfoByIdAdm(Integer fuelId);
 	
 	// 상품 등록
-	int insertOilMstProductAdm(ProductMgmtAdmDTO productManagementDTO);
-	int insertOilMstDetailProductAdm(ProductMgmtAdmDTO productManagementDTO);
+	int insertProductAdm(InsertProductDTO insertProductDTO);
+	
+	// 상품 상세정보 등록
+	int insertProductDetailInfoAdm(InsertDetailInfoProductDTO insertDetailInfoProductDTO);
 	
 	// 상품 수정
-	int updateOilMstProductAdm(ProductMgmtAdmDTO productManagementDTO);
-	int updateOilMstDetailProductAdm(ProductMgmtAdmDTO productManagementDTO);
+	int updateProductAdm(UpdateProductDTO updateProductDTO);
+	
+	// 상품 상세정보 수정
+	int updateProductDetailInfoAdm(UpdateProductDetailInfoDTO updateProductDetailInfoDTO);
 	
 	// 상품 삭제 ( 비활성화 )
-	int deleteOilMstProductByIdAdm(Integer fuelId);
-	int deleteOilMstDetailProductByIdAdm(Integer fuelId);
+	int deleteProductByIdAdm(Integer fuelId);
+	
+	// 상품 상세정보 삭제 ( 비활성화 )
+	int deleteProductDetailInfoByIdAdm(Integer fuelId);
 }
