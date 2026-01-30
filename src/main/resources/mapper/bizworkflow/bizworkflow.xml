@@ -24,7 +24,7 @@
 		resultType="String">
 	
 			SELECT
-				${pkCol}
+				${targetPkCol}
 			FROM
 				${targetTable}
 			WHERE 1=1 
@@ -35,21 +35,20 @@
 	
 	<!-- 견적/주문/구매/결제 현재상태코드의 다음단계 상태코드 조회 (승인) -->
 	<select id="selectNextStatus"
-		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusSeqDTO"
+		parameterType="String"
 		resultType="String">
 		
 			SELECT 
 				etp_stts_cd
 			FROM TB_ETP_STTS_CD
 			WHERE 1=1 
-			AND system_id = #{systemId}
+			AND seq != 99
 			AND seq > (
 							SELECT 
 								seq 
 							FROM 
 								TB_ETP_STTS_CD 
 							WHERE 1=1 
-							AND system_id = #{systemId} 
 							AND etp_stts_cd = #{currentEtpStatus}
 			  			)
 			ORDER BY seq ASC
@@ -90,7 +89,7 @@
 	
 	
 	<insert id="insertEtpHist" 
-		parameterType="io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO">
+		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpHistInsertDTO">
 	
 			INSERT INTO TB_ETP_HIST (
 				 etp_id

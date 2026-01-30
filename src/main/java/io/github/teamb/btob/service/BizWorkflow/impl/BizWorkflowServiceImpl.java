@@ -10,7 +10,6 @@ import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpDynamicParamsDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpHistInsertDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpStatusSelectDTO;
-import io.github.teamb.btob.dto.bizworkflow.EtpStatusSeqDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpStatusUpdateDTO;
 import io.github.teamb.btob.mapper.bizworkflow.BizWorkflowMapper;
 import io.github.teamb.btob.service.BizWorkflow.BizWorkflowService;
@@ -31,7 +30,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 	 * 견적/주문/구매/결제 상태로직 동적 변경 처리 및 이력 추가
 	 * @author GD
 	 * @since 2026. 1. 28.
-	 * @param etpStatusDTO ( systemId(ESTIMATE,ORDER), refId(ets_id) )
+	 * @param approvalDecisionRequestDTO ( 의사결정요청 )
 	 * 수정일        수정자       수정내용
 	 * ----------  --------    ---------------------------
 	 * 2026. 1. 28.  GD       최초 생성
@@ -43,7 +42,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		// request값
 		String systemId = approvalDecisionRequestDTO.getSystemId();				// 시스템 ID
 		Integer refId = approvalDecisionRequestDTO.getRefId();					// 식별번호
-		String approvalStatus = approvalDecisionRequestDTO.getApprovalStatus();	// 승인,반려 요청
+		String approvalStatus = approvalDecisionRequestDTO.getApprovalStatus();	// 승인,반려 타입
 		String requestEtpStatus = approvalDecisionRequestDTO.getRequestEtpStatus(); // 변경요청 상태코드 
 		Integer apprUserNo = approvalDecisionRequestDTO.getApprUserNo();	// 요청자
 		
@@ -56,31 +55,32 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		// 현재 상태코드
 		String currentEtpStatus = this.selectCurrentEtpStatusValidate(systemId, refId, apprUserNo);
 		
-		EtpStatusSeqDTO etpStatusSeqDTO = new EtpStatusSeqDTO();
-		etpStatusSeqDTO.setSystemId(systemId);
-		etpStatusSeqDTO.setCurrentEtpStatus(currentEtpStatus);
-		
 		// 승인처리 시 다음 상태코드
-		String nextEtpStatus = bizWorkflowMapper.selectNextStatus(etpStatusSeqDTO);
+		String nextEtpStatus = bizWorkflowMapper.selectNextStatus(currentEtpStatus);
 		// 반려처리 시 상태코드
 		String rejtEtpStatus = bizWorkflowMapper.selectRejtStatus(systemId);
 		
 		// 동적쿼리 값 가져오기
 		EtpDynamicParamsDTO edDto = this.getTargetParams(systemId);
 		
+		int result2 = 0;
 		int result = 0;
 		
 		if (approvalStatus.equals("APPROVED")) {
 			if (requestEtpStatus.equals(nextEtpStatus)) {
 				// 업데이트
-			    result = bizWorkflowMapper.updateEtpStatus(this.getEtpStatusUpdate(edDto, 
+			    result2 = bizWorkflowMapper.updateEtpStatus(this.getEtpStatusUpdate(edDto, 
 			    																	requestEtpStatus, 
 			    																	currentEtpStatus));
-			    if ( result > 0) {
+			    if ( result2 > 0) {
 			    	// 히스토리 추가
-			    	this.getEtpHistInsert(approvalDecisionRequestDTO);
+			    	result = bizWorkflowMapper.insertEtpHist(this.getEtpHistInsert(approvalDecisionRequestDTO));
+			    	
+			    	if ( result < 0) {
+			    		throw new Exception("이력 추가 시 오류가 발생했습니다.");
+			    	}
 			    } else {
-			    	throw new Exception("이력 추가 시 오류가 발생했습니다.");
+			    	throw new Exception("업데이트 시 오류가 발생했습니다.");
 			    }
 			} else {
 				throw new Exception("상태 변경이 불가능한 단계이거나 데이터가 존재하지 않습니다.");
@@ -88,14 +88,18 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		} else if (approvalStatus.equals("REJECTED")) {
 			if (requestEtpStatus.equals(rejtEtpStatus)) {
 				// 업데이트
-			    result = bizWorkflowMapper.updateEtpStatus(this.getEtpStatusUpdate(edDto, 
+			    result2 = bizWorkflowMapper.updateEtpStatus(this.getEtpStatusUpdate(edDto, 
 			    																	requestEtpStatus,
 			    																	currentEtpStatus));
-			    if ( result > 0) {
+			    if ( result2 > 0) {
 			    	// 히스토리 추가
-			    	this.getEtpHistInsert(approvalDecisionRequestDTO);
+			    	result = bizWorkflowMapper.insertEtpHist(this.getEtpHistInsert(approvalDecisionRequestDTO));
+			    	
+			    	if ( result < 0) {
+			    		throw new Exception("이력 추가 시 오류가 발생했습니다.");
+			    	}
 			    } else {
-			    	throw new Exception("이력 추가 시 오류가 발생했습니다.");
+			    	throw new Exception("업데이트 시 오류가 발생했습니다.");
 			    }
 			} else {
 				throw new Exception("상태 변경이 불가능한 단계이거나 데이터가 존재하지 않습니다.");
@@ -138,7 +142,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		String targetTable = eDto.getTargetTable();
 		String targetPkCol = eDto.getTargetPkCol();
 		
-		// 해당 식별번호 및 요청자 유무 검증
+		// 해당 식별번호 및 요청자 일치 검증
 		EtpStatusSelectDTO etpStatusSelectDTO = new EtpStatusSelectDTO();
 		etpStatusSelectDTO.setTargetTable(targetTable);
 		etpStatusSelectDTO.setTargetPkCol(targetPkCol);

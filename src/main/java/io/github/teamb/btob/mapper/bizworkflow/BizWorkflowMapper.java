@@ -2,10 +2,9 @@ package io.github.teamb.btob.mapper.bizworkflow;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpDynamicParamsDTO;
+import io.github.teamb.btob.dto.bizworkflow.EtpHistInsertDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpStatusSelectDTO;
-import io.github.teamb.btob.dto.bizworkflow.EtpStatusSeqDTO;
 import io.github.teamb.btob.dto.bizworkflow.EtpStatusUpdateDTO;
 
 
@@ -19,7 +18,7 @@ public interface BizWorkflowMapper {
 	String selectCurrentStatusByRefId(EtpStatusSelectDTO etpStatusSelectDTO);
 	
 	// 견적/주문/구매/결제 현재상태코드의 다음단계 상태코드 조회 ( 승인 )
-	String selectNextStatus(EtpStatusSeqDTO etpStatusSeqDTO);
+	String selectNextStatus(String currentEtpStatus);
 	
 	// 견적/주문/구매/결제 현재상태코드의 반려 상태코드 조회 ( 반려 )
 	String selectRejtStatus(String systemId);
@@ -28,5 +27,5 @@ public interface BizWorkflowMapper {
 	Integer updateEtpStatus(EtpStatusUpdateDTO etpStatusUpdateDTO);
 	
 	// 견적/주문/구매/결제 이력 추가
-	Integer insertEtpHist(ApprovalDecisionRequestDTO approvalDecisionRequestDTO);
+	Integer insertEtpHist(EtpHistInsertDTO etpHistInsertDTO);
 }

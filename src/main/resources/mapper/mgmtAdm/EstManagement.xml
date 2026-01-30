@@ -24,7 +24,7 @@
 				,b.ctrt_nm
 				,b.company_name
 				,b.company_phone
-				,fnc_get_usernm(b.request_user_id) AS requestUserNm
+				,b.request_user_id AS requestUserNm
 				,a.reg_dtime
 				,a.expire_dtime
 				,a.etp_stts_cd
@@ -32,10 +32,12 @@
 			FROM
 				TB_EST_MST a,
 				TB_EST_DOC b,
-				TB_ETP_HIST c
+				TB_ETP_HIST c,
+				TB_USERS d
 			WHERE 1=1
 				AND a.est_doc_id = b.est_doc_id
 				AND a.est_id = c.etp_id
+				AND b.request_user_id = d.user_no
 				<if test="searchCondition != null and searchCondition.trim() != ''">
 			       <include refid="searchCondi" />
 			    </if>
@@ -53,9 +55,13 @@
 				COUNT(a.est_id)
 			FROM
 				TB_EST_MST a,
-				TB_EST_DOC b
+				TB_EST_DOC b,
+				TB_ETP_HIST c,
+				TB_USERS d
 			WHERE 1 = 1
 				AND a.est_doc_id = b.est_doc_id
+				AND a.est_id = c.etp_id
+				AND b.request_user_id = d.user_no
 				<if test="searchCondition != null and searchCondition.trim() != ''">
 			       <include refid="searchCondi" />
 			    </if>
