@@ -34,8 +34,15 @@ public class User {
     @Column(length = 50)
     private String position; // 직위
 
+    // 주소 필드 보완 (에러 해결)
+    @Column(length = 20)
+    private String postcode; // 우편번호 필드 추가
+
     @Column(length = 255)
     private String address;  // 주소
+
+    @Column(name = "detail_address", length = 255)
+    private String detailAddress; // 상세주소 필드 추가
 
     @Column(name = "business_number", length = 20)
     private String businessNumber; // 사업자번호

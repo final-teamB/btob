@@ -2,6 +2,7 @@ package io.github.teamb.btob.service.member;
 
 import io.github.teamb.btob.dto.member.MemberDto;
 import io.github.teamb.btob.entity.User;
+import io.github.teamb.btob.entity.UserType; // UserType Enum 임포트 확인
 import io.github.teamb.btob.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.*;
@@ -16,7 +17,6 @@ public class MemberService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 마이페이지 정보 조회
     @Transactional(readOnly = true)
     public MemberDto getMyInfo(String email) {
         User user = userRepository.findByEmail(email)
@@ -27,30 +27,28 @@ public class MemberService implements UserDetailsService {
         dto.setUserName(user.getUserName());
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());
-        
-        // 이제 엔티티에 필드가 추가되었으므로 에러가 발생하지 않습니다.
         dto.setPosition(user.getPosition());
         dto.setAddress(user.getAddress());
+        dto.setPostcode(user.getPostcode()); // 필드 추가됨
+        dto.setDetailAddress(user.getDetailAddress()); // 필드 추가됨
         dto.setBusinessNumber(user.getBusinessNumber());
         dto.setIsRepresentative(user.getIsRepresentative());
         
         return dto;
     }
 
-    // 정보 수정
     @Transactional
     public void updateInfo(MemberDto dto) {
-        // 1. 기존 DB에서 사용자 정보 조회 (이메일 기준)
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 2. 전달받은 DTO의 데이터로 엔티티 값 변경
         user.setUserName(dto.getUserName());
-        user.setPhone(dto.getPhone()); // 이 값이 null이면 에러 발생
+        user.setPhone(dto.getPhone());
         user.setPosition(dto.getPosition());
         user.setAddress(dto.getAddress());
+        user.setPostcode(dto.getPostcode());
+        user.setDetailAddress(dto.getDetailAddress());
         
-        // 추가 필드가 있다면 여기에 작성
         if(dto.getBusinessNumber() != null) {
             user.setBusinessNumber(dto.getBusinessNumber());
         }
@@ -61,10 +59,11 @@ public class MemberService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
+        // .roles() 메서드가 DB의 "ADMIN"을 "ROLE_ADMIN"으로 자동 변환해줍니다.
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
-                .roles(user.getUserType().name())
+                .roles(user.getUserType().name()) 
                 .build();
     }
 
@@ -76,6 +75,21 @@ public class MemberService implements UserDetailsService {
         user.setUserName(dto.getUserName());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
+        
+        // --- 데이터 누락 해결 부분 ---
+        user.setPosition(dto.getPosition());
+        user.setPostcode(dto.getPostcode());
+        user.setAddress(dto.getAddress());
+        user.setDetailAddress(dto.getDetailAddress());
+        user.setBusinessNumber(dto.getBusinessNumber());
+        user.setIsRepresentative(dto.getIsRepresentative());
+
+        // String(DTO) -> UserType Enum(Entity) 변환 로직
+        if (dto.getUserType() != null) {
+            user.setUserType(UserType.valueOf(dto.getUserType()));
+        }
+        // -----------------------
+
         user.setRegId("SYSTEM");
         user.setUpdId("SYSTEM");
         userRepository.save(user);
