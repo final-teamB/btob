@@ -53,7 +53,7 @@
 
             <!-- CONTENT -->
             <main class="p-5 flex-1 bg-gray-50 dark:bg-gray-900">
-                <jsp:include page="${content}" />
+                <jsp:include page="/WEB-INF/views/${content}" />
             </main>
 
             <!-- FOOTER -->
