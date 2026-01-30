@@ -15,19 +15,53 @@
 <body>
     <h2>배송 관리 (Admin)</h2>
     
+    <div class="search-box" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;">
+	    <form action="/admin/delivery/list" method="get">
+	        <label>기간: </label>
+	        <input type="date" name="searchStartDate" value="${param.searchStartDate}"> ~ 
+	        <input type="date" name="searchEndDate" value="${param.searchEndDate}">
+	        
+	        <select name="deliveryStatus">
+	            <option value="">상태</option>
+	            <c:forEach var="status" items="${statusList}">
+	                <option value="${status}" ${search.deliveryStatus == status ? 'selected' : ''}>
+	                    ${status.description}
+	                </option>
+	            </c:forEach>
+	        </select>
+	
+	        <select name="searchType" style="margin-left:20px;">
+	            <option value="orderId" ${param.searchType == 'orderId' ? 'selected' : ''}>주문번호</option>
+	            <option value="trackingNo" ${param.searchType == 'trackingNo' ? 'selected' : ''}>송장번호</option>
+	        </select>
+	        <input type="text" name="searchKeyword" value="${param.searchKeyword}" placeholder="검색어 입력">
+	        
+	        <button type="submit" style="background:#333; color:#fff;">조회</button>
+	        <button type="button" onclick="location.href='/admin/delivery/list'">초기화</button>
+	    </form>
+	</div>
+    
     <table>
         <thead>
             <tr>
                 <th>배송번호</th>
+                <th>주문일시</th> 
                 <th>주문번호</th>
-                <th>상태 코드</th> <th>배송 상태(수정)</th> <th>운송장 번호</th>
+                <th>상태 코드</th> 
+                <th>배송 상태(수정)</th> 
+                <th>운송장 번호</th>
                 <th>관리</th>
             </tr>
         </thead>
         <tbody>
 		    <c:forEach var="item" items="${deliveryList}">
 		        <tr id="row-${item.deliveryId}">
-		            <td>${item.deliveryId}</td>
+		            <td>
+						<a href="/admin/delivery/detail/${item.deliveryId}" style="font-weight:bold; color:blue;">
+		                    ${item.deliveryId}
+		                </a>
+					</td>
+					<td>${item.regDtime}</td>
 		            <td>${item.orderId}</td>
 		            <td>
 		                <strong>${item.statusName}</strong><br>
@@ -57,35 +91,45 @@
     </table>
 
     <script>
-        function updateDelivery(id) {
-            const trackingNo = document.getElementById('tracking-' + id).value;
-            const status = document.getElementById('status-' + id).value; // 선택된 Enum 코드값
-
-            const data = {
-                deliveryId: id,
-                trackingNo: trackingNo,
-                deliveryStatus: status // DTO의 DeliveryStatus 필드로 매핑됨
-            };
-
-            fetch('/admin/delivery/deliveryUpdate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.text())
-            .then(result => {
-                if(result === "성공") {
-                    alert("배송 정보(상태/송장)가 수정되었습니다.");
-                    location.reload(); // 변경된 한글 상태를 다시 불러오기 위해 새로고침
-                } else {
-                    alert("수정 실패!");
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("오류가 발생했습니다.");
-            });
-        }
-    </script>
+	    function updateDelivery(id) {
+	        const trackingNo = document.getElementById('tracking-' + id).value;
+	        const status = document.getElementById('status-' + id).value;
+	
+	        const data = {
+	            deliveryId: id,
+	            trackingNo: trackingNo,
+	            deliveryStatus: status
+	        };
+	
+	        fetch('/admin/delivery/deliveryUpdate', { // 또는 /admin/delivery/updateDeliveryDetail (통합됨)
+	            method: 'POST',
+	            headers: { 'Content-Type': 'application/json' },
+	            body: JSON.stringify(data)
+	        })
+	        .then(response => response.json())
+	        .then(res => { // 반환값이 Map이므로 res로 받음
+	            if(res.success) { 
+	                alert(res.message);
+	                
+	                // Map 안에 담아준 data(DeliveryDTO)를 꺼냅니다.
+	                const updatedItem = res.data; 
+	                
+	                if(updatedItem) {
+	                    const row = document.getElementById('row-' + id);
+	                    // 1. 화면의 한글 상태명 업데이트 (statusName)
+	                    row.querySelector('td:nth-child(3) strong').innerText = updatedItem.statusName;
+	                    // 2. 화면의 영문 코드 업데이트
+	                    row.querySelector('td:nth-child(3) small').innerText = "(" + updatedItem.deliveryStatus + ")";
+	                }
+	            } else {
+	                alert("수정 실패: " + res.message);
+	            }
+	        })
+	        .catch(error => {
+	            console.error('Error:', error);
+	            alert("오류가 발생했습니다.");
+	        });
+	    }
+	</script>
 </body>
 </html>

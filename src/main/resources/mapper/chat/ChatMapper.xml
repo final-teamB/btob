@@ -3,7 +3,7 @@
 <mapper namespace="io.github.teamb.btob.mapper.chat.ChatMapper">
 	
 	<insert id="insertChatLog" parameterType="io.github.teamb.btob.dto.chat.ChatbotDTO">
-	    INSERT INTO TB_CHATBOT (question, answer, reg_dtime, user_no)
-	    VALUES (#{question}, #{answer}, NOW(), #{userNo})
+	    INSERT INTO TB_CHATBOT (question, answer, reg_dtime)
+	    VALUES (#{question}, #{answer}, NOW())
 	</insert>
 </mapper>

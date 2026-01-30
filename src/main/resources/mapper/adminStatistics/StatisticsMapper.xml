@@ -30,7 +30,7 @@
 	<insert id="refreshOrderStats">
 	    INSERT INTO TB_ORDER_STATISTICS (
 	        stats_type, stats_date, total_order_count, pending_count, 
-	        paid_count, preparing_count, shipping_count, delivered_count, user_no
+	        paid_count, preparing_count, shipping_count, delivered_count
 	    )
 	    SELECT 
 	        'DAY', 
@@ -39,8 +39,7 @@
 	        COUNT(CASE WHEN order_status = 'PAID' THEN 1 END),
 	        COUNT(CASE WHEN order_status = 'PREPARING' THEN 1 END),
 	        COUNT(CASE WHEN order_status = 'SHIPPING' THEN 1 END),
-	        COUNT(CASE WHEN order_status = 'DELIVERED' THEN 1 END),
-	        #{userNo}
+	        COUNT(CASE WHEN order_status = 'DELIVERED' THEN 1 END)
 	    FROM TB_ORDER_MST WHERE reg_dtime >= CURDATE()
 	    ON DUPLICATE KEY UPDATE 
 	        total_order_count = VALUES(total_order_count),

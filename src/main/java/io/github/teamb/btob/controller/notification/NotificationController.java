@@ -40,7 +40,12 @@ public class NotificationController {
 	@GetMapping("/test/send-noti")
 	public String testSend(@RequestParam String receiverId) {
 	    // 서비스 강제 실행
-	    notificationService.send(receiverId, "APPROVAL", 123, "결재가 승인되었습니다!", "ADMIN");
+		// 
+	    notificationService.send(receiverId,
+	    		"APPROVAL",
+	    		123,
+	    		"결재가 승인되었습니다!",
+	    		"ADMIN");
 	    return "알림 발송 완료! DB랑 SSE 통로 확인해보세요.";
 	}
 	

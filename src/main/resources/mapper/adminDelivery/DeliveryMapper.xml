@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper">
+	
+	<!-- 전체 배송 목록 조회 -->
+	<select id="selectDeliveryList" resultType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+    SELECT 
+        D.delivery_id deliveryId,
+        D.order_id orderId,
+        	O.order_no orderNo,            
+        	O.reg_id customerId,           
+        	O.order_status orderStatus,    
+        	D.delivery_status deliveryStatus,
+        D.tracking_no trackingNo,
+        D.carrier_name carrierName,
+        D.ship_to_addr shipToAddr,
+        D.reg_dtime regDtime,
+        D.use_yn useYn
+    FROM TB_DELIVERY D
+    INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id WHERE D.use_yn = 'Y'
+    <if test="searchStartDate != null and searchStartDate != ''">
+        AND D.reg_dtime &gt;= STR_TO_DATE(#{searchStartDate}, '%Y-%m-%d')
+    </if>
+    <if test="searchEndDate != null and searchEndDate != ''">
+        AND D.reg_dtime &lt; DATE_ADD(STR_TO_DATE(#{searchEndDate}, '%Y-%m-%d'), INTERVAL 1 DAY)
+    </if>
+    <if test="deliveryStatus != null">
+        AND D.delivery_status = #{deliveryStatus}
+    </if>
+    <if test="searchKeyword != null and searchKeyword != ''">
+        <choose>
+            <when test="searchType == 'orderId'"> AND D.order_id LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+            <when test="searchType == 'trackingNo'"> AND D.tracking_no LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+        </choose>
+    </if>
+    ORDER BY D.reg_dtime DESC
+</select>
+	
+	<!-- 배송 정보 상세보기 -->
+	<select id="selectDeliveryDetail" parameterType="int" resultType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+		SELECT 
+            D.delivery_id deliveryId, 
+            D.order_id orderId,
+            D.delivery_status deliveryStatus, 
+            D.tracking_no trackingNo,
+            D.carrier_name carrierName, 
+            D.ship_from_addr shipFromAddr,
+            D.ship_to_addr shipToAddr, 
+            D.reg_dtime regDtime,
+            D.reg_id regId, 
+            D.upd_dtime updDtime, 
+            D.upd_id updId,
+            D.use_yn useYn
+        FROM TB_DELIVERY D
+        WHERE D.delivery_id = #{deliveryId} AND D.use_yn = 'Y'
+	</select>
+	
+	<!-- 배송 테이블 수정 -->
+	<update id="updateDelivery" parameterType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+		UPDATE TB_DELIVERY
+        <set>
+            <if test="deliveryStatus != null">delivery_status = #{deliveryStatus},</if>
+            <if test="trackingNo != null">tracking_no = #{trackingNo},</if>
+            <if test="carrierName != null">carrier_name = #{carrierName},</if>
+            <if test="shipToAddr != null">ship_to_addr = #{shipToAddr},</if>
+            <if test="updId != null">upd_id = #{updId},</if>
+            upd_dtime = NOW()
+        </set>
+        WHERE delivery_id = #{deliveryId}
+	</update>
+	
+	<!-- 주문 상태 동기화 -->
+	<update id="updateOrderStatus">
+        UPDATE TB_ORDER_MST
+        SET 
+            order_status = #{deliveryStatus}, 
+            upd_dtime = NOW(),
+            upd_id = #{updId}
+        WHERE order_id = (SELECT order_id FROM TB_DELIVERY WHERE delivery_id = #{deliveryId})
+    </update>
+	
+	<!-- 삭제 (비활성화) -->
+	<update id="deleteDelivery" parameterType="int">
+		UPDATE TB_DELIVERY
+		SET use_yn = 'N', upd_dtime = NOW()
+		WHERE delivery_id = #{deliveryId}
+	</update>
+	
+	<!--배송 이력 등록 -->
+	<insert id="insertDeliveryHistory" parameterType="io.github.teamb.btob.dto.adminDelivery.DeliveryHistoryDTO">
+		INSERT INTO TB_DELIVERY_HISTORY (
+	        delivery_id, prev_delivery_status, delivery_status, 
+	        memo, reg_dtime, reg_id, use_yn
+	    ) VALUES (
+	        #{deliveryId}, #{prevDeliveryStatus}, #{deliveryStatus}, 
+	        #{memo}, NOW(), #{regId}, 'Y'
+	    )
+	</insert>
+</mapper>
