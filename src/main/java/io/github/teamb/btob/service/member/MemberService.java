@@ -29,8 +29,9 @@ public class MemberService implements UserDetailsService {
         dto.setPhone(user.getPhone());
         dto.setPosition(user.getPosition());
         dto.setAddress(user.getAddress());
-        dto.setPostcode(user.getPostcode()); // 필드 추가됨
-        dto.setDetailAddress(user.getDetailAddress()); // 필드 추가됨
+        dto.setPostcode(user.getPostcode());
+        dto.setDetailAddress(user.getDetailAddress());
+        dto.setUserType(user.getUserType().name()); 
         dto.setBusinessNumber(user.getBusinessNumber());
         dto.setIsRepresentative(user.getIsRepresentative());
         
@@ -76,7 +77,6 @@ public class MemberService implements UserDetailsService {
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
         
-        // --- 데이터 누락 해결 부분 ---
         user.setPosition(dto.getPosition());
         user.setPostcode(dto.getPostcode());
         user.setAddress(dto.getAddress());

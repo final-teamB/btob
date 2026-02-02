@@ -17,7 +17,7 @@ public class MemberDto {
     private String address;
     private String detailAddress;
     
-    // 권한 필드 추가 (USER, MASTER, ADMIN)
+    // 권한 필드 (USER, MASTER, ADMIN)
     private String userType; 
     
     private String isRepresentative;

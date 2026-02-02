@@ -8,7 +8,7 @@
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         .editable:disabled { background-color: #f8f9fa; border: 1px solid transparent; border-bottom: 1px solid #dee2e6; }
-        #searchAddrBtn { display: none; } /* 초기엔 숨김 */
+        #searchAddrBtn { display: none; }
     </style>
 </head>
 <body>
@@ -19,43 +19,69 @@
             <label class="form-label">이름</label>
             <input type="text" class="form-control editable" name="userName" value="${user.userName}" disabled>
         </div>
+        
         <div class="mb-3">
-		    <label class="form-label small">연락처</label>
-		    <input type="tel" class="form-control editable" name="phone" value="${user.phone}" disabled required>
-		</div>
+            <label class="form-label">이메일</label>
+            <input type="email" class="form-control" value="${user.email}" disabled>
+            <input type="hidden" name="email" value="${user.email}">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">연락처</label>
+            <input type="tel" class="form-control editable" name="phone" value="${user.phone}" disabled>
+        </div>
+
         <div class="mb-3">
             <label class="form-label">직위</label>
             <input type="text" class="form-control editable" name="position" value="${user.position}" disabled>
         </div>
-        <div class="mb-3">
-            <label class="form-label">이메일 (ID)</label>
-            <input type="email" class="form-control" name="email" value="${user.email}" readonly>
-        </div>
-        
+
         <div class="mb-3">
             <label class="form-label">주소</label>
-            <div class="input-group">
-                <input type="text" id="address" class="form-control editable" name="address" value="${user.address}" readonly disabled>
-                <button type="button" id="searchAddrBtn" class="btn btn-secondary" onclick="execPostcode()">주소 검색</button>
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" id="postcode" name="postcode" value="${user.postcode}" readonly>
+                <button type="button" id="searchAddrBtn" class="btn btn-outline-secondary" onclick="execPostcode()">주소 찾기</button>
             </div>
+            <input type="text" class="form-control mb-2" id="address" name="address" value="${user.address}" readonly>
+            <input type="text" class="form-control editable" name="detailAddress" value="${user.detailAddress}" placeholder="상세주소" disabled>
         </div>
 
-        <div class="mt-4">
-            <button type="button" id="editStartBtn" class="btn btn-primary w-100" onclick="toggleEditMode()">정보 수정하기</button>
-            <div id="editActionBtns" style="display:none;" class="row g-2">
+        <c:if test="${user.userType == 'MASTER'}">
+        <div class="mb-3 p-3 bg-light rounded border">
+            <label class="form-label fw-bold text-primary">사업자 등록번호</label>
+            <input type="text" class="form-control editable" name="businessNumber" value="${user.businessNumber}" placeholder="000-00-00000" disabled>
+            <input type="hidden" name="isRepresentative" value="Y">
+        </div>
+        </c:if>
+
+        <hr class="my-4">
+
+        <div id="viewMode">
+            <button type="button" class="btn btn-primary w-100" onclick="enableEdit()">수정하기</button>
+        </div>
+
+        <div id="editMode" style="display: none;">
+            <div class="row g-2">
                 <div class="col"><button type="button" class="btn btn-light w-100" onclick="location.reload()">취소</button></div>
                 <div class="col"><button type="submit" class="btn btn-success w-100">저장하기</button></div>
             </div>
         </div>
     </form>
 </div>
-<a href="/main">메인으로</a>
+<div class="text-center mt-3">
+    <a href="/main" class="text-secondary text-decoration-none small">메인으로 돌아가기</a>
+</div>
 
 <script>
-    function toggleEditMode() {
-        document.querySelectorAll('.editable').forEach(el => el.disabled = false);
-        document.getElementById('editStartBtn').style.display = 'none';
-        document.getElementById('editActionBtns').style.display = 'flex';
+    function enableEdit() {
+        // 모든 .editable 필드를 활성화
+        document.querySelectorAll('.editable').forEach(input => {
+            input.disabled = false;
+        });
+        
+        // 버튼 영역 전환
+        document.getElementById('viewMode').style.display = 'none';
+        document.getElementById('editMode').style.display = 'block';
         document.getElementById('searchAddrBtn').style.display = 'inline-block';
     }
 
@@ -63,22 +89,10 @@
         new daum.Postcode({
             oncomplete: function(data) {
                 let addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+                document.getElementById("postcode").value = data.zonecode;
                 document.getElementById("address").value = addr;
             }
         }).open();
-    }
-    
-    function enableEdit() {
-        // 모든 .editable 필드를 활성화 (disabled 제거)
-        document.querySelectorAll('.editable').forEach(input => {
-            input.disabled = false; // 이 코드가 있어야 서버로 값이 넘어갑니다.
-        });
-        
-        // 주소창은 직접 타이핑 못하게 하려면 readonly로 유지
-        document.getElementById("address").readOnly = true;
-        
-        document.getElementById('viewMode').style.display = 'none';
-        document.getElementById('editMode').style.display = 'flex';
     }
 </script>
 </body>
