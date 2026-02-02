@@ -18,12 +18,12 @@ import jakarta.servlet.http.HttpServletResponseWrapper;
 
 @Service
 public class DocumentPdfServiceImpl implements DocumentPdfService{
-	private final DocumentCompletedService documentCompletedService;	
+	private final TradeDocService tradeDocService;	
 	
 	
-	public DocumentPdfServiceImpl(DocumentCompletedService documentCompletedService) {
+	public DocumentPdfServiceImpl(TradeDocService tradeDocService) {
 		super();
-		this.documentCompletedService = documentCompletedService;
+		this.tradeDocService = tradeDocService;
 	}
 
 
@@ -32,7 +32,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService{
 		try {
             // 1. 문서 조회
             DocumentPreviewDTO doc =
-            		documentCompletedService.getDocumentById(docId);
+            		tradeDocService.getDocumentById(docId);
 
             // 2. JSP 경로 결정
             String jspPath = resolveJspPath(doc.getDocType());
@@ -94,7 +94,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService{
 	        DocumentPreviewDTO doc) throws Exception {
 
 		String fileName = String.format(
-		        "%s_%d.pdf",
+		        "%s_%s.pdf",
 		        doc.getDocType(),
 		        doc.getDocNo()
 		    );

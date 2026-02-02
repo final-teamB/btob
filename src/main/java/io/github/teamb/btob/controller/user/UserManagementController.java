@@ -37,8 +37,8 @@ public class UserManagementController {
     		Model model) {
     	
     	List<UserListDTO> userList = userService.getUserList(accStatus, keyword);
-    	model.addAttribute("userList", userList);
     	
+    	model.addAttribute("userList", userList);
     	model.addAttribute("pageTitle", "사원리스트");  
     	model.addAttribute("content", "users/test.jsp"); 
     	return "layout/layout";

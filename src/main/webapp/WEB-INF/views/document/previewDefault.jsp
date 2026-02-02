@@ -55,6 +55,5 @@
 
     <button onclick="window.close()">창 닫기</button>
 </div>
-
 </body>
 </html>

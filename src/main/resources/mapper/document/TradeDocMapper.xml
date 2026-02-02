@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="mapper.document.DocumentCompletedMapper">
-	
+<mapper namespace="io.github.teamb.btob.mapper.document.DocumentCompletedMapper">
+		
+		<update id="modifyMemo">
+			UPDATE TB_DOCUMENT_MST
+			SET memo = #{memo}
+			WHERE doc_id = #{docId}
+		</update>
+		
 		<select id="getDocumentById" resultType="DocumentPreviewDTO">
 			SELECT 
 				d.doc_id,
 				d.doc_no,
 				d.doc_type,
-				d.memo,
+				IFNULL(d.memo, '') AS memo,
 				d.reg_dtime,
 			    o.order_id,
 			    o.order_no, 
@@ -16,15 +22,15 @@
 			    c.total_qty,
 			    c.total_price,
 			    c.fuel_id,
-			    f.fuel_nm
+			    f.fuel_nm,
 			    u.user_name
 			FROM TB_DOCUMENT_MST d
 			LEFT JOIN TB_ORDER_MST o ON d.order_id = o.order_id
 			LEFT JOIN TB_CART c ON o.cart_id = c.cart_id
 			LEFT JOIN TB_OIL_MST f ON c.fuel_id = f.fuel_id
 			LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_name
-			WHERE o.doc_id = #{docId}
-			ORDER BY d.doc_id DESC;
+			WHERE d.doc_id = #{docId}
+			ORDER BY d.doc_id DESC
 		</select>
 		
 		<select id="getDocumentList" resultType="DocumentListDTO">
@@ -32,11 +38,23 @@
 		        d.doc_id,
 		        d.doc_no,
 		        d.doc_type,
-		        d.memo,
+		        IFNULL(d.memo, '') AS memo,
 		        d.reg_dtime,
 		        u.user_name 
 		    FROM TB_DOCUMENT_MST d
 		    LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_no
+		    <where>
+		    	<if test="docType != null and docType != ''">
+			        AND doc_type = #{docType}
+			    </if>
+		    
+		        <if test="keyword != null and keyword != ''">
+		           	AND (
+		                d.doc_no LIKE CONCAT('%', #{keyword}, '%')
+		                OR u.user_name LIKE CONCAT('%', #{keyword}, '%')
+		            )
+		        </if>
+		    </where>
 		    ORDER BY d.doc_id DESC
 		</select>
 </mapper>
