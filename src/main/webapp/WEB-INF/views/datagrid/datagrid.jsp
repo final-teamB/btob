@@ -9,20 +9,7 @@
 
 <div class="mx-4 my-6 space-y-4">
 
-    <%-- [1. 액션 버튼 영역] 필요한 버튼만 true로 설정하여 노출 --%>
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 px-2">
-       
-        <%-- 우측: 개별 추가 및 내보내기 액션 --%>
-        <div class="flex items-center space-x-2">
-            <c:if test="${showAddBtn}">
-			    <button type="button" 
-			            onclick="handleAddAction()" 
-			            class="px-4 py-1.5 text-sm font-semibold text-white bg-gray-900 rounded-lg shadow-md hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all active:scale-95">
-			        등록
-			    </button>
-			</c:if>
-        </div>
-    </div>
+ 
 
   	<%-- [2. 검색 및 필터 영역] --%>
 	<section class="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
@@ -45,6 +32,13 @@
 	                    class="px-6 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 dark:bg-gray-700 transition-all shadow-sm h-[40px]">
 	                조회
 	            </button>
+	            
+		         <button type="button" 
+				        onclick="handleAddAction()" 
+				        class="px-6 py-2 text-sm font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-sm h-[40px] 
+			             	  ${showAddBtn eq 'true' ? '' : 'hidden'}">
+				    등록
+				</button>
 	        </div>
 	    </div>
 	</section>

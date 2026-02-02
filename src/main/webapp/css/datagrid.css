@@ -5,7 +5,6 @@
 .mx-4.my-6.space-y-4 {
     min-width: 0;
     overflow-x: auto !important; 
-    display: block !important;
     padding-bottom: 2rem !important;
     padding-left: 2px !important;
     /* [핵심] 여기에 오른쪽 패딩을 넉넉히 주면 스크롤 끝에 여백이 생깁니다 */
@@ -14,7 +13,6 @@
 
 /* 그리드 본체 컨테이너 */
 #dg-container {
-    display: block;
     width: 100% !important; /* 부모 너비(패딩 제외)에 맞춤 */
     min-width: 1100px !important; /* 이 이하로 찌그러짐 방지 */
     
@@ -22,7 +20,7 @@
     border-radius: 12px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+    overflow: hidden; 
 }
 
 /* ==========================================================
@@ -61,6 +59,49 @@
     position: relative;
 }
 
+/* 1. 셀 내부 정렬 (컬럼명 상관없이 모든 버튼 중앙 정렬) */
+.tui-grid-cell .tui-grid-cell-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+    gap: 6px; /* 버튼 사이 간격 */
+}
+
+.dg-btn-manage {
+    appearance: none;
+    /* 배경은 투명하거나 하얗게 해서 무게감 제거 */
+    background-color: #ffffff;
+    
+    /* 테두리와 글자에만 조회 버튼의 색상(gray-900) 사용 */
+    border: 1px solid #111827; 
+    color: #111827;
+    
+    height: 30px; 
+    padding: 0 14px;
+    border-radius: 6px;
+    
+    font-size: 12px;
+    font-weight: 700;
+    
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover 시에만 색상을 채워주면 훨씬 경쾌합니다 */
+.dg-btn-manage:hover {
+    background-color: #111827; /* 조회 버튼 색상 */
+    color: #ffffff;
+    border-color: #111827;
+}
+
+.dg-btn-manage:active {
+    transform: scale(0.96);
+}
 .tui-grid-layer-selection {
     display: none !important; /* 파란색 선택 영역 자체를 안 보이게 함 */
 }
@@ -90,29 +131,46 @@
 }
 
 /* ==========================================================
-   3. TUI Grid 내부 최적화 (가장 중요)
+   3. TUI Grid 내부 최적화 (하단 잔선 제거 버전)
    ========================================================== */
-.tui-grid-table {
-    /* [핵심] 컬럼이 무한히 길어지는 것을 절대적으로 막음 */
-    table-layout: fixed !important; 
-    width: 100% !important;
-}
-
-/* 스크롤바/라인 제거 */
-.tui-grid-scrollbar-left-bottom, .tui-grid-scrollbar-right-bottom,
-.tui-grid-scrollbar-right-top, .tui-grid-scrollbar-left-top,
-.tui-grid-border-line, .tui-grid-summary-area {
+/* 1. 하단 보더 및 레이아웃 라인 제거 */
+.tui-grid-border-line,
+.tui-grid-scrollbar-left-bottom, 
+.tui-grid-scrollbar-right-bottom,
+.tui-grid-scrollbar-left-top, 
+.tui-grid-scrollbar-right-top,
+.tui-grid-summary-area {
     display: none !important;
-}
-
-/* 그리드 본체 높이/너비 자동화 */
-.tui-grid-body-area, .tui-grid-container, 
-.tui-grid-content-area, .tui-grid-body-table {
+    height: 0 !important;
     border: none !important;
-    height: auto !important;
-    width: 100% !important; /* 부모인 #dg-container 너비를 따름 */
 }
 
+/* 2. 하단 스크롤바가 들어가는 빈 공간(Gap) 강제 제거 */
+.tui-grid-body-area {
+    border-bottom: none !important;
+}
+
+.tui-grid-container, 
+.tui-grid-content-area {
+    border: none !important;
+}
+
+/* 3. 테이블 하단 여백 제거 */
+.tui-grid-table {
+    table-layout: fixed !important; 
+    border-bottom: none !important;
+}
+
+/* 4. [중요] 최하단 행의 보더가 겹쳐서 진하게 보일 경우 제거 */
+.tui-grid-body-table tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* 5. 그리드 전체 감싸는 영역의 높이 최적화 */
+.tui-grid-body-area, 
+.tui-grid-body-table {
+    height: auto !important;
+}
 /* ==========================================================
    4. 하단 페이징 및 스크롤바 디자인
    ========================================================== */

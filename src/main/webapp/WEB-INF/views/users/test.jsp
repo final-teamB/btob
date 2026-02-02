@@ -1,27 +1,30 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<html>
-<head>
-    <title>사원 관리 시스템 (표준 그리드)</title>
+
     <link rel="stylesheet"  href="${pageContext.request.contextPath}/css/modal.css">
-</head>
-<body>
 	
+	<%-- 1. 화면 제목 (H1) --%>
+	<div class="px-4 py-6 space-y-6">
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 dark:border-gray-700">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">${pageTitle}</h1>
+        </div>
+    </div>
+    </div>    
+
+	<c:set var="showAddBtn" value="true" scope="request" />
+
     <%-- 1. 공통 메시지 및 모달 포함 --%>
     <jsp:include page="/WEB-INF/views/common/message.jsp"/>
     <jsp:include page="/WEB-INF/views/users/userModal.jsp"/>
-    
-    <%-- 2. 우리가 만든 공통 그리드 레이아웃 포함 (버튼 설정 포함) --%>
-    <c:set var="pageTitle" value="사원 목록 관리" />
-    <c:set var="showAddBtn" value="true" />   <%-- 등록 버튼 사용 --%>
-    <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
-    
-
+	<jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
+	
+	
     <%-- 숨겨진 엑셀 업로드 폼 (기존 로직 유지) --%>
     <form id="excelUploadForm" action="${pageContext.request.contextPath}/users/upload" method="post" enctype="multipart/form-data" style="display:none;">
         <input type="file" id="excelFileInput" name="file" accept=".xls,.xlsx" onchange="submitExcelForm()"/>
     </form>
-
 <script>
     /**
      * [Step 1] 서버에서 넘어온 데이터를 JSON으로 변환
@@ -59,7 +62,7 @@
         // 필터 값이 있으면 노출
         document.getElementById('dg-common-filter-wrapper').classList.remove('hidden');
     	
-        DataGridManager.init({
+        const userGrid = new DataGrid({
             containerId: 'dg-container',
             searchId: 'dg-search-input',
             perPageId: 'dg-per-page',
@@ -80,7 +83,12 @@
                     name: 'manage', 
                     align: 'center',
                     sortable: false,
-                    renderer: { type: CustomActionRenderer }
+                    renderer: { 
+                    	type: CustomActionRenderer,
+                    	options: {
+                            btnText: '수정' // 여기서 텍스트 변경
+                        }
+                    }
                 }
             ],
             data: rawData
@@ -107,8 +115,7 @@
      }
 
      // 2. 수정 모달 열기 (Renderer에서 직접 호출)
-     // [수정] openEditModalByRowKey는 이제 필요 없으므로 삭제하거나 무시해도 됩니다.
-     window.openEditModal = function(rowData) {
+     window.handleGridAction = function(rowData) {
          console.log("모달로 전달된 데이터:", rowData);
 
          const fields = {
@@ -175,10 +182,5 @@
             document.getElementById("excelUploadForm").submit();
         }
     }
-    
-    console.log("필드명 체크:", 'accStatus' in rawData[0]);
-    console.log("값 체크:", rawData[0].accStatus);
+  
 </script>
-
-</body>
-</html>

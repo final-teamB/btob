@@ -51,7 +51,6 @@ public class UserManagementController {
     	List<UserListDTO> userList = userService.getUserList(accStatus, keyword);
     	model.addAttribute("userList", userList);
     	
-    	model.addAttribute("showAddBtn", true);         // 등록 버튼 노출
     	model.addAttribute("pageTitle", "사원리스트");  
     	model.addAttribute("content", "users/test.jsp"); 
     	return "layout/layout";
