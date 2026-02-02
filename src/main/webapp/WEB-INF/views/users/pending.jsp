@@ -1,64 +1,94 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>승인 대기자 목록</title>
-</head>
-<body>
 
-<h2>승인 대기자 목록</h2>
+<div class="px-4 py-6 space-y-6">
 
-<table>
-    <thead>
-        <tr>
-            <th>사원 ID</th>
-            <th>이름</th>
-            <th>전화번호</th>
-            <th>인증 상태</th>
-            <th>등록일</th>
-            <th>처리</th>
-        </tr>
-    </thead>
-    <tbody>
-        <c:forEach var="p" items="${pendingList}">
-            <tr>
-                <td>${p.userId}</td>
-                <td>${p.userName}</td>
-                <td>${p.phone}</td>
-                <td>${p.appStatus}</td>
-                <td>${p.regDtime}</td>
-                <td>
-                    <button onclick="processUser('${p.userNo}', 'APPROVED')">승인</button>
-                    <button onclick="processUser('${p.userNo}', 'REJECTED')">거부</button>
-                </td>
-            </tr>
-        </c:forEach>
-    </tbody>
-</table>
-
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 dark:border-gray-700">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">${pageTitle}</h1>
+        </div>
+    </div>
+    </div>    
+    
+	<c:set var="showSearchArea" value="false" scope="request" />
+	<c:set var="showPerPage" value="false" scope="request" />
+	
+	<jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
 <script>
-function processUser(userNo, appStatus) {
-    const msg = appStatus === 'APPROVED' ? "승인" : "거부";
-    if (!confirm(msg + "하시겠습니까?")) return;
+	
+	const rawData = [
+		<c:forEach var="p" items="${pendingList}" varStatus="status">
+		{
+			userNo: "${p.userNo}",
+			userId: "${p.userId}",
+			userName: "${p.userName}",
+			phone: "${p.phone}",
+			appStatus: "${p.appStatus}",
+			regDtime: "${p.regDtime}"
+		}${!status.last ? ',' : ''}
+		</c:forEach>
+	];
+	
+	 document.addEventListener('DOMContentLoaded', function() {
+	 
+		const pendingGrid = new DataGrid({
+			containerId: 'dg-container',
+            
+			columns: [
+				{ header: '사원 ID', name: 'userId'},
+				{ header: '이름', name: 'userName'},
+				{ header: '전화번호', name: 'phone'},
+				{ header: '인증 상태', name: 'appStatus', align: 'center'},
+				{ header: '등록일', name: 'regDtime', align: 'center'},
+				{ 
+					header: '처리',
+			    	name: 'pending',
+			    	sortable: false,
+			    	renderer: {
+			    		type: CustomActionRenderer,
+			    		options: {
+			    			buttons: [
+		                        { text: '승인', action: 'APPROVED' },
+		                        { text: '거부', action: 'REJECTED' }
+		                    ]
+			    		}
+			    	}
+				}
+			],
+			data: rawData
+			});
+		});
+	 
+	 window.handleGridAction = function(rowData, action) {
+	        const userNo = rowData.userNo;
+	        const userName = rowData.userName;
 
-    fetch("${pageContext.request.contextPath}/users/pendingAction", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            userNo: userNo,
-            appStatus: appStatus
-        })
-    })
-    .then(res => {
-        if (!res.ok) throw new Error();
-        alert(msg + " 처리되었습니다.");
-        location.reload();
-    })
-    .catch(() => alert(msg + " 처리 실패"));
-}
+	        if (action === 'APPROVED') {
+	            processUser(userNo, 'APPROVED', userName);
+	        } else if (action === 'REJECTED') {
+	            processUser(userNo, 'REJECTED', userName);
+	        }
+	    };
+
+	    function processUser(userNo, appStatus, userName) {
+	        const msg = appStatus === 'APPROVED' ? "승인" : "거부";
+	        if (!confirm(userName + " 님을 " + msg + "하시겠습니까?")) return;
+	    
+	        fetch("${pageContext.request.contextPath}/users/pendingAction", {
+	            method: "POST",
+	            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+	            body: new URLSearchParams({
+	                userNo: userNo,
+	                appStatus: appStatus
+	            })
+	        })
+	        .then(res => {
+	            if (!res.ok) throw new Error();
+	            alert(msg + " 처리되었습니다.");
+	            location.reload();
+	        })
+	        .catch(() => alert(msg + " 처리 실패"));
+	    }
 </script>
 
-</body>
-</html>

@@ -30,18 +30,6 @@ public class UserManagementController {
 	}
 	
     // 전체 사원 목록 페이지
-    @GetMapping("/list")
-    public String userList(
-    		@RequestParam(required = false) String accStatus,
-            @RequestParam(required = false) String keyword,
-            Model model) {
-    	
-    	List<UserListDTO> userList = userService.getUserList(accStatus, keyword);
-        model.addAttribute("userList", userList);
-        return "users/list";
-    }
-    
-    // 전체 사원 목록 페이지
     @GetMapping("/test")
     public String test(
     		@RequestParam(required = false) String accStatus,
@@ -56,13 +44,30 @@ public class UserManagementController {
     	return "layout/layout";
     }
     
+    // 전체 사원 목록 페이지
+    @GetMapping("/list")
+    public String userList(
+    		@RequestParam(required = false) String accStatus,
+    		@RequestParam(required = false) String keyword,
+    		Model model) {
+    	
+    	List<UserListDTO> userList = userService.getUserList(accStatus, keyword);
+    	
+    	model.addAttribute("userList", userList);
+    	model.addAttribute("pageTitle", "사원리스트");  
+    	model.addAttribute("content", "users/list.jsp"); 
+    	return "layout/layout";
+    }
+    
     // 회원가입 승인 대기자 목록 페이지
     @GetMapping("/pending")
     public String pendingUsers(Model model) {
     	List<UserPendingDTO> pendingList = userService.getPendingUsers();
-        model.addAttribute("pendingList", pendingList);
        
-        return "users/pending"; 
+    	model.addAttribute("pendingList", pendingList);
+    	model.addAttribute("pageTitle", "회원가입 승인 대기 목록");  
+        model.addAttribute("content", "users/pending.jsp"); 
+        return "layout/layout"; 
     }
 
    

@@ -9,19 +9,29 @@ class CustomActionRenderer {
         const { grid, rowKey, columnInfo } = props;
         const rowData = grid.getRow(rowKey);
         
-        // 버튼 텍스트를 옵션에서 가져옴 (없으면 '수정' 기본값)
-        const buttonText = columnInfo.renderer.options?.btnText || '수정';
+        // options.buttons 배열을 가져옴 (기본값 설정)
+        const buttonConfigs = columnInfo.renderer.options?.buttons || [
+            { text: '수정', action: 'edit' }
+        ];
         
-        const el = document.createElement('button');
-        el.className = 'dg-btn-manage'; 
-        el.innerText = buttonText;
-        
-        el.onclick = () => {
-            if (typeof window.handleGridAction === 'function') {
-                window.handleGridAction(rowData);
-            }
-        };
-        this.el = el;
+        const container = document.createElement('div');
+        container.className = 'flex justify-center gap-2'; // 중앙 정렬 및 간격
+
+        buttonConfigs.forEach(btnCfg => {
+            const btn = document.createElement('button');
+            btn.className = 'dg-btn-manage'; 
+            btn.innerText = btnCfg.text;
+            
+            btn.onclick = () => {
+                // handleGridAction 하나로 통합하되, 어떤 버튼인지 'action' 값을 같이 넘김
+                if (typeof window.handleGridAction === 'function') {
+                    window.handleGridAction(rowData, btnCfg.action);
+                }
+            };
+            container.appendChild(btn);
+        });
+
+        this.el = container;
     }
     getElement() { return this.el; }
 }
@@ -92,6 +102,11 @@ class DataGrid {
             });
             ro.observe(container.parentElement);
         }
+		
+		container.addEventListener('mousedown', function(e) {
+		    // 그리드의 행 선택 로직이 마우스 이벤트를 가로채지 못하게 원천 봉쇄
+		    e.stopPropagation();
+		}, true); // true(캡처링)가 핵심입니다.
 
         this.bindEvents();
         this.renderPagination();
@@ -100,6 +115,12 @@ class DataGrid {
     bindEvents() {
         const c = this.config;
         const searchInput = document.getElementById(c.searchId);
+		if (searchInput) {
+		    // HTML이 있을 때만 검색 이벤트 연결
+		    searchInput.addEventListener('keyup', (e) => {
+		        if (e.key === 'Enter') this.search();
+		    });
+		}
         const filterSelect = document.getElementById(this.filterConfig.selectId);
         const perPageSelect = document.getElementById(c.perPageId);
 
