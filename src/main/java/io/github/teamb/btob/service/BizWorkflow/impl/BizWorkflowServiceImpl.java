@@ -56,9 +56,9 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		String currentEtpStatus = this.selectCurrentEtpStatusValidate(systemId, refId, apprUserNo);
 		
 		// 승인처리 시 다음 상태코드
-		String nextEtpStatus = bizWorkflowMapper.selectNextStatus(currentEtpStatus);
+		String nextEtpStatus = "";
 		// 반려처리 시 상태코드
-		String rejtEtpStatus = bizWorkflowMapper.selectRejtStatus(systemId);
+		String rejtEtpStatus = "";
 		
 		// 동적쿼리 값 가져오기
 		EtpDynamicParamsDTO edDto = this.getTargetParams(systemId);
@@ -67,6 +67,10 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		int result = 0;
 		
 		if (approvalStatus.equals("APPROVED")) {
+			
+			// 승인처리시 다음 단계 코드
+			nextEtpStatus = bizWorkflowMapper.selectNextStatus(currentEtpStatus);
+			
 			if (requestEtpStatus.equals(nextEtpStatus)) {
 				// 업데이트
 			    result2 = bizWorkflowMapper.updateEtpStatus(this.getEtpStatusUpdate(edDto, 
@@ -86,6 +90,15 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 				throw new Exception("상태 변경이 불가능한 단계이거나 데이터가 존재하지 않습니다.");
 			}
 		} else if (approvalStatus.equals("REJECTED")) {
+			
+			// 반려처리 시 상태코드
+			rejtEtpStatus = bizWorkflowMapper.selectRejtStatus(currentEtpStatus);
+			
+			if (rejtEtpStatus == null) {
+				
+			    throw new Exception("현재 단계에서는 반려 처리를 할 수 없습니다.");
+			}
+			
 			if (requestEtpStatus.equals(rejtEtpStatus)) {
 				// 업데이트
 			    result2 = bizWorkflowMapper.updateEtpStatus(this.getEtpStatusUpdate(edDto, 
@@ -112,7 +125,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 
 	/**
 	 * 
-	 * 견적/주문/구매/결제 진행시 요청 들어온 진행건의 현재 상태코드 및 파라미터 검증
+	 * 견적/주문/구매/결제 진행시 요청 들어온 진행건의 현재 상태코드 확인 및 파라미터 검증
 	 * @author GD
 	 * @since 2026. 1. 29.
 	 * @param refId ( 고유식별자 )

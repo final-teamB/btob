@@ -19,4 +19,7 @@ public interface EtpHistMgmtAdmMapper {
 	
 	// 히스토리 개별 조회 
 	List<SearchEtpHistListDTO> selectEtpHistListById(Integer etpId);
+	
+	// 히스토리 개별 조회 건수
+	List<SearchEtpHistListDTO> selectEtpHistListCntById(Integer etpId);
 }

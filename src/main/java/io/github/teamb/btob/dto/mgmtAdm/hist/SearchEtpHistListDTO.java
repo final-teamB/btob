@@ -4,6 +4,16 @@ import java.time.LocalDateTime;
 
 import lombok.Data;
 
+/**
+ * 
+ * 히스토리 이력 DTO
+ * 관련 테이블 == TB_ETP_HIST
+ * @author GD
+ * @since 2026. 2. 2.
+ * * 수정일        수정자       수정내용
+ * ----------  --------    ---------------------------
+ * 2026. 2. 2.  GD       최초 생성
+ */
 @Data
 public class SearchEtpHistListDTO {
 	

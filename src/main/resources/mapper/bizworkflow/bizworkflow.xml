@@ -62,11 +62,11 @@
 		resultType="String">
 	
 			SELECT 
-				etp_stts_cd
+				reject_target_cd
 			FROM TB_ETP_STTS_CD
-			WHERE 1=1 
-			AND system_id = #{systemId}
-			AND seq = 99
+			WHERE 1=1
+			AND etp_stts_cd = #{currentEtpStatus}
+			AND reject_yn = 'Y' 
 		
 	</select>
 
