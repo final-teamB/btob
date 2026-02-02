@@ -1,5 +1,6 @@
 package io.github.teamb.btob.service.common.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -75,28 +76,47 @@ public class CommonServiceImpl implements CommonService{
 	 * 2026. 1. 29.  GD       최초 생성
 	 */
 	@Override
-	public boolean nullEmptyChkValidate(Map<String, Object> paramMaps) {
+	public boolean nullEmptyChkValidate(Object value) {
 		
-		if (paramMaps == null || paramMaps.isEmpty()) {
-            return false;
-        }
+		// 1. 기본 null 체크
+	    if (value == null) {
+	        return false;
+	    }
 
-        for (Object value : paramMaps.values()) {
+	    // 2. String 타입: 공백 체크
+	    if (value instanceof String) {
+	        return !((String) value).trim().isEmpty();
+	    }
 
-        	// 1. null 체크
-            if (value == null) {
-            	return false;
-            }
-            
-            // 2. String일 경우 공백 체크
-            if (value instanceof String && ((String) value).trim().isEmpty()) {
-                return false;
-            }
-            
-            // 3. (옵션) List나 다른 컬렉션일 경우 비어있는지 체크 가능
-        }
-        
-        // 전부 성공이면 true
-        return true;
+	    // 3. Map 타입: 내부 Value들을 하나하나 재귀적으로 검사
+	    if (value instanceof Map) {
+	        Map<?, ?> map = (Map<?, ?>) value;
+	        if (map.isEmpty()) return false;
+	        
+	        for (Object entryValue : map.values()) {
+	            // 이 부분이 포인트! 내부 값을 다시 이 메서드로 검사합니다.
+	            if (!this.nullEmptyChkValidate(entryValue)) {
+	                return false; 
+	            }
+	        }
+	        return true;
+	    }
+
+	    // 4. Collection(List, Set) 타입: 내부 아이템들을 하나하나 재귀적으로 검사
+	    if (value instanceof Collection) {
+	        Collection<?> col = (Collection<?>) value;
+	        if (col.isEmpty()) return false;
+	        
+	        for (Object item : col) {
+	            // 리스트 안의 값도 공백이나 null이 있는지 검사
+	            if (!this.nullEmptyChkValidate(item)) {
+	                return false;
+	            }
+	        }
+	        return true;
+	    }
+
+	    // 5. 그 외 일반 객체(DTO 등)는 위에서 null 체크를 통과했으므로 true
+	    return true;
 	}
 }

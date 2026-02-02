@@ -33,4 +33,5 @@ public class SearchDetailInfoUserDTO {
 	private String accStatus;		// 계정상태
 	private LocalDateTime regDtime;	// 등록일자
 	private LocalDateTime updDtime; // 수정일자
+	private String useYn;		// 사용여부
 }

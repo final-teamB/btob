@@ -15,6 +15,7 @@ import lombok.Data;
 @Data
 public class InsertEstDocDTO {
 	
+	private Integer estDocId;		// 고유 식별자
 	private String estNo;          // 견적번호 (예: EST-2026-001)
     private String companyName;    // 회사명
     private String companyPhone;   // 회사연락처

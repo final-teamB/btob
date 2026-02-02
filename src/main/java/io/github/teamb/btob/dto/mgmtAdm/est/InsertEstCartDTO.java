@@ -18,4 +18,7 @@ public class InsertEstCartDTO {
 	
 	private Integer regId; // 요청자값을 할당 requestUserId
 	private Integer requestUserId;
+	
+	// 카트 식별자
+	private Integer estCartId;
 }

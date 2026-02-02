@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class UpdateProductDetailInfoDTO {
 	
-	private Integer fuelId;
+	private Integer fuelId;			// 식별코드
     private Integer apiGrv;          // API 비중
     private Integer sulfurPCnt;      // 유황 함량
     private Integer flashPnt;        // 인화점

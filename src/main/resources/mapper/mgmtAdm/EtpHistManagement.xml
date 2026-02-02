@@ -17,45 +17,45 @@
 		parameterType="java.util.Map"
 		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
 		
-		SELECT
-			ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
-			,a.etp_id
-			,b.user_name AS requestUserNm
-			,c.user_name AS apprUserNm
-			,rejt_rsn
-			,reg_dtime
-			,appr_dtime
-		FROM
-			TB_ETP_HIST a
-			,TB_USERS b
-			,TB_USERS c
-		WHERE 1=1
-		AND a.reg_id = b.user_no
-		AND a.appr_user_id = c.user_no
-		<if test="searchCondition != null and searchCondition.trim() != ''">
-			<include refid="searchCondi" />
-		</if>
-		ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
-		LIMIT #{startRow}, #{limit}
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				,a.etp_id
+				,b.user_name AS requestUserNm
+				,c.user_name AS apprUserNm
+				,rejt_rsn
+				,reg_dtime
+				,appr_dtime
+			FROM
+				TB_ETP_HIST a
+				,TB_USERS b
+				,TB_USERS c
+			WHERE 1=1
+			AND a.reg_id = b.user_no
+			AND a.appr_user_id = c.user_no
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+				<include refid="searchCondi" />
+			</if>
+			ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
+			LIMIT #{startRow}, #{limit}
 	
 	</select>
 	
 	<!-- 히스토리 검색 조회 건수 -->
-	<select id="selectEtpHistSearchConditioinCntAdm"
+	<select id="selectEtpHistSearchConditioinListCntAdm"
 		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
 	
-		SELECT 
-			COUNT(etp_id) 
-		FROM
-			TB_ETP_HIST a
-			,TB_USERS b
-			,TB_USERS c
-		WHERE 1=1
-		AND a.reg_id = b.user_no
-		AND a.appr_user_id = c.user_no
-		<if test="searchCondition != null and searchCondition.trim() != ''">
-			<include refid="searchCondi" />
-		</if>
+			SELECT 
+				COUNT(etp_id) 
+			FROM
+				TB_ETP_HIST a
+				,TB_USERS b
+				,TB_USERS c
+			WHERE 1=1
+			AND a.reg_id = b.user_no
+			AND a.appr_user_id = c.user_no
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+				<include refid="searchCondi" />
+			</if>
 	
 	</select>
 	
@@ -64,30 +64,30 @@
 		parameterType="int"
 		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
 	
-		SELECT
-			ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
-			,fnc_get_usernm(regId) AS requestUserNm
-			,fnc_get_usernm(apprUserId) AS apprUserNm
-			,rejt_rsn
-			,reg_dtime
-			,appr_dtime
-		FROM
-			TB_ETP_HIST
-		WHERE etp_id = #{etpId}
-		ORDER BY ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) DESC
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
+				,fnc_get_usernm(regId) AS requestUserNm
+				,fnc_get_usernm(apprUserId) AS apprUserNm
+				,rejt_rsn
+				,reg_dtime
+				,appr_dtime
+			FROM
+				TB_ETP_HIST
+			WHERE etp_id = #{etpId}
+			ORDER BY ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) DESC
 	
 	</select>
 	
 	<!-- 히스토리 개별 조회 건수 -->
 	<select id="selectEtpHistListCntById"
-		parameterType=""
+		parameterType="int"
 		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
 		
-		SELECT
-			COUNT(etp_id)
-		FROM
-			TB_ETP_HIST
-		WHERE etp_id = #{etpId}
+			SELECT
+				COUNT(etp_id)
+			FROM
+				TB_ETP_HIST
+			WHERE etp_id = #{etpId}
 		
 	</select>
 

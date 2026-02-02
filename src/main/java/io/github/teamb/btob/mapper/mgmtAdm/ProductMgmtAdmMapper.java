@@ -9,6 +9,7 @@ import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDetailInfoDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 
@@ -26,20 +27,20 @@ public interface ProductMgmtAdmMapper {
 	SearchDetailInfoProductDTO selectProductDetailInfoByIdAdm(Integer fuelId);
 	
 	// 상품 등록
-	int insertProductAdm(InsertProductDTO insertProductDTO);
+	Integer insertProductAdm(InsertProductDTO insertProductDTO);
 	
 	// 상품 상세정보 등록
-	int insertProductDetailInfoAdm(InsertDetailInfoProductDTO insertDetailInfoProductDTO);
+	Integer insertProductDetailInfoAdm(InsertDetailInfoProductDTO insertDetailInfoProductDTO);
 	
 	// 상품 수정
-	int updateProductAdm(UpdateProductDTO updateProductDTO);
+	Integer updateProductAdm(UpdateProductDTO updateProductDTO);
 	
 	// 상품 상세정보 수정
-	int updateProductDetailInfoAdm(UpdateProductDetailInfoDTO updateProductDetailInfoDTO);
+	Integer updateProductDetailInfoAdm(UpdateProductDetailInfoDTO updateProductDetailInfoDTO);
 	
 	// 상품 삭제 ( 비활성화 )
-	int deleteProductByIdAdm(Integer fuelId);
+	Integer deleteProductByIdAdm(ProductUnUseRequestDTO productUnUseRequestDTO);
 	
 	// 상품 상세정보 삭제 ( 비활성화 )
-	int deleteProductDetailInfoByIdAdm(Integer fuelId);
+	Integer deleteProductDetailInfoByIdAdm(ProductUnUseRequestDTO productUnUseRequestDTO);
 }

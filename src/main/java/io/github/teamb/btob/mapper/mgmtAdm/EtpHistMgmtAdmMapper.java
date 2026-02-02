@@ -15,11 +15,11 @@ public interface EtpHistMgmtAdmMapper {
 	List<SearchEtpHistListDTO> selectEtpHistSearchConditioinListAdm(Map<String, Object> searchParams);
 	
 	// 히스토리 검색 조회 건수
-	Integer selectEtpHistSearchConditioinCntAdm(String searchCondition);
+	Integer selectEtpHistSearchConditioinListCntAdm(String searchCondition);
 	
 	// 히스토리 개별 조회 
 	List<SearchEtpHistListDTO> selectEtpHistListById(Integer etpId);
 	
 	// 히스토리 개별 조회 건수
-	List<SearchEtpHistListDTO> selectEtpHistListCntById(Integer etpId);
+	Integer selectEtpHistListCntById(Integer etpId);
 }

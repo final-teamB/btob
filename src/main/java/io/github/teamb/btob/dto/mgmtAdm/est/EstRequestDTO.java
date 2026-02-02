@@ -22,4 +22,6 @@ public class EstRequestDTO {
     private InsertEstCartDTO cart;
     // 3. TB_EST_CART_ITEM 리스트 (N개)
     private List<InsertEstCartItemDTO> items;
+    // 4. TB_EST_MST
+    private InsertEstMstDTO estMst;
 }

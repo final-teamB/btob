@@ -16,6 +16,7 @@ import lombok.Data;
 @Data
 public class UpdateProductDTO {
 	
+	private Integer fuelId;			// 식별코드
 	private String fuelCd;          // 유류 코드
     private String fuelNm;          // 유류 명칭
     private String fuelCatCd;       // 유류 종류 코드

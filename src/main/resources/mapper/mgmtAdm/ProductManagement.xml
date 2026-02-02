@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.github.teamb.btob.mapper.productmgmt.ProductMgmtAdmMapper">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.ProductMgmtAdmMapper">
 
 	<sql id="oilMstJoins">
 	
@@ -124,7 +124,9 @@
 	
 	<!-- 상품 등록 -->
 	<insert id="insertProductAdm"
-		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO">
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO"
+		useGeneratedKeys="true" 
+        keyProperty="fuelId">
 		
 			INSERT INTO TB_OIL_MST (
 					fuel_cd

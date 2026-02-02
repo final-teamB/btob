@@ -141,7 +141,9 @@
 	
 	<!-- 3. 견적서 문서 생성 -->
 	<insert id="insertEstDocAdm" 
-		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstDocDTO">
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstDocDTO"
+		useGeneratedKeys="true" 
+        keyProperty="estDocId">
 		
 		    INSERT INTO TB_EST_DOC (
 		        est_no
@@ -177,20 +179,85 @@
 	
 			INSERT INTO TB_EST_MST ( 
 				est_doc_id,
-				etp_stts_cd ) VALUES 
+				etp_stts_cd
+			) VALUES (
+				 #{estDocId}
+				,#{etpSttsCd}
+			)
 	
 	</insert>
 	
+	<!-- 견적서 문서 수정 -->
+	<update id="updateEstDoc"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.UpdateEstDocMstDTO">
 	
-	<!-- 견적서 미사용 처리 -->
+			UPDATE 
+				TB_EST_DOC
+			SET
+				ctrt_nm = #{ctrtNm}
+				,estdt_memo = #{estdtMemo}
+				,upd_dtime = CURRENT_TIMESTAMP
+				,upd_id = #{requestUserId}
+			WHERE 1=1
+			AND est_doc_id = #{estDocId}
+			AND request_user_id = #{requestUserId}
+			AND use_yn = 'Y'
+			
+	</update>
+	
+	<!-- 견적서 유효 기한 연장 -->
+	<update id="updateEstDocExpireDtimeExten">
+	
+		UPDATE
+			TB_EST_MST
+		SET 
+			expire_dtime = expire_dtime + INTERVAL 7 DAY
+		WHERE expire_dtime <![CDATA[<]]> NOW();
+	
+	</update>
+	
+	
+	<!-- 견적서 문서 및 기간 연장 수정 가능 조건 -->
+	<select id="updateEstValidate"
+		parameterType="int"
+		resultType="int">
+
+			SELECT 
+				COUNT(a.est_doc_id) 
+			FROM 
+			TB_EST_DOC A
+			,TB_EST_MST B
+			WHERE 1=1
+			AND a.est_doc_id = b.est_doc_id
+			AND a.est_doc_id = #{estDocId}
+			AND etp_stts_cd = 'et001'
+		
+	</select>
+	
+	
+	<!-- 견적서 기본 미사용 처리 -->
 	<update id="unUseEstAdm"
-		parameterType="int">
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.UnUseEstDTO">
 		
 			UPDATE 
 				TB_EST_MST
 			SET
 				use_yn = 'N'
-			WHERE est_id = #{estId} 
+			WHERE 1=1
+			AND est_id = #{estId}
+			AND est_doc_id = #{estDocId}
+		
+	</update>
+	
+	<!-- 견적서 세부 미사용 처리 -->
+	<update id="unUseEstDoc"
+		parameterType="int">
+	
+		UPDATE
+			TB_EST_DOC
+		SET
+			use_yn = 'N'
+		WHERE est_id = #{estDocId}
 		
 	</update>
 	

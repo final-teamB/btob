@@ -17,6 +17,7 @@ import lombok.Data;
 @Data
 public class SearchConditionEstDTO {
 	
+	private Integer estId;			// 식별자
 	private Integer estNo;			// 견적서번호
 	private String ctrtNm;			// 계약명
 	private String companyName; 	// 회사명
