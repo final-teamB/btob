@@ -11,7 +11,7 @@ public interface PaymentMgmtAdmMapper {
 	void selectPaymentSearchConditionListAdm(Map<String, Object> params);
 	
 	// 결제 관리 검색 조회 건수
-	void selectPaymentSearchConditionListCntAdm(Map<String, Object> params);
+	void selectPaymentSearchConditionListCntAdm(String searchCondition);
 	
 	// 결제 관리 상세 조회
 	void selectPaymentDetailInfoByIdAdm(Integer orderId);

@@ -6,16 +6,16 @@
 	
 				LEFT OUTER JOIN COMMON_TBL b 
 					ON a.fuel_cat_cd = b.comm_no 
-					AND b.param3_value = 'FUEL_CAT'
+					AND b.param_value = 'FUEL_CAT'
 				LEFT OUTER JOIN COMMON_TBL c 
 					ON a.origin_cntry_cd = c.comm_no 
-					AND c.param3_value = 'COUNTRY'
+					AND c.param_value = 'COUNTRY'
 				LEFT OUTER JOIN COMMON_TBL d 
 					ON a.vol_unit_cd = d.comm_no 
-					AND d.param3_value = 'VOL_UNIT'
+					AND d.param_value = 'VOL_UNIT'
 				LEFT OUTER JOIN COMMON_TBL e 
 					ON a.item_stts_cd = e.comm_no 
-					AND e.param3_value = 'OIL_ITEM_STTS'
+					AND e.param_value = 'FUEL_ITEM_STTS'
 					
 	</sql>
 	
@@ -59,7 +59,9 @@
 		       <include refid="searchCondi" />
 		    </if>
 		    ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
-			LIMIT #{startRow}, #{limit}
+			<if test="startRow != null and limit != null">
+            	LIMIT #{startRow}, #{limit}
+        	</if>
 			
 	</select>
 	
@@ -90,16 +92,16 @@
 		        ,a.fuel_cd
 		        ,a.fuel_nm
 		        ,a.fuel_cat_cd
-		        ,fnc_get_commnm('FUEL_CAT', a.fuel_cat_cd) AS fuel_cat_nm   /* 유류종류 명칭 */
+		        ,fnc_get_commnm(a.fuel_cat_cd) AS fuel_cat_nm   /* 유류종류 명칭 */
 		        ,a.origin_cntry_cd
-		        ,fnc_get_commnm('COUNTRY', a.origin_cntry_cd) AS origin_cntry_nm /* 원산지 국가 명칭 */
+		        ,fnc_get_commnm(a.origin_cntry_cd) AS origin_cntry_nm /* 원산지 국가 명칭 */
 		        ,a.base_unit_prc
 		        ,a.curr_stock_vol
 		        ,a.safe_stock_vol
 		        ,a.vol_unit_cd
-		        ,fnc_get_commnm('UNIT', a.vol_unit_cd) AS vol_unit_nm           /* 유류단위 명칭 */
+		        ,fnc_get_commnm(a.vol_unit_cd) AS vol_unit_nm           /* 유류단위 명칭 */
 		        ,a.item_stts_cd
-		        ,fnc_get_commnm('ITEM_STTS', a.item_stts_cd) AS item_stts_nm    /* 재고상태 명칭 */
+		        ,fnc_get_commnm(a.item_stts_cd) AS item_stts_nm    /* 재고상태 명칭 */
 		        ,a.reg_dtime
 		        ,a.reg_id
 		        ,fnc_get_usernm(a.reg_id) AS reg_nm                             

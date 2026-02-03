@@ -1,5 +1,6 @@
 package io.github.teamb.btob.dto.mgmtAdm.product;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -13,6 +14,7 @@ import lombok.Data;
  * 2026. 1. 29.  GD       최초 생성
  */
 @Data
+@Builder
 public class InsertProductDTO {
 	
 	private Integer fuelId;			// 생성식별번호

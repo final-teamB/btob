@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
 import io.github.teamb.btob.mapper.common.CommonMapper;

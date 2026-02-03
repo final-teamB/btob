@@ -18,7 +18,7 @@ public class SearchConditionUserDTO {
 	
 	private Integer userNo;			// 생성식별번호
 	private String userId;			// 사용자 아이디
-	private String userNm;			// 사용자 성함
+	private String userName;		// 사용자 성함
 	private String companyName;		// 회사명
 	private String userType;		// 사용자권한
 	private String appStatus;		// 가입승인상태
@@ -29,3 +29,42 @@ public class SearchConditionUserDTO {
 	// 순번
 	private Integer rownm;
 }
+
+/*
+private Integer userNo;
+private String userId;
+private String password;
+private String userName;
+private String phone;
+private String email;
+private String companyCd;
+private String userType;        // ADMIN, MASTER, USER
+private String appStatus;       // PENDING, APPROVED, REJECTED
+private String accStatus;       // ACTIVE, SLEEP, STOP
+private java.time.LocalDateTime regDtime;
+private String regId;
+private java.time.LocalDateTime updDtime;
+private String updId;
+private String useYn;
+private String address;
+private String businessNumber;
+private String isRepresentative;
+private String position;
+private String detailAddress;
+private String postcode;
+
+-------------------
+
+	private Integer companySeq;
+    private String companyCd;
+    private String companyName;
+    private String bizNumber;
+    private String masterName;
+    private java.time.LocalDateTime regDtime;
+    private String regId;
+    private java.time.LocalDateTime updDtime;
+    private String updId;
+    private String useYn;
+
+
+*/
