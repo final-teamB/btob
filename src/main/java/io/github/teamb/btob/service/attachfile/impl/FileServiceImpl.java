@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.mapper.attachfile.AtchFileMapper;
 import io.github.teamb.btob.service.attachfile.FileService;
+import io.github.teamb.btob.service.common.CommonService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,6 +27,7 @@ public class FileServiceImpl implements FileService {
     @Value("${file.upload-dir2}")
     private String uploadDir;
 
+    private final CommonService commonService;
     private final AtchFileMapper fileMapper;
 
     /**
@@ -34,7 +36,7 @@ public class FileServiceImpl implements FileService {
      * @author GD
      * @since 2026. 1. 26.
      * @param files
-     * @param refTypeCd
+     * @param systmeId
      * @param refId
      * @return 다중 파일 업로드 정보 리스트
      * @throws Exception
@@ -44,8 +46,8 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public List<AtchFileDto> uploadFiles(List<MultipartFile> files, 
-    										String refTypeCd, 
-    										int refId) throws Exception {
+    										String systmeId, 
+    										Integer refId) throws Exception {
     	
         List<AtchFileDto> resultList = new ArrayList<>();
         
@@ -55,7 +57,7 @@ public class FileServiceImpl implements FileService {
 
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
-                resultList.add(this.uploadFile(file, refTypeCd, refId));
+                resultList.add(this.uploadFile(file, systmeId, refId));
             }
         }
         
@@ -69,7 +71,7 @@ public class FileServiceImpl implements FileService {
      * @author GD
      * @since 2026. 1. 26.
      * @param file
-     * @param refTypeCd
+     * @param systmeId
      * @param refId
      * @return 파일 업로드 정보
      * @throws Exception
@@ -79,8 +81,8 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public AtchFileDto uploadFile(MultipartFile file, 
-    								String refTypeCd, 
-    								int refId) throws Exception {
+    								String systmeId, 
+    								Integer refId) throws Exception {
     	// 원본파일명
         String orgFileNm = file.getOriginalFilename();
         // 확장자
@@ -102,53 +104,59 @@ public class FileServiceImpl implements FileService {
         dto.setFilePath(new File(uploadDir, strFileNm).getAbsolutePath());
         dto.setFileExt(ext);
         dto.setFileSize(file.getSize());
-        dto.setRefTypeCd(refTypeCd);
+        dto.setSystemId(systmeId);
         dto.setRefId(refId);
 
         fileMapper.insertFile(dto);
         return dto;
     }
-
+    
+    
     /**
      * 
-     * 참조 대상별 파일 목록 조회
+     * 파일 다운로드
      * @author GD
-     * @since 2026. 1. 26.
-     * @param refTypeCd
-     * @param refId
-     * @return 참조 대상별 파일 목록 리스트
-     * @throws Exception
-     * 수정일        수정자       수정내용
-     * ----------  --------    ---------------------------
-     * 2026. 1. 26.  GD       최초 생성
-     */
-    @Override
-    public List<AtchFileDto> getFilesByRef(String refTypeCd, int refId) throws Exception {
-    	
-        Map<String, Object> param = new HashMap<>();
-        param.put("refTypeCd", refTypeCd);
-        param.put("refId", refId);
-        
-        return fileMapper.selectFileListByRef(param);
-    }
-
-    /**
-     * 
-     * 파일 단건 상세조회 ( 다운로드용 )
-     * @author GD
-     * @since 2026. 1. 26.
+     * @since 2026. 2. 3.
      * @param fileId
-     * @return
+     * @param systemId
+     * @param refId
+     * @return fileDto
      * @throws Exception
      * 수정일        수정자       수정내용
      * ----------  --------    ---------------------------
-     * 2026. 1. 26.  GD       최초 생성
+     * 2026. 2. 3.  GD       최초 생성
      */
     @Override
-    public AtchFileDto getFile(int fileId) throws Exception {
+	public AtchFileDto getFileForDownload(Integer fileId, 
+								Integer systemId, 
+								Integer refId) throws Exception {
+		
+    	Map<String, Integer> params = new HashMap<>();
+    	params.put("fileId", fileId);
+    	params.put("systemId", systemId);
+    	params.put("Integer", refId);
     	
-        return fileMapper.selectFileById(fileId);
-    }
+    	if ( !(commonService.nullEmptyChkValidate(params)) ) {
+    		throw new Exception("잘못된 파라미터 입니다.");
+    	}
+    	
+    	// 1. DB에서 파일 정보 조회
+        AtchFileDto fileDto = fileMapper.selectFileById(params);
+        
+        // 2. 파일 정보 검증
+        if (fileDto == null || fileDto.getFilePath() == null) {
+            throw new Exception("파일 정보가 없습니다.");
+        }
+    	
+        // 3. 물리적 파일 존재 확인
+        File file = new File(fileDto.getFilePath());
+        if (!file.exists()) {
+            throw new Exception("서버에 실제 파일이 존재하지 않습니다.");
+        }
+    	
+		return fileDto;
+	}
+    
     
     /**
      * 
@@ -162,9 +170,9 @@ public class FileServiceImpl implements FileService {
      * 2026. 1. 26.  GD       최초 생성
      */
     @Override
-    public void deleteFile(int fileId) throws Exception {
+    public void deleteFile(Integer fileId) throws Exception {
     	
-        int result = fileMapper.deleteFileById(fileId);
+        Integer result = fileMapper.deleteFileById(fileId);
         
         if (result < 1) {
         	

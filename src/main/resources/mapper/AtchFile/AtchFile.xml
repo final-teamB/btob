@@ -10,7 +10,7 @@
     	keyProperty="fileId">
     	
 	        INSERT INTO TB_ATCH_FILE_MST ( 
-	            ref_type_cd, 
+	            system_id, 
 	            ref_id, 
 	            org_file_nm, 
 	            str_file_nm, 
@@ -19,7 +19,7 @@
 	            file_size,
 	            upd_dtime
 	        ) VALUES (
-	            #{refTypeCd}, 
+	            #{systemId}, 
 	            #{refId}, 
 	            #{orgFileNm}, 
 	            #{strFileNm}, 
@@ -33,10 +33,29 @@
     
     <!-- 2026.01.26. 파일 단건 상세 조회 (다운로드용)-->
     <select id="selectFileById" 
-    	parameterType="int" 
+    	parameterType="java.util.Map" 
     	resultType="io.github.teamb.btob.jprtest.dto.AtchFileDto">
     	
-        	SELECT * FROM TB_ATCH_FILE_MST WHERE file_id = #{fileId}
+        	SELECT 
+        		file_id
+				,system_id
+				,ref_id
+				,org_file_nm
+				,str_file_nm
+				,file_path
+				,file_ext
+				,file_size
+				,reg_dtime
+				,reg_id
+				,upd_dtime
+				,upd_id
+				,use_yn
+        	FROM TB_ATCH_FILE_MST 
+        	WHERE 1=1
+        	AND file_id = #{fileId}
+        	AND ref_id = #{refId}
+        	AND system_id = #{systemId} 
+		    AND use_yn = 'Y'
         
     </select>
 
@@ -46,11 +65,23 @@
     	resultType="io.github.teamb.btob.jprtest.dto.AtchFileDto">
         
 	        SELECT 
-	        	*
+	        	file_id
+				,system_id
+				,ref_id
+				,org_file_nm
+				,str_file_nm
+				,file_path
+				,file_ext
+				,file_size
+				,reg_dtime
+				,reg_id
+				,upd_dtime
+				,upd_id
+				,use_yn
 	        FROM 
 	       		TB_ATCH_FILE_MST
 	        WHERE 1=1 
-		    AND ref_type_cd = #{refTypeCd} 
+		    AND system_id = #{systemId} 
 		    AND ref_id = #{refId} 
 		    AND use_yn = 'Y'
 	        	

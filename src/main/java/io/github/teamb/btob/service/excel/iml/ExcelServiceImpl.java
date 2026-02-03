@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import io.github.teamb.btob.dto.excel.ExcelUploadResult;
 import io.github.teamb.btob.service.excel.ExcelService;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -290,6 +292,112 @@ public class ExcelServiceImpl implements ExcelService {
     
     /**
      * 
+     * 엑셀 데이터를 DB에 저장하고 성공/실패 결과를 반환
+     * @author GD
+     * @since 2026. 2. 3.
+     * @param <T>
+     * @param file	업로드 엑셀 파일
+     * @param headerMap	// 목록 헤더
+     * @param validKeys	// 헤더에 맞는 컬럼
+     * @param requiredKeys // 필수로 들어가야하는 컬럼
+     * @param clazz	// 변환할 클래스 타입 <T> 반환할 DTO 타입 // 엑셀 업로드 양식 DTO (예: AtchFileDto.class)
+     * @param saver 실제 DB에 저장할 로직 (매퍼의 insert 메서드 등)
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 3.  GD       최초 생성
+     */
+    public <T> ExcelUploadResult<T> uploadAndSave(
+            MultipartFile file, 
+            Map<String, String> headerMap, 
+            List<String> validKeys, 
+            List<String> requiredKeys, 
+            Class<T> clazz,
+            Consumer<T> saver) { // Consumer를 통해 매퍼 메서드를 주입받음
+
+        List<T> dtoList;
+        try {
+        	
+            // 기존에 만드신 메서드로 DTO 변환 (이미 필수값 검증 포함됨)
+            dtoList = this.uploadExcelToDto(file, headerMap, validKeys, requiredKeys, clazz);
+        } catch (Exception e) {
+        	
+            // 파일 자체 오류나 헤더 오류 시 처리
+            throw new RuntimeException(e.getMessage());
+        }
+
+        // 성공 리스트
+        List<T> successList = new ArrayList<>();
+        // 실패 리스트
+        List<ExcelUploadResult.ExcelFailDetail> failList = new ArrayList<>();
+
+        for (int i = 0; i < dtoList.size(); i++) {
+            T dto = dtoList.get(i);
+            int rowNum = i + 2; // 엑셀 실제 행 번호
+            
+            try {
+            	
+                // 외부에서 전달받은 매퍼 로직 실행
+                saver.accept(dto); 
+                successList.add(dto);
+            } catch (Exception e) {
+            	
+                // DB 제약조건 위반, 중복 데이터 등 에러 발생 시 실패 리스트에 담기
+                failList.add(new ExcelUploadResult.ExcelFailDetail(rowNum, e.getMessage()));
+            }
+        }
+
+        return ExcelUploadResult.<T>builder()
+                .totalCount(dtoList.size())
+                .successCount(successList.size())
+                .failCount(failList.size())
+                .successList(successList)
+                .failList(failList)
+                .build();
+    }
+    
+    /**
+     * 
+     * 실패 내역 전용 엑셀 다운로드
+     * @author GD
+     * @since 2026. 2. 3.
+     * @param response
+     * @param failList 실패 상세 리스트 (ExcelFailDetail)
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 3.  GD       최초 생성
+     */
+    @Override
+    public void downloadFailReport(HttpServletResponse response, List<ExcelUploadResult.ExcelFailDetail> failList) throws Exception {
+        
+        SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+        Sheet sheet = workbook.createSheet("실패리포트");
+
+        // 헤더 생성
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("엑셀 행 번호");
+        headerRow.createCell(1).setCellValue("에러 사유");
+
+        // 데이터 생성
+        int rowIdx = 1;
+        for (ExcelUploadResult.ExcelFailDetail fail : failList) {
+            Row row = sheet.createRow(rowIdx++);
+            row.createCell(0).setCellValue(fail.getRowNum());
+            row.createCell(1).setCellValue(fail.getErrorMsg());
+        }
+
+        String fileName = UriUtils.encode("업로드_실패_리포트", StandardCharsets.UTF_8);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + ".xlsx\"");
+
+        workbook.write(response.getOutputStream());
+        workbook.dispose();
+        workbook.close();
+    }
+    
+    /**
+     * 
      * 엑셀 데이터 검증 체크 ( 데이터 타입, 필수값 체크 ) 
      * @author GD
      * @since 2026. 1. 27.
@@ -308,9 +416,6 @@ public class ExcelServiceImpl implements ExcelService {
                 .findFirst()
                 .orElse(engKey);
     }
-    
-    
-    
     
     /**
      * 

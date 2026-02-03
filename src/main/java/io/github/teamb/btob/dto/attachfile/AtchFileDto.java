@@ -9,13 +9,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * 
+ * 첨부파일 DTO
+ * @author GD
+ * @since 2026. 2. 3.
+ * * 수정일        수정자       수정내용
+ * ----------  --------    ---------------------------
+ * 2026. 2. 3.  GD       최초 생성
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 public class AtchFileDto {
-    private int fileId;
-    private String refTypeCd;      // NOTICE, USER_BATCH 등
-    private int refId;          // 공지사항 ID 등
+    private Integer fileId;
+    private String systemId;      // NOTICE, USER_BATCH등 SYSTEM_ID 값
+    private Integer refId;          // 공지사항 ID 등 식별자가 들어옴
     private String orgFileNm;    // 원본 파일명
     private String strFileNm;    // 서버 저장용 UUID 명칭
     private String filePath;     // 실제 저장 경로
@@ -23,10 +32,10 @@ public class AtchFileDto {
     private Long fileSize;       // 파일 크기
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime regDtime;        // 등록 일시
-    private int regId;		// 생성자
+    private Integer regId;		// 생성자
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updDtime;		// 수정시간
-    private int updId;				// 수정자
+    private Integer updId;				// 수정자
     private String useYn;
     // Getter, Setter 생략
     

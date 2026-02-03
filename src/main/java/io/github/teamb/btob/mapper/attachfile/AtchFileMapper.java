@@ -31,7 +31,7 @@ public interface AtchFileMapper {
 	 * ----------  --------    ---------------------------
 	 * 2026. 1. 26.  GD       최초 생성
 	 */
-    int insertFile(AtchFileDto atchFileDto);
+    Integer insertFile(AtchFileDto atchFileDto);
     
     /**
      * 
@@ -44,14 +44,14 @@ public interface AtchFileMapper {
      * ----------  --------    ---------------------------
      * 2026. 1. 26.  GD       최초 생성
      */
-    AtchFileDto selectFileById(int fileId);
+    AtchFileDto selectFileById(Map<String, Integer> params);
     
     /**
      * 
      * 참조 대상별 파일 목록 조회 (공지사항 상세 등)
      * @author GD
      * @since 2026. 1. 26.
-     * @param param refTypeCd 및 refId를 담은 Map
+     * @param param systemId 및 refId를 담은 Map
      * @return 파일 목록 리스트
      * 수정일        수정자       수정내용
      * ----------  --------    ---------------------------
@@ -70,5 +70,5 @@ public interface AtchFileMapper {
      * ----------  --------    ---------------------------
      * 2026. 1. 26.  GD       최초 생성
      */
-    int deleteFileById(int fileId);
+    Integer deleteFileById(Integer fileId);
 }
