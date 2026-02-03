@@ -1,4 +1,4 @@
-package io.github.teamb.btob.jprtest.service.impl;
+package io.github.teamb.btob.service.attachfile.impl;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,8 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import io.github.teamb.btob.jprtest.dto.AtchFileDto;
-import io.github.teamb.btob.jprtest.mapper.AtchFileMapper;
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
+import io.github.teamb.btob.mapper.attachfile.AtchFileMapper;
+import io.github.teamb.btob.service.attachfile.FileService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -21,7 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
-    @Value("${file.upload-dir}")
+	// properti path chk
+    @Value("${file.upload-dir2}")
     private String uploadDir;
 
     private final AtchFileMapper fileMapper;

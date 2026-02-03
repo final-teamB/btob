@@ -21,6 +21,7 @@ public class SearchDetailInfoUserDTO {
 	private String userNm;			// 사용자 성함
 	private String phone;			// 사용자 연락처
 	private String email;			// 사용자 이메일
+	private String companyCd;		// 회사코드
 	private String companyName;		// 회사명
 	private String companyPhone;	// 회사연락처
 	private String addrKor;		// 회사 한글주소

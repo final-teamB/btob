@@ -1,4 +1,4 @@
-package io.github.teamb.btob.jprtest.service.impl;
+package io.github.teamb.btob.service.pdf.impl;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +11,8 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import com.lowagie.text.pdf.BaseFont;
 
+import io.github.teamb.btob.config.HtmlResponseWrapper;
+import io.github.teamb.btob.service.pdf.PdfService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 

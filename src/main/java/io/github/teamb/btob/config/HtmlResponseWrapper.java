@@ -1,4 +1,4 @@
-package io.github.teamb.btob.jprtest.service.impl;
+package io.github.teamb.btob.config;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

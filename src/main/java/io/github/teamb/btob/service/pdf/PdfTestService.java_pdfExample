@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import io.github.teamb.btob.jprtest.dto.AtchFileDto;
 import io.github.teamb.btob.jprtest.mapper.AtchFileMapper;
+import io.github.teamb.btob.service.pdf.PdfService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

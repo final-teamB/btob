@@ -1,11 +1,10 @@
-package io.github.teamb.btob.jprtest.service.impl;
+package io.github.teamb.btob.service.attachfile;
 
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import io.github.teamb.btob.jprtest.dto.AtchFileDto;
-
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 
 public interface FileService {
 

@@ -12,25 +12,26 @@ import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDetailInfoDTO;
+import io.github.teamb.btob.dto.mgmtAdm.user.SearchConditionUserDTO;
+import io.github.teamb.btob.dto.mgmtAdm.user.SearchDetailInfoUserDTO;
 
 @Mapper
 public interface UserMgmtAdmMapper {
 	
-		// 상품 검색 조회
-		// Integer startRow, Integer limit, String searchCondition
-		List<SearchConditionProductDTO> selectProductSearchConditionListAdm(Map<String, Object> searchParams);
+		// 사용자 검색 조회
+		List<SearchConditionUserDTO> selectUserSearchConditionListAdm(Map<String, Object> searchParams);
 		
-		// 상품 조회 건수
-		Integer selectProductSearchConditionListCntAdm(String searchCondition);
+		// 사용자 검색 조회 건수
+		Integer selectUserSearchConditionListCntAdm(String searchCondition);
 		
-		// 상품 상세조회
-		SearchDetailInfoProductDTO selectProductDetailInfoByIdAdm(Integer fuelId);
+		// 사용자 상세조회
+		SearchDetailInfoUserDTO selectUserDetailInfoByIdAdm(Integer userNo);
 		
-		// 상품 등록
-		Integer insertProductAdm(InsertProductDTO insertProductDTO);
+		// 사용자 등록?
+		//Integer insertProductAdm(InsertProductDTO insertProductDTO);
 		
-		// 상품 상세정보 등록
-		Integer insertProductDetailInfoAdm(InsertDetailInfoProductDTO insertDetailInfoProductDTO);
+		// 사용자 상세정보 등록? 이건 회원가입에서 따오기
+		//Integer insertProductDetailInfoAdm(InsertDetailInfoProductDTO insertDetailInfoProductDTO);
 		
 		// 상품 수정
 		Integer updateProductAdm(UpdateProductDTO updateProductDTO);

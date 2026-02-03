@@ -5,7 +5,8 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import io.github.teamb.btob.jprtest.dto.AtchFileDto;
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
+
 
 /**
  * 
