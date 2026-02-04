@@ -13,7 +13,10 @@ public class NotificationDTO {
 	private int targetId;
 	private String message;
 	private String isRead;
+	
 	private LocalDateTime regDtime;
 	private String regId;
+	private LocalDateTime updDtime;
+	private String updId;
 	private String useYn;
 }

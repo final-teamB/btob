@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.notification.NotificationMapper">
+
+	<insert id="insertNotification" parameterType="io.github.teamb.btob.dto.notification.NotificationDTO">
+        INSERT INTO TB_NOTIFICATION (
+            receiver_id, sender_id, notification_type, target_id, 
+        	message, reg_id, upd_id
+        ) VALUES (
+            #{receiverId}, #{senderId}, #{notificationType}, #{targetId}, 
+            #{message}, #{regId}, #{updId}
+        )
+    </insert>
+    
+    <select id="selectNotification" resultType="io.github.teamb.btob.dto.notification.NotificationDTO">
+        SELECT 
+            notification_id notificationId,
+            receiver_id receiverId,
+            sender_id senderId,
+            notification_type notificationType,
+            target_id targetId,
+            message,
+            is_read isRead,
+            reg_dtime regDtime,
+            reg_id regId,
+            upd_dtime updDtime,
+            upd_id updId,
+            use_yn useYn
+        FROM TB_NOTIFICATION
+        WHERE receiver_id = #{receiverId} AND use_yn = 'Y'
+        ORDER BY is_read ASC, reg_dtime DESC
+    </select>
+
+    <update id="updateReadStatus">
+        UPDATE TB_NOTIFICATION
+        SET is_read = 'Y', 
+            upd_dtime = NOW()
+            <!-- upd_id = #{userId} -->
+        WHERE notification_id = #{notificationId}
+        <!-- AND receiver_id = #{userId} -->
+    </update>
+</mapper>
