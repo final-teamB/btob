@@ -27,8 +27,7 @@
             upd_id updId,
             use_yn useYn
         FROM TB_NOTIFICATION
-        WHERE receiver_id = #{receiverId}
-          AND use_yn = 'Y'
+        WHERE receiver_id = #{receiverId} AND use_yn = 'Y'
         ORDER BY is_read ASC, reg_dtime DESC
     </select>
 

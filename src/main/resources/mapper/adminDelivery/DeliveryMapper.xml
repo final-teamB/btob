@@ -47,11 +47,12 @@
             D.ship_from_addr shipFromAddr,
             D.ship_to_addr shipToAddr, 
             D.reg_dtime regDtime,
-            D.reg_id regId, 
             D.upd_dtime updDtime, 
             D.upd_id updId,
-            D.use_yn useYn
+            D.use_yn useYn,
+            	O.reg_id regId
         FROM TB_DELIVERY D
+        INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id
         WHERE D.delivery_id = #{deliveryId} AND D.use_yn = 'Y'
 	</select>
 	

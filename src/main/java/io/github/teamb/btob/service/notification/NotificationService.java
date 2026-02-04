@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final SseEmitters sseEmitters;
 	private final NotificationMapper notificationMapper;
 	
 	public void send(String receiverId, String notificationType, int targetId, String message, String senderId) { 
@@ -22,8 +21,8 @@ public class NotificationService {
 		dto.setTargetId(targetId);
 		dto.setMessage(message);
 		
-		// 보낸사람이 없으면 SYSTEM
-		String finalSender = (senderId != null && !senderId.isEmpty()) ? senderId : "SYSTEM";
+		// 보낸사람이 없으면 admin
+		String finalSender = (senderId != null && !senderId.isEmpty()) ? senderId : "admin";
 		
 		dto.setSenderId(finalSender);
 		dto.setRegId(finalSender);
@@ -31,8 +30,6 @@ public class NotificationService {
         
 		// 알림 기록 DB에 저장
         notificationMapper.insertNotification(dto);
-        // 실시간으로 알림 보내기
-        sseEmitters.sendToClient(receiverId, dto);
 	}
 	
 	// 알림 목록

@@ -1,53 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.github.teamb.btob.mapper.statistics.StatisticsMapper">
-	
-	<select id="selectStatsByType" parameterType="string" resultType="io.github.teamb.btob.dto.statistics.StatisticsDTO">
-		SELECT
-			stats_name statsName,
+<mapper namespace="io.github.teamb.btob.mapper.adminStatistics.StatisticsMapper">
+
+	<!-- 공통 통계 조회 -->
+    <select id="selectStatsByType" parameterType="string" resultType="io.github.teamb.btob.dto.adminStatistics.StatisticsDTO">
+        SELECT
+            stats_name statsName,
             stats_value statsValue,
             stats_date statsDate,
             stats_type statsType
         FROM TB_STATISTICS
         WHERE stats_type = #{statsType} AND use_yn = 'Y'
         ORDER BY stats_date ASC
-	</select>
-	
-	<select id="selectOrderStats" resultType="io.github.teamb.btob.dto.statistics.OrderStatisticsDTO">
-	    SELECT 
-	        stats_date statsDate, 
-	        total_order_count totalOrderCount,
-	        pending_count pendingCount,
-	        paid_count paidCount,
-	        preparing_count preparingCount,
-	        shipping_count shippingCount,
-	        delivered_count deliveredCount,
-	        executed_at executedAt FROM TB_ORDER_STATISTICS
-	    WHERE use_yn = 'Y'
-	    ORDER BY executed_at ASC 
-	</select>
-	
-	<insert id="refreshOrderStats">
-	    INSERT INTO TB_ORDER_STATISTICS (
-	        stats_type, stats_date, total_order_count, pending_count, 
-	        paid_count, preparing_count, shipping_count, delivered_count
-	    )
-	    SELECT 
-	        'DAY', 
-	        DATE(CURDATE()), COUNT(*),
-	        COUNT(CASE WHEN order_status = 'PENDING' THEN 1 END),
-	        COUNT(CASE WHEN order_status = 'PAID' THEN 1 END),
-	        COUNT(CASE WHEN order_status = 'PREPARING' THEN 1 END),
-	        COUNT(CASE WHEN order_status = 'SHIPPING' THEN 1 END),
-	        COUNT(CASE WHEN order_status = 'DELIVERED' THEN 1 END)
-	    FROM TB_ORDER_MST WHERE reg_dtime >= CURDATE()
-	    ON DUPLICATE KEY UPDATE 
-	        total_order_count = VALUES(total_order_count),
-	        pending_count = VALUES(pending_count),
-	        paid_count = VALUES(paid_count),
-	        preparing_count = VALUES(preparing_count),
-	        shipping_count = VALUES(shipping_count),
-	        delivered_count = VALUES(delivered_count),
-	        executed_at = NOW() 
+    </select>
+    
+    <!-- 주문 통계 조회 -->
+    <select id="selectOrderStats" resultType="io.github.teamb.btob.dto.adminStatistics.OrderStatisticsDTO">
+        SELECT 
+            stats_date statsDate, 
+            total_order_count totalOrderCount,
+            pending_count pendingCount,
+            paid_count paidCount,
+            preparing_count preparingCount,
+            shipping_count shippingCount,
+            delivered_count deliveredCount,
+            executed_at executedAt 
+        FROM TB_ORDER_STATISTICS
+        WHERE use_yn = 'Y'
+        ORDER BY executed_at ASC 
+    </select>
+    
+    <!-- 주문 통계 배치 -->
+    <insert id="refreshOrderStats">
+        INSERT INTO TB_ORDER_STATISTICS (
+            stats_type, stats_date, total_order_count, pending_count, 
+            paid_count, preparing_count, shipping_count, delivered_count, 
+            total_sales_amount, executed_at
+        )
+        SELECT 
+            'DAY', 
+            CURDATE(), 
+            COUNT(DISTINCT O.order_id),
+            COUNT(DISTINCT CASE WHEN O.order_status = 'PENDING' THEN O.order_id END),
+            COUNT(DISTINCT CASE WHEN O.order_status = 'PAID' THEN O.order_id END),
+            COUNT(DISTINCT CASE WHEN O.order_status = 'PREPARING' THEN O.order_id END),
+            COUNT(DISTINCT CASE WHEN O.order_status = 'SHIPPING' THEN O.order_id END),
+            COUNT(DISTINCT CASE WHEN O.order_status = 'DELIVERED' THEN O.order_id END),
+            IFNULL(SUM(CASE WHEN P.status = 'PAID' THEN O.total_price ELSE 0 END), 0),
+            NOW()
+        FROM TB_ORDER_MST O
+        LEFT JOIN TB_PAYMENT_MST P ON O.order_id = P.order_id
+        WHERE O.reg_dtime >= CURDATE()
+        ON DUPLICATE KEY UPDATE 
+            total_order_count = VALUES(total_order_count),
+            pending_count = VALUES(pending_count),
+            paid_count = VALUES(paid_count),
+            preparing_count = VALUES(preparing_count),
+            shipping_count = VALUES(shipping_count),
+            delivered_count = VALUES(delivered_count),
+            total_sales_amount = VALUES(total_sales_amount),
+            executed_at = NOW() 
     </insert>
+    
+    <!-- 배송 -->
+    <!-- 배송 KPI (평균배송 소요일, 현재 배송중 건수, 지연 배송 건수) -->
+    <select id="getDeliveryKPI" resultType="map">
+        SELECT 
+            IFNULL(ROUND(AVG(DATEDIFF(upd_dtime, reg_dtime)), 1), 0) as avg_delivery_time,
+            COUNT(CASE WHEN delivery_status = 'D_SHIPPING' THEN 1 END) as current_shipping,
+            COUNT(CASE WHEN delivery_status != 'COMPLETE' AND DATEDIFF(NOW(), reg_dtime) >= 3 THEN 1 END) as delay_count
+        FROM TB_DELIVERY
+        WHERE use_yn = 'Y'
+    </select>
+    
+    <!-- 배송지역별 -->
+    <select id="getDeliveryRegionStats" resultType="map">
+        SELECT 
+            SUBSTR(TRIM(ship_to_addr), 1, 2) as name, 
+            COUNT(*) as value
+        FROM TB_DELIVERY
+        WHERE use_yn = 'Y' AND ship_to_addr IS NOT NULL
+        GROUP BY SUBSTR(TRIM(ship_to_addr), 1, 2)
+        ORDER BY value DESC
+        LIMIT 5
+    </select>
+    
+    <!-- 최근 7일 배송완료 트렌드 -->
+    <select id="getDeliveryTrend" resultType="map">
+        SELECT 
+            DATE_FORMAT(upd_dtime, '%m-%d') as date,
+            COUNT(*) as count
+        FROM TB_DELIVERY
+        WHERE delivery_status = 'COMPLETE'
+          AND upd_dtime >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY DATE_FORMAT(upd_dtime, '%m-%d')
+        ORDER BY date ASC
+    </select>
+    
+    <!-- 배송 상태별 건수 -->
+    <select id="getDeliveryStatusCounts" resultType="map">
+        SELECT 
+            COUNT(CASE WHEN delivery_status = 'READY' THEN 1 END) as READY,
+            COUNT(CASE WHEN delivery_status IN ('L_SHIPPING', 'L_WH') THEN 1 END) as L_SHIPPING,
+            COUNT(CASE WHEN delivery_status IN ('ABROAD', 'IN_CUSTOMS', 'C_DONE') THEN 1 END) as ABROAD,
+            COUNT(CASE WHEN delivery_status = 'D_SHIPPING' THEN 1 END) as D_SHIPPING,
+            COUNT(CASE WHEN delivery_status = 'COMPLETE' THEN 1 END) as COMPLETE
+        FROM TB_DELIVERY
+        WHERE use_yn = 'Y'
+    </select>
+
+	<!-- 일별 배송완료 건수 배치 -->
+	<insert id="insertDailyDeliveryStats">
+        INSERT INTO TB_STATISTICS (stats_name, stats_value, stats_date, stats_type, use_yn)
+        SELECT '일일배송완료', COUNT(*), CURDATE(), 'DELIVERY', 'Y'
+        FROM TB_DELIVERY
+        WHERE delivery_status = 'COMPLETE' AND DATE(upd_dtime) = CURDATE()
+        ON DUPLICATE KEY UPDATE stats_value = VALUES(stats_value)
+    </insert>
+
+	<!-- 사용자 -->
+	<!-- 사용자 상태 -->
+    <select id="getUserAccStatusStats" resultType="map">
+        SELECT acc_status as name, COUNT(*) as value
+        FROM TB_USERS
+        GROUP BY acc_status
+    </select>
+    
+    <!-- 사용자 승인 상태 -->
+    <select id="getUserAppStatusStats" resultType="map">
+        SELECT app_status as name, COUNT(*) as value
+        FROM TB_USERS
+        GROUP BY app_status
+    </select>
+    
+    <!-- 사용자 지역 분포 -->
+    <select id="getUserRegionStats" resultType="map">
+        SELECT SUBSTR(TRIM(address), 1, 2) as name, COUNT(*) as value
+        FROM TB_USERS
+        WHERE address IS NOT NULL AND address != ''
+        GROUP BY SUBSTR(TRIM(address), 1, 2)
+    </select>
+
+	<!-- 일별 활성 사용자 수 배치 -->
+    <insert id="insertDailyUserStats">
+        INSERT INTO TB_STATISTICS (stats_name, stats_value, stats_date, stats_type, use_yn)
+        SELECT '활성사용자수', COUNT(*), CURDATE(), 'USER', 'Y'
+        FROM TB_USERS
+        WHERE acc_status = 'ACTIVE'
+        ON DUPLICATE KEY UPDATE stats_value = VALUES(stats_value)
+    </insert>
+
+	<!-- 상품 -->
+    <!-- 상품 KPI (전체 상훔 수, 품절 임박 상품 수, 오늘 신규 등록 상품 수)-->
+    <select id="getProductKPI" resultType="map">
+        <![CDATA[
+        SELECT 
+            COUNT(*) as total_products,
+            COUNT(CASE WHEN curr_stock_vol < safe_stock_vol THEN 1 END) as low_stock,
+            COUNT(CASE WHEN DATE(reg_dtime) = CURDATE() THEN 1 END) as today_new
+        FROM TB_OIL_MST
+        WHERE use_yn = 'Y'
+        ]]>
+    </select>
+    
+    <!-- 카테고리별 상품 -->
+    <select id="getCategorySalesStats" resultType="map">
+        SELECT fuel_cat_cd as name, COUNT(*) as value
+        FROM TB_OIL_MST
+        WHERE use_yn = 'Y'
+        GROUP BY fuel_cat_cd
+    </select>
+    
+    <!-- 재고량 top10 -->
+    <select id="getTopSellingProducts" resultType="map">
+        SELECT fuel_nm as name, curr_stock_vol as value
+        FROM TB_OIL_MST
+        WHERE use_yn = 'Y'
+        ORDER BY curr_stock_vol DESC
+        LIMIT 5
+    </select>
+    
+    <!-- 일별 전체 재고량 배치 -->
+    <insert id="insertDailyOilStats">
+        INSERT INTO TB_STATISTICS (stats_name, stats_value, stats_date, stats_type, use_yn)
+        SELECT '전체재고량', SUM(curr_stock_vol), CURDATE(), 'PRODUCT', 'Y'
+        FROM TB_OIL_MST
+        WHERE use_yn = 'Y'
+        ON DUPLICATE KEY UPDATE stats_value = VALUES(stats_value)
+    </insert>
+    
 </mapper>
