@@ -1,7 +1,9 @@
 package io.github.teamb.btob.dto.mgmtAdm.product;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import lombok.Data;
 
 /**
@@ -43,4 +45,7 @@ public class SearchDetailInfoProductDTO {
     private Integer flashPnt;        // 인화점
     private Integer viscosity;       // 점도
     private Integer density15c;      // 15도 밀도
+    
+    // 파일 이미지
+    private List<AtchFileDto> fileList;
 }

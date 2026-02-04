@@ -1,31 +1,48 @@
 package io.github.teamb.btob.service.attachfile.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.mapper.attachfile.AtchFileMapper;
 import io.github.teamb.btob.service.attachfile.FileService;
 import io.github.teamb.btob.service.common.CommonService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
 	// properti path chk
-    @Value("${file.upload-dir2}")
-    private String uploadDir;
+    //@Value("${file.upload-dir2}")
+    //private String uploadDir;
+    
+    // 루트 경로 (공통)
+    @Value("${file.upload.root}")
+    private String rootPath;
+
+    @Autowired
+    private Environment env; // 설정값을 동적으로 가져오기 위함
 
     private final CommonService commonService;
     private final AtchFileMapper fileMapper;
@@ -91,17 +108,17 @@ public class FileServiceImpl implements FileService {
         String strFileNm = UUID.randomUUID().toString() + "." + ext;
         
         // 디렉토리가 없다면 디렉토리 생성
-        File dir = new File(uploadDir);
+        File dir = new File(rootPath);
         if (!dir.exists()) dir.mkdirs();
 
         // 디렉토리에 파일 저장 처리
-        File target = new File(uploadDir, strFileNm);
+        File target = new File(rootPath, strFileNm);
         file.transferTo(target);
 
         AtchFileDto dto = new AtchFileDto();
         dto.setOrgFileNm(orgFileNm);
         dto.setStrFileNm(strFileNm);
-        dto.setFilePath(new File(uploadDir, strFileNm).getAbsolutePath());
+        dto.setFilePath(new File(rootPath, strFileNm).getAbsolutePath());
         dto.setFileExt(ext);
         dto.setFileSize(file.getSize());
         dto.setSystemId(systmeId);
@@ -157,26 +174,155 @@ public class FileServiceImpl implements FileService {
 		return fileDto;
 	}
     
-    
     /**
      * 
-     * 파일 정보 삭제 ( 미사용으로 미표출 처리 )
+     * 첨부 파일 수정 시 삭제 처리 ( 미사용으로 변경 처리 )
      * @author GD
-     * @since 2026. 1. 26.
-     * @param fileId
+     * @since 2026. 2. 4.
+     * @param systemId
+     * @param refId
+     * @param remainingFileNames	첨부 파일 리스트에 있는 파일명 리스트
      * @throws Exception
      * 수정일        수정자       수정내용
      * ----------  --------    ---------------------------
-     * 2026. 1. 26.  GD       최초 생성
+     * 2026. 2. 4.  GD       최초 생성
      */
     @Override
-    public void deleteFile(Integer fileId) throws Exception {
+    public void updateUnusedFiles(String systemId, 
+    						Integer refId, 
+    						List<String> remainingFileNames) throws Exception {
     	
-        Integer result = fileMapper.deleteFileById(fileId);
+        Map<String, Object> params = new HashMap<>();
+        params.put("systemId", systemId);
+        params.put("refId", refId);
+        params.put("remainingFileNames", remainingFileNames);
+
+        // 매퍼 호출 (결과값인 수정된 행의 수는 필요에 따라 로깅)
+        fileMapper.updateUnusedFilesExceptRemaining(params);
+    }
+    
+    /**
+     * 
+     * 이미지 표출
+     * @author GD
+     * @since 2026. 2. 4.
+     * @param systemId
+     * @param fileName
+     * @param response
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 4.  GD       최초 생성
+     */
+    @Override
+    public void displayImage(String systemId, String fileName, HttpServletResponse response) throws Exception {
         
-        if (result < 1) {
-        	
-            throw new Exception("파일 삭제 처리 중 오류가 발생했습니다.");
+    	// 1. 파일 저장 경로
+    	String subPath = env.getProperty("file.upload.path." + systemId);
+    	
+    	if (subPath == null) {
+            throw new Exception("정의되지 않은 시스템 경로입니다: " + systemId);
+        }
+        
+    	// 2. 전체 경로 조합 (루트 + 세부경로 + 파일명)
+        File file = new File(rootPath + subPath, fileName);
+        
+        if (!file.exists()) {
+            throw new Exception("파일을 찾을 수 없습니다.");
+        }
+
+        // 3. 파일의 MIME 타입 파악 (image/jpeg, image/png 등)
+        String contentType = Files.probeContentType(file.toPath());
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        // 4. 응답 헤더 설정
+        response.setContentType(contentType);
+        
+        // 5. 파일 복사 (스트림 전송)
+        try (InputStream is = new FileInputStream(file);
+             OutputStream os = response.getOutputStream()) {
+            StreamUtils.copy(is, os); // Spring의 StreamUtils 사용 시 간편함
+            os.flush();
         }
     }
+
+    /**
+     * 
+     * 일반 미사용 처리
+     * @author GD
+     * @since 2026. 2. 4.
+     * @param refIds
+     * @param userNo
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 4.  GD       최초 생성
+     */
+	@Override
+	public Integer updateUnuseAtchFile(List<Integer> refIds, Integer userNo) throws Exception {
+		
+		Map<String, Object> params = new HashMap<>();
+	    params.put("refIds", refIds);
+	    params.put("userNo", userNo);
+		
+		if ( !(commonService.nullEmptyChkValidate(params)) ) {
+    		throw new Exception("잘못된 파라미터 입니다.");
+    	}
+	    
+	    return fileMapper.unUseAtchFile(params);
+	}
+	
+	
+	/**
+	 * 
+	 * 서버 내 특정 임시 경로의 파일을 시스템 저장소로 이동 및 등록
+	 * @author GD
+	 * @since 2026. 2. 4.
+	 * @param orgFileNm
+	 * @param systemId
+	 * @param refId
+	 * @param tempPath
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 4.  GD       최초 생성
+	 */
+	@Override
+	public AtchFileDto registerInternalFile(AtchFileDto fileDto, String tempPath) throws Exception {
+		// 1. 시스템별 정식 저장 경로 확인
+	    String subPath = env.getProperty("file.upload.path." + fileDto.getSystemId());
+	    File targetDir = new File(rootPath + subPath);
+	    if (!targetDir.exists()) targetDir.mkdirs();
+
+	    // 2. 임시 경로에서 파일 확인
+	    File tempFile = new File(tempPath, fileDto.getOrgFileNm());
+	    if (!tempFile.exists()) {
+	    	
+	        log.warn("파일이 임시 경로에 없습니다: {}", fileDto.getOrgFileNm());
+	        return null;
+	    }
+
+	    // 3. 파일명 변환 및 정보 업데이트
+	    String ext = fileDto.getOrgFileNm().substring(fileDto.getOrgFileNm().lastIndexOf(".") + 1);
+	    String strFileNm = UUID.randomUUID().toString() + "." + ext;
+	    File targetFile = new File(targetDir, strFileNm);
+	    
+	    // 파일 이동
+	    tempFile.renameTo(targetFile);
+
+	    // 4. DTO에 서버 저장 정보 채우기
+	    fileDto.setStrFileNm(strFileNm);
+	    fileDto.setFilePath(targetFile.getAbsolutePath());
+	    fileDto.setFileExt(ext);
+	    fileDto.setFileSize(targetFile.length());
+
+	    // 5. DB 등록
+	    fileMapper.insertFile(fileDto);
+	    
+	    return fileDto;
+	}
 }

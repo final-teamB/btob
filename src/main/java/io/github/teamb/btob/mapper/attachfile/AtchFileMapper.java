@@ -61,7 +61,7 @@ public interface AtchFileMapper {
 
     /**
      * 
-     * 파일 정보 삭제 (미사용으로 미표출 처리)
+     * 첨부 파일 수정 시 삭제 처리 ( 미사용으로 변경 처리 )
      * @author GD
      * @since 2026. 1. 26.
      * @param fileId
@@ -70,5 +70,18 @@ public interface AtchFileMapper {
      * ----------  --------    ---------------------------
      * 2026. 1. 26.  GD       최초 생성
      */
-    Integer deleteFileById(Integer fileId);
+    Integer updateUnusedFilesExceptRemaining(Map<String, Object> params);
+    
+    /**
+     * 
+     * 일반 미사용 처리 시
+     * @author GD
+     * @since 2026. 2. 4.
+     * @param params
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 4.  GD       최초 생성
+     */
+    Integer unUseAtchFile(Map<String, Object> params);
 }

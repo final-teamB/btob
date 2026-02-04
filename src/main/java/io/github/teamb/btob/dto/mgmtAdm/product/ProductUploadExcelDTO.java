@@ -1,5 +1,6 @@
 package io.github.teamb.btob.dto.mgmtAdm.product;
 
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import lombok.Data;
 
 /**
@@ -35,6 +36,17 @@ public class ProductUploadExcelDTO {
     private Integer viscosity;       // 점도
     private Integer density15c;      // 15도 밀도
     
+    // 이미지 일괄 업로드
+    // 공통첨부파일 사용 TB_ATCH_FILE_MST
+    // 메인이미지 ( PR_IMG_DETAIL )
+    private String orgFileNm;		// 원본파일명
+    private String filePath;		// 파일경로
+    private String fileExt;			// 파일 확장자
+    
+    private String mainFileNm;  // '메인이미지명' 컬럼과 매핑
+    private String subFileNm;   // '서브이미지명' 컬럼과 매핑
+    
+    
     /**
      * 상품 기본 정보 DTO로 변환
      */
@@ -65,5 +77,18 @@ public class ProductUploadExcelDTO {
                 .viscosity(this.viscosity)
                 .density15c(this.density15c)
                 .build();
+    }
+    
+    /**
+     * 첨부파일 정보 DTO로 변환
+     */
+    public AtchFileDto toAtchFileDTO(Integer refId, String systemId, String fileName) {
+    	
+        AtchFileDto dto = new AtchFileDto();
+        dto.setRefId(refId);
+        dto.setSystemId(systemId);
+        dto.setOrgFileNm(fileName); // 엑셀에서 읽어온 파일명
+        // 나머지 UUID 파일명, 경로, 사이즈 등은 실제 파일 처리 시점에 FileService에서 채워짐
+        return dto;
     }
 }

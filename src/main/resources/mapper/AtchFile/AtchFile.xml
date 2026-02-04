@@ -87,15 +87,51 @@
 	        	
     </select>
 
-    <!-- 2026.01.26. 파일 정보 삭제 (미사용으로 미표출 처리) -->
-    <update id="deleteFileById" parameterType="int">
+    <!-- 2026.01.26. 첨부 파일 수정 시 삭제 처리 ( 미사용으로 변경 처리 ) -->
+    <update id="updateUnusedFilesExceptRemaining" 
+    	parameterType="java.util.Map">
     
 		    UPDATE 
 		    	TB_ATCH_FILE_MST
-		    SET 
-		    	use_yn = 'N'
-		    WHERE file_id = #{fileId}
-	    
+    		SET 
+    			use_yn = 'N'
+        		,upd_dtime = CURRENT_TIMESTAMP
+        		,upd_id = #{userNo}
+    		WHERE 1=1
+    		AND ref_id = #{refId}
+      		AND system_id = #{systemId}
+      		AND use_yn = 'Y'
+			<if test="remainingFileNames != null and remainingFileNames.size() > 0">
+			AND str_file_nm NOT IN 
+				<foreach item="strFileNm" 
+					collection="remainingFileNames" 
+					open="(" separator="," close=")">
+				    
+				    #{strFileNm}
+				    
+				</foreach>
+			</if>
+			
 	</update>
-    
+	
+	<!-- 일반 미사용 처리 -->
+	<update id="unUseAtchFile"
+		parameterType="java.util.Map">
+		
+			UPDATE
+				TB_ATCH_FILE_MST
+			SET
+				use_yn = 'N'
+        		,upd_dtime = CURRENT_TIMESTAMP
+        		,upd_id = #{userNo}
+			WHERE ref_id IN
+			<foreach item="refId" 
+				collection="refIds" 
+				open="(" separator="," close=")">
+				
+        		#{refId}
+        		
+    		</foreach>
+			
+	</update>
 </mapper>

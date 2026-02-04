@@ -46,4 +46,7 @@ public class AtchFileDto {
         if (regDtime == null) return "";
         return regDtime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
+    
+    // 이미지 상세정보 관련 url 처리
+    private String FileUrl;
 }

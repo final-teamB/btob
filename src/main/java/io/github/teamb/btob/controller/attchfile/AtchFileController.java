@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,10 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/api/file")
 public class AtchFileController {
 	
 	private final FileService fileService;
-	
 	
 	/**
      * 
@@ -124,6 +125,7 @@ public class AtchFileController {
 	        response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 	    }
 	}
+	
 	 /**
      * 
      * 파일 정보 삭제 처리 ( 미사용으로 미표출 처리함 )
@@ -137,12 +139,14 @@ public class AtchFileController {
      */
     @DeleteMapping("/file/{fileId}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> deleteFile(@PathVariable int fileId) {
+    public ResponseEntity<Map<String, Object>> deleteFile( 
+									    		@RequestParam List<Integer> refIds,
+									    		@PathVariable Integer userNo) {
     	
         Map<String, Object> result = new HashMap<>();
         try {
         	
-            fileService.deleteFile(fileId);
+            fileService.updateUnuseAtchFile(refIds, userNo);
             result.put("status", "success");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -150,6 +154,32 @@ public class AtchFileController {
             result.put("status", "error");
             result.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+    
+    /**
+     * 
+     * 이미지 표출
+     * @author GD
+     * @since 2026. 2. 4.
+     * @param systemId
+     * @param fileName
+     * @param response
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 4.  GD       최초 생성
+     */
+    @GetMapping("/display/{systemId}")
+    public void displayImage(
+            @PathVariable("systemId") String systemId, 
+            @RequestParam("fileName") String fileName, 
+            HttpServletResponse response) {
+        try {
+            // 서비스 호출
+            fileService.displayImage(systemId, fileName, response);
+        } catch (Exception e) {
+            // 파일을 못 찾거나 에러 발생 시 404 혹은 에러 로그
+            log.error("Image display error: {}", e.getMessage());
         }
     }
 

@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 
  * 상품 등록 DTO
- * 관련 테이블 == TB_OIL_MST
+ * 관련 테이블 == TB_OIL_MST, TB_ATCH_FILE_MST
  * @author GD
  * @since 2026. 1. 29.
  * * 수정일        수정자       수정내용

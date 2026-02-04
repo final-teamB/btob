@@ -1,5 +1,8 @@
 package io.github.teamb.btob.dto.mgmtAdm.product;
 
+import java.util.List;
+
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import lombok.Data;
 
 /**
@@ -19,4 +22,7 @@ public class ProductRegisterRequestDTO {
     
     // 2. 상품 상세 정보 (TB_PRODUCT_DETAIL 관련)
     private InsertDetailInfoProductDTO productDetail;
+    
+    // 3. 상품 첨부 이미지
+    private List<AtchFileDto> productImg;
 }

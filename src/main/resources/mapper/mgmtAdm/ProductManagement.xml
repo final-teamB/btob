@@ -2,6 +2,42 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.ProductMgmtAdmMapper">
 
+	<resultMap id="productDetailMap" type="io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO">
+	    <id     property="fuelId"          column="fuel_id" />
+	    <result property="fuelCd"          column="fuel_cd" />
+	    <result property="fuelNm"          column="fuel_nm" />
+	    <result property="fuelCatCd"       column="fuel_cat_cd" />
+	    <result property="fuelCatNm"       column="fuel_cat_nm" />
+	    <result property="originCntryCd"   column="origin_cntry_cd" />
+	    <result property="originCntryNm"   column="origin_cntry_nm" />
+	    <result property="baseUnitPrc"     column="base_unit_prc" />
+	    <result property="currStockVol"    column="curr_stock_vol" />
+	    <result property="safeStockVol"    column="safe_stock_vol" />
+	    <result property="volUnitCd"       column="vol_unit_cd" />
+	    <result property="volUnitNm"       column="vol_unit_nm" />
+	    <result property="itemSttsCd"      column="item_stts_cd" />
+	    <result property="itemSttsNm"      column="item_stts_nm" />
+	    <result property="regDtime"        column="reg_dtime" />
+	    <result property="regId"           column="reg_id" />
+	    <result property="regNm"           column="reg_nm" />
+	    <result property="updDtime"        column="upd_dtime" />
+	    <result property="updId"           column="upd_id" />
+	    <result property="updNm"           column="upd_nm" />
+	    <result property="useYn"           column="use_yn" />
+	
+	    <result property="apiGrv"          column="api_grv" />
+	    <result property="sulfurPcnt"      column="sulfur_pcnt" />
+	    <result property="flashPnt"        column="flash_pnt" />
+	    <result property="viscosity"       column="viscosity" />
+	    <result property="density15c"      column="density_15c" />
+
+    	<collection property="fileList" ofType="io.github.teamb.btob.dto.common.AtchFileDto">
+	        <id     property="fileId"      column="file_id" />
+	        <result property="systemId"    column="system_id" />
+	        <result property="strFileNm"   column="str_file_nm" />
+        </collection>
+	</resultMap>
+
 	<sql id="oilMstJoins">
 	
 				LEFT OUTER JOIN COMMON_TBL b 
@@ -16,6 +52,9 @@
 				LEFT OUTER JOIN COMMON_TBL e 
 					ON a.item_stts_cd = e.comm_no 
 					AND e.param_value = 'FUEL_ITEM_STTS'
+				LEFT OUTER JOIN TB_ATCH_FILE_MST f
+					ON a.fuel_id = f.ref_id
+					AND f.system_id = 'PRODUCT_S'
 					
 	</sql>
 	
@@ -51,6 +90,7 @@
 				,a.reg_dtime
 				,a.upd_dtime
 				,a.use_yn
+				,f.str_file_nm		/* 서버 파일 이미지 */
 			FROM
 				TB_OIL_MST a
 			<include refid="oilMstJoins" />
@@ -85,7 +125,7 @@
 	<!-- 상세조회 -->
 	<select id="selectProductDetailInfoByIdAdm"
 		parameterType="int"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO">
+		resultMap="productDetailMap">
 	
 			SELECT
 				a.fuel_id
@@ -109,15 +149,21 @@
 		        ,a.upd_id
 		        ,fnc_get_usernm(a.upd_id) AS upd_nm                             
 		        ,a.use_yn
-		        ,f.api_grv
-		        ,f.sulfur_pcnt
-		        ,f.flash_pnt
-		        ,f.viscosity
-		        ,f.density_15c
+		        ,b.api_grv
+		        ,b.sulfur_pcnt
+		        ,b.flash_pnt
+		        ,b.viscosity
+		        ,b.density_15c
+		        ,c.file_id 
+		        ,c.system_id 
+		        ,c.str_file_nm 
 			FROM
 				TB_OIL_MST a
 				LEFT OUTER JOIN TB_OIL_MST_DETAIL b
 					ON a.fuel_id = b.fuel_id
+				LEFT OUTER JOIN TB_ATCH_FILE_MST c
+					ON a.fuel_id = c.ref_id
+					AND c.system_id IN ('PRODUCT_M', 'PRODUCT_D')
 			WHERE 1=1
 			AND a.use_yn = 'Y'
 			AND a.fuel_id = #{fuelId}
@@ -163,7 +209,7 @@
 		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO">
 		
 			INSERT INTO TB_OIL_MST_DETAIL (
-					,fuel_id
+					fuel_id
 					,api_grv
 					,sulfur_p_cnt
 					,flash_pnt

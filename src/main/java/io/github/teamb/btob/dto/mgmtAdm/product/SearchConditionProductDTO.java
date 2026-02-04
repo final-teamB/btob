@@ -33,4 +33,8 @@ public class SearchConditionProductDTO {
     
     // 페이징 및 검색용 추가 필드
     private int rownm;              // 행 번호
+    
+    // 파일 이미지
+    private String strFileNm;
+    private String imgUrl;
 }

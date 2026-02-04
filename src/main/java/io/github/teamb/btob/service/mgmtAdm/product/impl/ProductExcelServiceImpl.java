@@ -1,21 +1,24 @@
 package io.github.teamb.btob.service.mgmtAdm.product.impl;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.dto.excel.ExcelUploadResult;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
-import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUploadExcelDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.mapper.mgmtAdm.ProductMgmtAdmMapper;
+import io.github.teamb.btob.service.attachfile.FileService;
 import io.github.teamb.btob.service.excel.ExcelService;
 import io.github.teamb.btob.service.mgmtAdm.product.ProductExcelService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,7 +34,12 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	private final ExcelService excelService;
 	// 추출 데이터
 	private final ProductMgmtAdmMapper productMgmtAdmMapper;
+	// 첨부파일 이미지
+	private final FileService fileService;
 	
+	// 루트 경로 (공통)
+    @Value("${file.upload.root}")
+    private String rootPath;
 	
 	/**
 	 * 
@@ -48,7 +56,7 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	public void ProductTempDownload(HttpServletResponse response) throws Exception {
 
 		// 1. 파일명 설정 ( 업로드 양식 파일명 )
-		String fileName = "고정양식테스트123.xlsx";
+		String fileName = "상품_관리_일괄업로드_양식.xlsx";
 		
 		// 2. 다운로드 실행
 		excelService.downloadExcelTemplate(response, fileName);
@@ -71,12 +79,29 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	@Override
 	public ExcelUploadResult<ProductUploadExcelDTO> processUpload(MultipartFile file) throws Exception {
 		
+		// 이 작업에서 사용할 임시 경로 설정 (예: 사용자별 혹은 세션별 폴더)
+	    // String currentTempPath = rootPath + "/batch_temp/" + SecurityUtils.getCurrentUserId();
+	    String currentTempPath = rootPath + "/img_temp";
+		
 		// 1. 실제로 사용할 정확한 영문 Key 목록 (White List)
-        List<String> validKeys = Arrays.asList(
-        		 "fuelCd", "fuelNm", "fuelCatCd", "originCntryCd", 
-        		    "baseUnitPrc", "currStockVol", "safeStockVol", 
-        		    "volUnitCd", "itemSttsCd", "regId", "useYn",
-        		    "apiGrv", "sulfurPCnt", "flashPnt", "viscosity", "density15c");
+        List<String> validKeys = Arrays.asList("fuelCd", 
+									        	"fuelNm", 
+									        	"fuelCatCd", 
+									        	"originCntryCd", 
+									        	"baseUnitPrc", 
+									        	"currStockVol", 
+									        	"safeStockVol", 
+									        	"volUnitCd", 
+									        	"itemSttsCd", 
+									        	"regId", 
+									        	"useYn",
+									        	"apiGrv", 
+									        	"sulfurPCnt", 
+									        	"flashPnt", 
+									        	"viscosity", 
+									        	"density15c",
+									        	"mainFileNm",
+									        	"subFileNm");
 
         // 2. 한글-영문 매핑 정보
         // 엑셀파일하고 동일하게 맞춰야함
@@ -98,17 +123,28 @@ public class ProductExcelServiceImpl implements ProductExcelService {
         myHeader.put("점도", "viscosity");
         myHeader.put("15도밀도", "density15c");
         
+        myHeader.put("메인이미지명", "mainFileNm"); // 엑셀헤더 "메인이미지명" -> DTO "mainFileNm"
+        myHeader.put("서브이미지명", "subFileNm"); // 엑셀헤더 "서브이미지명" -> DTO "subFileNm"
+        
         // 필수로 들어가야하는 값 ( 필수 항목 정의 == null 값 검증 부분임)
-        List<String> requiredKeys = List.of("refTypeCd", 
-								        		"refId", 
-								        		"orgFileNm", 
-								        		"strFileNm", 
-								        		"filePath", 
-								        		"fileExt", 
-								        		"updDtime" );  
+        List<String> requiredKeys = List.of("fuelCd", 
+								        	"fuelNm", 
+								        	"fuelCatCd", 
+								        	"originCntryCd", 
+								        	"baseUnitPrc", 
+								        	"currStockVol", 
+								        	"safeStockVol", 
+								        	"volUnitCd", 
+								        	"itemSttsCd", 
+								        	"regId", 
+								        	"useYn",
+								        	"apiGrv", 
+								        	"sulfurPCnt", 
+								        	"flashPnt", 
+								        	"viscosity", 
+								        	"density15c");  
 								        
         // 3. [수정 핵심] 공통 모듈의 uploadAndSave 호출
-	    // - dtoList를 직접 받아서 for문을 돌리는 대신, saver 로직(람다식)을 넘깁니다.
 	    ExcelUploadResult<ProductUploadExcelDTO> result = excelService.uploadAndSave(
 	            file, 
 	            myHeader, 
@@ -118,18 +154,35 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	            // dto -> atchFileMapper.insertFile(dto) 		// 각 행마다 실행될 저장 로직
 	            // 업데이트 테이블이 2개 이상인 경우 하단 방식으로 진행 DTO 참조요망
 	            dto -> { 
-	            	// 1. 기본 정보 변환 및 저장
-	                InsertProductDTO base = dto.toBaseDTO();
-	                productMgmtAdmMapper.insertProductAdm(base); 
-	                
-	                // 2. 상세 정보 변환
-	                InsertDetailInfoProductDTO detail = dto.toDetailDTO();
-	                
-	                // 3. FK 연결 (기본 테이블에서 생성된 ID를 상세 DTO에 세팅)
-	                detail.setFuelId(base.getFuelId()); 
-	                
-	                // 4. 상세 정보 저장
-	                productMgmtAdmMapper.insertProductDetailInfoAdm(detail);
+	            	try {
+	            		
+	                    // 1. 기본 정보 저장
+	                    InsertProductDTO base = dto.toBaseDTO();
+	                    productMgmtAdmMapper.insertProductAdm(base); 
+	                    Integer fuelId = base.getFuelId();
+	                    
+	                    // 2. 상세 정보 저장
+	                    InsertDetailInfoProductDTO detail = dto.toDetailDTO();
+	                    detail.setFuelId(fuelId); 
+	                    productMgmtAdmMapper.insertProductDetailInfoAdm(detail);
+	                    
+	                    // 3. 메인 이미지 등록
+	                    if (dto.getMainFileNm() != null && !dto.getMainFileNm().isEmpty()) {
+	                        AtchFileDto mainDto = dto.toAtchFileDTO(fuelId, "PRODUCT_M", dto.getMainFileNm());
+	                        fileService.registerInternalFile(mainDto, currentTempPath);
+	                    }
+
+	                    // 4. 서브 이미지 등록
+	                    if (dto.getSubFileNm() != null && !dto.getSubFileNm().isEmpty()) {
+	                        AtchFileDto subDto = dto.toAtchFileDTO(fuelId, "PRODUCT_S", dto.getSubFileNm());
+	                        fileService.registerInternalFile(subDto, currentTempPath);
+	                    }
+	                } catch (Exception e) {
+	                	
+	                    // 중요: 여기서 RuntimeException을 던져야 공통 모듈의 catch 블록으로 갑니다.
+	                    // 공통 모듈은 이 에러를 잡아서 failList에 넣고 '다음 행'으로 넘어갑니다.
+	                    throw new RuntimeException(e.getMessage()); 
+	                }
 	            }
 	    );
 
