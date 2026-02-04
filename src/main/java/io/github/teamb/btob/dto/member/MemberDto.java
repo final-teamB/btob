@@ -1,4 +1,4 @@
-package io.github.teamb.btob.dto;
+package io.github.teamb.btob.dto.member;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,15 @@ public class MemberDto {
     private String position;
     private String email;
     private String phone;
+    
+    // 주소 필드
+    private String postcode;
     private String address;
+    private String detailAddress;
+    
+    // 권한 필드 (USER, MASTER, ADMIN)
+    private String userType; 
+    
     private String isRepresentative;
     private String businessNumber;
 }
