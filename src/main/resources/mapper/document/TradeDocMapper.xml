@@ -8,7 +8,7 @@
 			WHERE doc_id = #{docId}
 		</update>
 		
-		<select id="getDocumentById" resultType="DocumentPreviewDTO">
+		<select id="getDocumentById" resultType="io.github.teamb.btob.dto.document.DocumentPreviewDTO">
 			SELECT 
 				d.doc_id,
 				d.doc_no,
@@ -33,7 +33,7 @@
 			ORDER BY d.doc_id DESC
 		</select>
 		
-		<select id="getDocumentList" resultType="DocumentListDTO">
+		<select id="getDocumentList" resultType="io.github.teamb.btob.dto.document.DocumentListDTO">
 		    SELECT 
 		        d.doc_id,
 		        d.doc_no,
