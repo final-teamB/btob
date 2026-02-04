@@ -12,29 +12,32 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-	    return new BCryptPasswordEncoder();
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 1. 모든 정적 자원과 에러 페이지, 파비콘을 완전히 개방
-                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error", "/favicon.ico", "jjjtest").permitAll()
-                // 2. 나머지 모든 요청 permitAll()로 설정
+                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/main", "/notice", "/notice/**").permitAll()
+                .requestMatchers("/notice/write", "/notice/edit/**", "/notice/update", "/notice/delete/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
-            // SecurityConfig.java - formLogin
             .formLogin(form -> form
-            	    .loginPage("/login")
-            	    .usernameParameter("email")
-            	    .passwordParameter("password")
-            	    .defaultSuccessUrl("/main", true) // 반드시 절대 경로인 /main 설정
-            	    .failureUrl("/login?error=true")
-            	    .permitAll()
+                .loginPage("/login")
+                .usernameParameter("email")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/main", true)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/login")
+                .invalidateHttpSession(true)
             );
         return http.build();
     }

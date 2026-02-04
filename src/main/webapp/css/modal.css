@@ -1,0 +1,99 @@
+/* ===== 공통 모달 배경 ===== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    background: rgba(0, 0, 0, 0.5); /* 어두운 배경 */
+      font-family: "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+    
+    display: none;                 /* 기본 숨김 */
+    align-items: center;
+    justify-content: center;
+    
+    z-index: 9999;
+}
+
+/* ===== 모달 박스 ===== */
+.modal-box {
+    background: #fff;
+    border-radius: 8px;
+    
+    width: 420px;
+    max-width: 90%;
+    
+    padding: 20px 24px;
+    
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    
+    animation: modalFadeIn 0.25s ease-out;
+}
+
+/* ===== 모달 제목 ===== */
+.modal-box h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* ===== 폼 요소 ===== */
+.modal-box label {
+    display: block;
+    margin: 10px 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.modal-box input,
+.modal-box select,
+.modal-box textarea {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* ===== 버튼 영역 ===== */
+.modal-btn {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.modal-btn button {
+    padding: 6px 14px;
+    font-size: 14px;
+    
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* 저장 버튼 */
+.modal-btn button:first-child {
+    background: #2f80ed;
+    color: #fff;
+}
+
+/* 취소 버튼 */
+.modal-btn button:last-child {
+    background: #e0e0e0;
+}
+
+/* ===== 애니메이션 ===== */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

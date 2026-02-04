@@ -1,0 +1,102 @@
+/* [1] 전체 컨테이너 및 외곽선 */
+.tui-grid-container {
+    border: 1px solid #f3f4f6 !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden;
+    background-color: #ffffff !important;
+}
+
+/* [2] 헤더 영역 확실히 고정 (f9fafb 강제 적용) */
+/* 레이어 구조상 container부터 시작하는 구체적인 경로를 사용해야 화이트로 변하지 않습니다. */
+.tui-grid-container .tui-grid-header-area,
+.tui-grid-container .tui-grid-cell-header,
+.tui-grid-container .tui-grid-cell-row-header,
+.tui-grid-container .tui-grid-cell-header.tui-grid-cell-selected,
+.tui-grid-container .tui-grid-cell-header.tui-grid-cell-focused,
+.tui-grid-container .tui-grid-cell-header:hover {
+    background-color: #f9fafb !important; /* JSP bg-gray-50 */
+    color: #4b5563 !important;           /* JSP text-gray-600 */
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+/* 헤더 내부 텍스트 영역 투명화 (부모 배경색이 보이도록) */
+.tui-grid-container .tui-grid-cell-header .tui-grid-cell-content {
+    background-color: transparent !important;
+}
+
+/* [3] 본문 셀 스타일 */
+.tui-grid-cell {
+    background-color: #ffffff !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+}
+
+.tui-grid-cell-content {
+    font-size: 0.875rem !important;
+    color: #1f2937 !important;
+}
+
+/* [3-1] NO. 컬럼(rowHeader)의 바디 부분만 화이트로 변경 */
+/* 헤더(#f9fafb)와 바디(#ffffff)를 명확히 구분합니다. */
+.tui-grid-container .tui-grid-cell-row-header:not(.tui-grid-cell-header) {
+    background-color: #ffffff !important;
+    color: #4b5563 !important; /* 숫자 색상 gray-600 */
+}
+
+/* [3-2] NO. 컬럼의 헤더 부분은 기존처럼 회색 유지 (중복 확인용) */
+.tui-grid-container .tui-grid-cell-row-header.tui-grid-cell-header {
+    background-color: #f9fafb !important;
+}
+
+/* [4] 이미지 속 빨간 동그라미(스크롤바 더미/시스템 선) 박멸 */
+.tui-grid-border-line-top,
+.tui-grid-border-line-left,
+.tui-grid-border-line-right,
+.tui-grid-border-line-bottom,
+.tui-grid-scrollbar-y-inner-border,
+.tui-grid-scrollbar-x-inner-border,
+.tui-grid-scrollbar-left-bottom, 
+.tui-grid-scrollbar-right-bottom,
+.tui-grid-scrollbar-frozen-bottom,
+.tui-grid-scrollbar-right-top,
+.tui-grid-scrollbar-left-top {
+    display: none !important;
+    height: 0px !important;
+    width: 0px !important;
+    border: none !important;
+    background-color: transparent !important;
+}
+
+/* [5] 바디 영역 레이아웃 보정 (하단 빈 공간 제거) */
+.tui-grid-body-area, 
+.tui-grid-body-container,
+.tui-grid-content-area,
+.tui-grid-rside-area, 
+.tui-grid-lside-area {
+    border-bottom: none !important;
+    outline: none !important;
+    background-color: #ffffff !important;
+}
+
+/* [6] 수정 버튼: JSP 텍스트 언더라인 스타일 */
+.tui-grid-cell-content button {
+    text-decoration: underline !important;
+    text-underline-offset: 4px !important;
+    font-weight: 700 !important;
+    color: #4b5563 !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.tui-grid-cell-content button:hover {
+    color: #111827 !important;
+}
