@@ -1,6 +1,5 @@
 package io.github.teamb.btob.service.mgmtAdm.product.impl;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -81,6 +80,7 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 		
 		// 이 작업에서 사용할 임시 경로 설정 (예: 사용자별 혹은 세션별 폴더)
 	    // String currentTempPath = rootPath + "/batch_temp/" + SecurityUtils.getCurrentUserId();
+		// 이미지 일괄업로드 첨부에서만 사용합니다. 일반적인 데이터 일괄업로드시에는 해당 변수 선언 안해도 됩니다.
 	    String currentTempPath = rootPath + "/img_temp";
 		
 		// 1. 실제로 사용할 정확한 영문 Key 목록 (White List)
@@ -166,6 +166,8 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	                    detail.setFuelId(fuelId); 
 	                    productMgmtAdmMapper.insertProductDetailInfoAdm(detail);
 	                    
+	                    // 이미지 일괄업로드 시에만 사용합니다. 
+	                    // 일반 데이터 업로드 시에는 2번사항까지만 진행 
 	                    // 3. 메인 이미지 등록
 	                    if (dto.getMainFileNm() != null && !dto.getMainFileNm().isEmpty()) {
 	                        AtchFileDto mainDto = dto.toAtchFileDTO(fuelId, "PRODUCT_M", dto.getMainFileNm());
