@@ -32,7 +32,8 @@ public class MemberController {
     public String myPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         MemberDto myInfo = memberService.getMyInfo(userDetails.getUsername());
         model.addAttribute("user", myInfo);
-        return "testKSH/mypage";
+        model.addAttribute("content", "testKSH/mypage.jsp");
+        return "layout/layout";
     }
 
     @PostMapping("/register")

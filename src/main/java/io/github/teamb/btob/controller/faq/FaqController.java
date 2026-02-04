@@ -23,8 +23,8 @@ public class FaqController {
         List<Faq> faqList = faqService.getActiveFaqList();
         model.addAttribute("faqList", faqList);
         model.addAttribute("categories", Faq.FaqCategory.values());
-        // 공통 레이아웃을 무시하고 직접 JSP 경로 반환
-        return "testKSH/faqList"; 
+        model.addAttribute("content", "testKSH/faqList.jsp"); 
+        return "layout/layout"; 
     }
 
     @PostMapping("/write")

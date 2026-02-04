@@ -139,9 +139,8 @@
 		<dependency>
 		    <groupId>org.springframework.security</groupId>
 		    <artifactId>spring-security-taglibs</artifactId>
-		    <version>6.1.5</version>
 		</dependency>
-				
+		
 		
 		
 		
@@ -189,6 +188,12 @@
 		    <groupId>org.springframework.ai</groupId>
 		    <artifactId>spring-ai-starter-model-openai</artifactId>
 		  </dependency>
+		  
+		  <!-- 스프링 배치 -->
+		  <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
 		
 	</dependencies>
 	<dependencyManagement>

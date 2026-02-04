@@ -34,7 +34,8 @@ public class NoticeController {
     public String list(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
         List<Notice> list = noticeService.getNoticeList(keyword);
         model.addAttribute("noticeList", list); 
-        return "testKSH/noticeList";
+        model.addAttribute("content", "testKSH/noticeList.jsp");
+        return "layout/layout";
     }
 
     // 상세 조회
@@ -44,9 +45,9 @@ public class NoticeController {
         model.addAttribute("notice", notice);
         
         // 실제 파일 목록 조회 로직 (DB 연동 시 활성화)
-        // model.addAttribute("files", noticeService.getFileList(id));
-        
-        return "testKSH/noticeDetail";
+        //model.addAttribute("files", noticeService.getFileList(id));
+        model.addAttribute("content", "testKSH/noticeDetail.jsp");
+        return "layout/layout";
     }
 
     // 공지사항 등록 처리 (관리자용)
@@ -97,7 +98,8 @@ public class NoticeController {
     public String editForm(@PathVariable("id") Integer id, Model model) {
         Notice notice = noticeService.getNoticeDetail(id);
         model.addAttribute("notice", notice);
-        return "testKSH/noticeEdit";
+        model.addAttribute("content", "testKSH/noticeEdit.jsp");
+        return "layout/layout";
     }
 
     // 수정 실행
