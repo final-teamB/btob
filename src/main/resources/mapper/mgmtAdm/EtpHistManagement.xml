@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.EtpHistMgmtAdmMapper">
+
+	<sql id="searchCondi">
+	
+		AND ( 
+			        a.etp_id LIKE CONCAT('%', #{searchCondition}, '%')
+			        OR b.user_name LIKE CONCAT('%', #{searchCondition}, '%')
+					OR c.user_name LIKE CONCAT ('%', #{searchCondition}, '%' )
+				)
+				
+	</sql>
+
+	<!-- 히스토리 검색 조회 -->
+	<select id="selectEtpHistSearchConditioinListAdm"
+		parameterType="java.util.Map"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+		
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				,a.etp_id
+				,b.user_name AS requestUserNm
+				,c.user_name AS apprUserNm
+				,rejt_rsn
+				,reg_dtime
+				,appr_dtime
+			FROM
+				TB_ETP_HIST a
+				,TB_USERS b
+				,TB_USERS c
+			WHERE 1=1
+			AND a.reg_id = b.user_no
+			AND a.appr_user_id = c.user_no
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+				<include refid="searchCondi" />
+			</if>
+			ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
+			LIMIT #{startRow}, #{limit}
+	
+	</select>
+	
+	<!-- 히스토리 검색 조회 건수 -->
+	<select id="selectEtpHistSearchConditioinListCntAdm"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+	
+			SELECT 
+				COUNT(etp_id) 
+			FROM
+				TB_ETP_HIST a
+				,TB_USERS b
+				,TB_USERS c
+			WHERE 1=1
+			AND a.reg_id = b.user_no
+			AND a.appr_user_id = c.user_no
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+				<include refid="searchCondi" />
+			</if>
+	
+	</select>
+	
+	<!-- 히스토리 개별 조회 -->
+	<select id="selectEtpHistListById"
+		parameterType="int"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+	
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
+				,fnc_get_usernm(regId) AS requestUserNm
+				,fnc_get_usernm(apprUserId) AS apprUserNm
+				,rejt_rsn
+				,reg_dtime
+				,appr_dtime
+			FROM
+				TB_ETP_HIST
+			WHERE etp_id = #{etpId}
+			ORDER BY ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) DESC
+	
+	</select>
+	
+	<!-- 히스토리 개별 조회 건수 -->
+	<select id="selectEtpHistListCntById"
+		parameterType="int"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+		
+			SELECT
+				COUNT(etp_id)
+			FROM
+				TB_ETP_HIST
+			WHERE etp_id = #{etpId}
+		
+	</select>
+
+</mapper>

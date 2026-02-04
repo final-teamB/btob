@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.PaymentMgmtAdmMapper">
+
+	<sql id="searchCondi">
+	
+		AND ( 
+			        payment_no LIKE CONCAT('%', #{searchCondition}, '%') 
+			        OR  LIKE CONCAT('%', #{searchCondition}, '%'
+			        OR reg_id LIKE CONCAT('%', #{searchCondition}, '%') 
+				)
+				
+	</sql>
+	
+	<!-- 결제 관리 검색 조회 -->
+	<select id="selectPaymentSearchConditionListAdm"
+		parameterType="java.util.map"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.payment.SearchConditionPaymentDTO">
+		
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				,a.payment_id	-- hidden 값
+				,a.payment_no
+				,b.order_no
+				,a.pay_step
+				,a.status
+				,a.payMethod
+				,a.reg_dtime
+				,a.reg_id
+				,a.use_yn
+			FROM
+				TB_PAYMENT_MST a,
+				TB_ORDER_MST b
+			WHERE 1=1
+			AND a.order_id = b.order_id
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+		       <include refid="searchCondi" />
+		    </if>
+		    ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
+			LIMIT #{startRow}, #{limit}
+		
+	</select>
+	
+	<!-- 결제 관리 검색 조회 건수 -->
+	<select id="selectPaymentSearchConditionListCntAdm"
+		parameterType="java.util.map"
+		resultType="int">
+		
+			SELECT
+				count(payment_id)
+			FROM
+				TB_PAYMENT_MST
+			FROM
+				TB_PAYMENT_MST a,
+				TB_ORDER_MST b
+			WHERE 1=1
+			AND a.order_id = b.order_id
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+		       <include refid="searchCondi" />
+		    </if>
+		
+	</select>
+
+</mapper>
