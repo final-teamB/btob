@@ -9,19 +9,27 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import io.github.teamb.btob.mapper.adminStatistics.StatisticsMapper;
-import lombok.RequiredArgsConstructor;
 
 @Configuration
-@RequiredArgsConstructor
 public class StatisticsBatchConfig {
 
 	private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final StatisticsMapper statisticsMapper;
 
+    public StatisticsBatchConfig(
+            JobRepository jobRepository, 
+            PlatformTransactionManager transactionManager, 
+            @Lazy StatisticsMapper statisticsMapper) { 
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
+        this.statisticsMapper = statisticsMapper;
+    }
+    
     @Bean
     public Job refreshOrderStatsJob() {
         return new JobBuilder("refreshOrderStatsJob", jobRepository)
