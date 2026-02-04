@@ -42,7 +42,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService{
                     request, response, jspPath, doc);
 
             // 4. HTML → PDF
-            generatePdf(html, response, doc);
+            generatePdf(html, request, response, doc);
 
         } catch (Exception e) {
             throw new RuntimeException("PDF 변환 실패", e);
@@ -70,26 +70,33 @@ public class DocumentPdfServiceImpl implements DocumentPdfService{
 	        String jspPath,
 	        DocumentPreviewDTO doc) throws Exception {
 
-	    request.setAttribute("doc", doc);
+		request.setAttribute("doc", doc);
 
+	    // 응답 인코딩 설정
+	    response.setCharacterEncoding("UTF-8");
+	    
 	    StringWriter sw = new StringWriter();
-	    HttpServletResponseWrapper wrapper =
-	            new HttpServletResponseWrapper(response) {
-	                @Override
-	                public PrintWriter getWriter() {
-	                    return new PrintWriter(sw);
-	                }
-	            };
+	    HttpServletResponseWrapper wrapper = new HttpServletResponseWrapper(response) {
+	        @Override
+	        public PrintWriter getWriter() {
+	            // 인코딩이 보장된 PrintWriter 반환
+	            return new PrintWriter(sw);
+	        }
+	    };
 
-	    RequestDispatcher dispatcher =
-	            request.getRequestDispatcher(jspPath);
+	    RequestDispatcher dispatcher = request.getRequestDispatcher(jspPath);
 	    dispatcher.include(request, wrapper);
 
-	    return sw.toString();
+	    String result = sw.toString();
+	    if (result == null || result.trim().isEmpty()) {
+	        throw new RuntimeException("JSP 렌더링 결과가 비어있습니다. 경로를 확인하세요: " + jspPath);
+	    }
+	    return result;
 	}
 	
 	private void generatePdf(
 	        String html,
+	        HttpServletRequest request,
 	        HttpServletResponse response, 
 	        DocumentPreviewDTO doc) throws Exception {
 
@@ -106,7 +113,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService{
 		    );
 
 	    PdfRendererBuilder builder = new PdfRendererBuilder();
-	    builder.withHtmlContent(html, null);
+	    builder.withHtmlContent(html, request.getRequestURL().toString());
 
 	    builder.useDefaultPageSize(
 	    	    210, 297,

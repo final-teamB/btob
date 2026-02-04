@@ -36,7 +36,7 @@
 
 <div class="px-4 py-6 space-y-6">
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 dark:border-gray-700">
+ 	<div>
         <div>
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white">${pageTitle}</h1>
         </div>
@@ -101,24 +101,12 @@ class MemoCellRenderer {
 	];
 	
 	document.addEventListener('DOMContentLoaded', function() {
-	const filterSelect = document.getElementById('dg-common-filter');
-        
-        // 첫 번째 옵션이 레이블 역할을 대신함
-        const options = [
-            { value: "", text: "전체" }, 
-            { value: "QUOTE", text: "견적서" },
-            { value: "TRANSATION", text: "거래내역서" },
-            { value: "CONTRACT", text: "계약서" },
-        ];
-
-        options.forEach(opt => {
-            filterSelect.add(new Option(opt.text, opt.value));
-        });
-
-        // 필터 값이 있으면 노출
-        document.getElementById('dg-common-filter-wrapper').classList.remove('hidden'); 
+		const filteredData = rawData.filter(item => {
+		    // 우리가 정의한 3가지 타입 중 하나인 경우만 남김
+		    return ['QUOTE', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
+		});
 		
-		const docGrid = new DataGrid({
+   		const docGrid = new DataGrid({
 			containerId: 'dg-container',
 			searchId: 'dg-search-input',
             perPageId: 'dg-per-page',
@@ -153,8 +141,19 @@ class MemoCellRenderer {
 			    	}
 				}
 			],
-			data: rawData
+			data: filteredData
 			});
+			docGrid.initFilters([
+				  { 
+					  field: 'docType',
+					  title: '문서',
+					  options:  [ 
+						  { value: "QUOTE", text: "견적서" },
+		                  { value: "TRANSATION", text: "거래내역서" },
+		                  { value: "CONTRACT", text: "계약서" },
+					]
+			    }					  
+			])
 		});
 	
 	window.handleGridAction = function(rowData, action) {

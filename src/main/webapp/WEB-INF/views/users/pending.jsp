@@ -4,7 +4,7 @@
 
 <div class="px-4 py-6 space-y-6">
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 dark:border-gray-700">
+    <div>
         <div>
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white">${pageTitle}</h1>
         </div>
@@ -39,7 +39,12 @@
 				{ header: '사원 ID', name: 'userId'},
 				{ header: '이름', name: 'userName'},
 				{ header: '전화번호', name: 'phone'},
-				{ header: '인증 상태', name: 'appStatus', align: 'center'},
+				{ 
+					header: '인증 상태',
+					name: 'appStatus',
+					align: 'center',
+					renderer: { type: CustomStatusRenderer, options: { theme: 'appStatus' } }
+				},
 				{ header: '등록일', name: 'regDtime', align: 'center'},
 				{ 
 					header: '처리',
@@ -49,8 +54,8 @@
 			    		type: CustomActionRenderer,
 			    		options: {
 			    			buttons: [
-		                        { text: '승인', action: 'APPROVED' },
-		                        { text: '거부', action: 'REJECTED' }
+		                        { text: '승인', action: 'APPROVED', color: 'text-blue-500' },
+		                        { text: '거부', action: 'REJECTED', color: 'text-red-500' }
 		                    ]
 			    		}
 			    	}

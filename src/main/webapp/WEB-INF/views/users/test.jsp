@@ -50,7 +50,7 @@
              perPageId: 'dg-per-page',
              btnSearchId: 'dg-btn-search',
              columns: [
-                 { header: 'ID', name: 'userId'},
+                 { header: 'ID', name: 'userId'},	
                  { header: '이름', name: 'userName'},
                  { header: '전화번호', name: 'phone'},
                  {

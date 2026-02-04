@@ -36,7 +36,7 @@ import io.github.teamb.btob.service.testjg.UsersService;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/testjg")
+@RequestMapping("/layout")
 public class TestController {
     private final UsersService usersService;
     
@@ -52,6 +52,13 @@ public class TestController {
 		this.usersService = usersService;
 	}
 
+    @GetMapping("/sample")
+    public String sample(Model model) {
+        model.addAttribute("pageTitle", "테스트 페이지");          // 브라우저 탭 제목
+        model.addAttribute("content", "layout/sample.jsp");       // layout.jsp <main>에 들어갈 JSP
+        return "layout/layout";                                 // layout.jsp 호출
+    }
+    
 	    @GetMapping("/test")
 	    public String testPage(Model model) {
 	        model.addAttribute("pageTitle", "테스트 페이지");          // 브라우저 탭 제목

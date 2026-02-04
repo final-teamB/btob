@@ -3,6 +3,7 @@ package io.github.teamb.btob.mapper.user;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import io.github.teamb.btob.dto.user.UserDTO;
 import io.github.teamb.btob.dto.user.UserListDTO;
@@ -23,7 +24,10 @@ public interface UserMapper {
 	void modifyUserStatus(UserStatusDTO userStatus);
 	
 	// 사원리스트
-	List<UserListDTO> getUserList(String accStatus, String keyword);
+	List<UserListDTO> getUserList(
+	        @Param("accStatus") String accStatus, 
+	        @Param("keyword") String keyword
+	    );
 	
 	// 사원 엑셀 등록
 	int insertUsers(List<UserDTO> userList);

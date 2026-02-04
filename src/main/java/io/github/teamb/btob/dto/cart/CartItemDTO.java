@@ -12,9 +12,18 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class CartItemDTO {
+	// CART
     private int cartId;
-    private int fuelId;
+    private int userId;
     private String fuelName;
     private int totalQty;
     private int totalPrice;
+    
+    // OIL
+    private int fuelId;
+    private String fuelNm;
+    private String fuelCd;
+    private String fuelCatCd;
+    private String originCntryCd;
+    private int baseUnitPrc;
 }

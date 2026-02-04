@@ -3,19 +3,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>거래 내역서 미리보기</title>
 <style>
+    /* 3. 전체 요소에 폰트 강제 적용 */
+    * { 
+        font-family: 'NanumGothic', sans-serif !important; 
+    }
+    
     table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f5f5f5; }
     .memo-box { border: 1px solid #ddd; padding: 10px; background-color: #fafafa; margin-top: 10px; }
-   
+    
     @media print {
-    .no-print {
-        display: none;
+        .no-print { display: none; }
     }
-}
 </style>
 </head>
 <body>
@@ -67,7 +70,7 @@
 
 <script>
 function exportPdf(docId) {
-    window.open("${pageContext.request.contextPath}/documents/exportPdf?docId=" + docId, "_blank");
+	window.location.href = "${pageContext.request.contextPath}/document/exportPdf?docId=" + docId;
 }
 </script>
 

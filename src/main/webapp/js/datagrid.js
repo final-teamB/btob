@@ -13,7 +13,12 @@ const GRID_STATUS_THEMES = {
         'ACTIVE': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'Active' },
         'STOP': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'Stop' },
         'SLEEP': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'Sleep' }
-    }
+    },
+	'appStatus': {
+	        'APPROVED': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'APPROVED' },
+	        'REJECTED': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'REJECTED' },
+	        'PENDING': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'PENDING' }
+	    }
 };
 
 // [1] 상태값 렌더러 - render 메서드를 추가하여 데이터 변경 시 강제 갱신
@@ -51,32 +56,37 @@ class CustomStatusRenderer {
 class CustomActionRenderer {
     constructor(props) {
         this.el = document.createElement('div');
-        this.el.className = 'flex justify-center gap-4';
+        this.el.className = 'flex justify-center gap-3'; // 버튼 사이 간격(gap) 추가
         this.render(props);
     }
     getElement() { return this.el; }
     
     render(props) {
-        const { grid, rowKey, columnInfo } = props; // columnInfo를 받아와야 함
-        this.el.innerHTML = '';
+        const { grid, rowKey, columnInfo } = props;
+        this.el.innerHTML = ''; // 기존 버튼 초기화
 
-        // [수정] columnInfo -> renderer -> options 순서로 접근
         const options = columnInfo.renderer.options || {};
         
-        const btn = document.createElement('button');
-        btn.className = 'text-sm font-bold text-gray-600 hover:text-gray-900 underline underline-offset-4 transition';
-        
-        // [핵심] btnCfg 대신 options.btnText를 사용 (없으면 기본값 '수정')
-        btn.innerText = options.btnText || '수정';
-        
-        btn.onclick = () => {
-            const actualData = grid.getRow(rowKey);
-            if (typeof window.handleGridAction === 'function') {
-                // 두 번째 인자는 액션 구분값 (필요 시 활용)
-                window.handleGridAction(actualData, 'edit');
-            }
-        };
-        this.el.appendChild(btn);
+        // [수정 핵심] 버튼 설정이 배열로 들어오면 루프를 돌고, 아니면 기본 버튼 생성
+        const buttonConfigs = options.buttons || [{ text: options.btnText || '수정', action: 'edit' }];
+
+        buttonConfigs.forEach(btnCfg => {
+            const btn = document.createElement('button');
+			const textColor = btnCfg.color || 'text-gray-600 hover:text-gray-900';
+			            
+            btn.className = `text-sm font-bold underline underline-offset-4 transition ${textColor}`;
+            btn.innerText = btnCfg.text;
+            
+            btn.onclick = (e) => {
+                e.stopPropagation(); // 행 선택 이벤트 전파 방지
+                const actualData = grid.getRow(rowKey);
+                if (typeof window.handleGridAction === 'function') {
+                    // 클릭한 버튼의 action 값을 두 번째 인자로 전달
+                    window.handleGridAction(actualData, btnCfg.action);
+                }
+            };
+            this.el.appendChild(btn);
+        });
     }
 }
 

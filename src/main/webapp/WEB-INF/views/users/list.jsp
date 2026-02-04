@@ -7,7 +7,7 @@
 	<%-- 1. 화면 제목 (H1) --%>
 	<div class="px-4 py-6 space-y-6">
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 dark:border-gray-700">
+    <div>
         <div>
             <h1 class="text-2xl font-bold text-gray-800 dark:text-white">${pageTitle}</h1>
         </div>
@@ -47,37 +47,22 @@
      * [Step 2] 그리드 초기화
      */
     document.addEventListener('DOMContentLoaded', function() {
-    	const filterSelect = document.getElementById('dg-common-filter');
-        
-        // 첫 번째 옵션이 레이블 역할을 대신함
-        const options = [
-            { value: "", text: "전체" }, 
-            { value: "ACTIVE", text: "ACTIVE" },
-            { value: "SLEEP", text: "SLEEP" },
-        ];
-
-        options.forEach(opt => {
-            filterSelect.add(new Option(opt.text, opt.value));
-        });
-
-        // 필터 값이 있으면 노출
-        document.getElementById('dg-common-filter-wrapper').classList.remove('hidden');
-    	
-        const userGrid = new DataGrid({
+    	const userGrid = new DataGrid({
             containerId: 'dg-container',
             searchId: 'dg-search-input',
             perPageId: 'dg-per-page',
             btnSearchId: 'dg-btn-search',
-            
-       		  // [수정 포인트] 위에서 정의한 셀렉트 박스 ID와 똑같이 맞춰야 합니다!
-            filterField: 'accStatus',
-            filterSelectId: 'dg-common-filter',
-            
+                      
             columns: [
                 { header: 'ID', name: 'userId'},
                 { header: '이름', name: 'userName'},
                 { header: '전화번호', name: 'phone'},
-                { header: '계정 상태', name: 'accStatus', align: 'center'},
+                { 
+                	header: '계정 상태',
+                	name: 'accStatus',
+                	align: 'center',
+                	renderer: { type: CustomStatusRenderer, options: { theme: 'accStatus' } }
+               	},
                 { header: '등록일', name: 'regDtime', align: 'center'},
                 { 
                     header: '관리', 
@@ -94,14 +79,21 @@
             ],
             data: rawData
         });
+    	userGrid.initFilters([
+            { field: 'accStatus', title: '상태' } // 필드값 options 로 설정가능
+        ]);
     });
     
  	// 조회 버튼 클릭 시 실행될 함수
     window.fetchData = function() {
         const keyword = document.getElementById('dg-search-input').value;
-        // 실제로는 여기서 DB 조회를 위한 페이지 리로드나 Ajax 호출이 들어가야 합니다.
-        // 예: location.href = "/users/list?searchKeyword=" + keyword;
-        location.href = "${pageContext.request.contextPath}/users/test?keyword=" + encodeURIComponent(keyword);
+        const accStatus = document.getElementById('filter-accStatus')?.value || '';
+       
+        let url = window.location.pathname + "?keyword=" + encodeURIComponent(keyword);
+        
+        if (accStatus) url += "&accStatus=" + encodeURIComponent(accStatus);
+        
+        location.href = url;
     };
 
     /**
@@ -177,9 +169,8 @@
     };
 
     // 엑셀 업로드 제출 로직 (기존 유지)
-    function submitExcelForm() {
-        const fileInput = document.getElementById("excelFileInput");
-        if (fileInput.files.length > 0) {
+      function submitExcelForm() {
+        if (document.getElementById("excelFileInput").files.length > 0) {
             document.getElementById("excelUploadForm").submit();
         }
     }
