@@ -19,19 +19,17 @@
 	    <result property="itemSttsNm"      column="item_stts_nm" />
 	    <result property="regDtime"        column="reg_dtime" />
 	    <result property="regId"           column="reg_id" />
-	    <result property="regNm"           column="reg_nm" />
 	    <result property="updDtime"        column="upd_dtime" />
 	    <result property="updId"           column="upd_id" />
-	    <result property="updNm"           column="upd_nm" />
 	    <result property="useYn"           column="use_yn" />
 	
 	    <result property="apiGrv"          column="api_grv" />
-	    <result property="sulfurPcnt"      column="sulfur_pcnt" />
+	    <result property="sulfurPCnt"      column="sulfur_p_cnt" />
 	    <result property="flashPnt"        column="flash_pnt" />
 	    <result property="viscosity"       column="viscosity" />
 	    <result property="density15c"      column="density_15c" />
 
-    	<collection property="fileList" ofType="io.github.teamb.btob.dto.common.AtchFileDto">
+    	<collection property="fileList" ofType="io.github.teamb.btob.dto.attachfile.AtchFileDto">
 	        <id     property="fileId"      column="file_id" />
 	        <result property="systemId"    column="system_id" />
 	        <result property="strFileNm"   column="str_file_nm" />

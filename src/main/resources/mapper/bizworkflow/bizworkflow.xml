@@ -107,16 +107,6 @@
 	
 	</insert>
 	
-	<!-- 견적서 승인 -->
-	<update id="updateEstDocApprUser"
-		parameterType="">
-			
-			UPDATE 
-				TB_EST_DOC 
-			SET 
-				appr_user_id = #{userNo} 
-			WHERE est_doc_id = #{estDocId}
-			
-	</update>
+	
 
 </mapper>

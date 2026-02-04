@@ -14,7 +14,7 @@
 	
 	<!-- 결제 관리 검색 조회 -->
 	<select id="selectPaymentSearchConditionListAdm"
-		parameterType="java.util.map"
+		parameterType="java.util.Map"
 		resultType="io.github.teamb.btob.dto.mgmtAdm.payment.SearchConditionPaymentDTO">
 		
 			SELECT
@@ -43,7 +43,7 @@
 	
 	<!-- 결제 관리 검색 조회 건수 -->
 	<select id="selectPaymentSearchConditionListCntAdm"
-		parameterType="java.util.map"
+		parameterType="java.util.Map"
 		resultType="int">
 		
 			SELECT
