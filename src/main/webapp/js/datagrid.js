@@ -13,7 +13,12 @@ const GRID_STATUS_THEMES = {
         'ACTIVE': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'Active' },
         'STOP': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'Stop' },
         'SLEEP': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'Sleep' }
-    }
+    },
+   'appStatus': {
+           'APPROVED': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'APPROVED' },
+           'REJECTED': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'REJECTED' },
+           'PENDING': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'PENDING' }
+       }
 };
 
 // [1] 상태값 렌더러 - render 메서드를 추가하여 데이터 변경 시 강제 갱신
@@ -51,32 +56,37 @@ class CustomStatusRenderer {
 class CustomActionRenderer {
     constructor(props) {
         this.el = document.createElement('div');
-        this.el.className = 'flex justify-center gap-4';
+        this.el.className = 'flex justify-center gap-3'; // 버튼 사이 간격(gap) 추가
         this.render(props);
     }
     getElement() { return this.el; }
     
     render(props) {
-        const { grid, rowKey, columnInfo } = props; // columnInfo를 받아와야 함
-        this.el.innerHTML = '';
+        const { grid, rowKey, columnInfo } = props;
+        this.el.innerHTML = ''; // 기존 버튼 초기화
 
-        // [수정] columnInfo -> renderer -> options 순서로 접근
         const options = columnInfo.renderer.options || {};
         
-        const btn = document.createElement('button');
-        btn.className = 'text-sm font-bold text-gray-600 hover:text-gray-900 underline underline-offset-4 transition';
-        
-        // [핵심] btnCfg 대신 options.btnText를 사용 (없으면 기본값 '수정')
-        btn.innerText = options.btnText || '수정';
-        
-        btn.onclick = () => {
-            const actualData = grid.getRow(rowKey);
-            if (typeof window.handleGridAction === 'function') {
-                // 두 번째 인자는 액션 구분값 (필요 시 활용)
-                window.handleGridAction(actualData, 'edit');
-            }
-        };
-        this.el.appendChild(btn);
+        // [수정 핵심] 버튼 설정이 배열로 들어오면 루프를 돌고, 아니면 기본 버튼 생성
+        const buttonConfigs = options.buttons || [{ text: options.btnText || '수정', action: 'edit' }];
+
+        buttonConfigs.forEach(btnCfg => {
+            const btn = document.createElement('button');
+         const textColor = btnCfg.color || 'text-gray-600 hover:text-gray-900';
+                     
+            btn.className = `text-sm font-bold underline underline-offset-4 transition ${textColor}`;
+            btn.innerText = btnCfg.text;
+            
+            btn.onclick = (e) => {
+                e.stopPropagation(); // 행 선택 이벤트 전파 방지
+                const actualData = grid.getRow(rowKey);
+                if (typeof window.handleGridAction === 'function') {
+                    // 클릭한 버튼의 action 값을 두 번째 인자로 전달
+                    window.handleGridAction(actualData, btnCfg.action);
+                }
+            };
+            this.el.appendChild(btn);
+        });
     }
 }
 
@@ -100,31 +110,31 @@ class DataGrid {
         this.filteredData = [];
         this.init();
     }
-	
+   
     init() {
         // 초기 필터링 적용
         this.executeFiltering(false);
 
-		this.grid = new tui.Grid({
-		    el: document.getElementById(this.config.containerId || 'dg-container'),
-		    data: this.filteredData.slice(0, this.perPage),
-		    columns: this.config.columns.map(col => ({
+      this.grid = new tui.Grid({
+          el: document.getElementById(this.config.containerId || 'dg-container'),
+          data: this.filteredData.slice(0, this.perPage),
+          columns: this.config.columns.map(col => ({
                 ...col,
                 align: col.align || 'center',
                 sortable: col.sortable !== undefined ? col.sortable : true,
                 ellipsis: true
             })),
-		    showDummyRows: false,
-			scrollX: false,
-			scrollY: false,
-		    rowHeight: 55,
-			width: 'auto',
-		    bodyHeight: 'auto',
-		    rowHeaders: this.config.showCheckbox ? ['rowNum', 'checkbox'] : ['rowNum'],
-			selectionUnit: 'cell',
-		    usageStatistics: false,
-			columnOptions: { minWidth: 150 }
-		});
+          showDummyRows: false,
+         scrollX: false,
+         scrollY: false,
+          rowHeight: 55,
+         width: 'auto',
+          bodyHeight: 'auto',
+          rowHeaders: this.config.showCheckbox ? ['rowNum', 'checkbox'] : ['rowNum'],
+         selectionUnit: 'cell',
+          usageStatistics: false,
+         columnOptions: { minWidth: 150 }
+      });
             
         this.bindEvents();
         this.renderPagination();
@@ -154,132 +164,132 @@ class DataGrid {
             this.updateGrid();
         }
     }
-	
-	initFilters(filterConfigs) {
-	    const wrapper = document.getElementById('dg-common-filter-wrapper');
-	    const container = wrapper?.querySelector('.flex');
-	    if (!wrapper || !container) return;
+   
+   initFilters(filterConfigs) {
+       const wrapper = document.getElementById('dg-common-filter-wrapper');
+       const container = wrapper?.querySelector('.flex');
+       if (!wrapper || !container) return;
 
-	    filterConfigs.forEach((config, index) => {
-	        let select;
-	        if (index === 0) {
-	            select = document.getElementById('dg-common-filter');
-	        } else {
-	            select = document.createElement('select');
-	            container.appendChild(select);
-	        }
+       filterConfigs.forEach((config, index) => {
+           let select;
+           if (index === 0) {
+               select = document.getElementById('dg-common-filter');
+           } else {
+               select = document.createElement('select');
+               container.appendChild(select);
+           }
 
-	        select.id = `filter-${config.field}`;
-	        select.className = 'dg-filter rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm outline-none min-w-[120px]';
+           select.id = `filter-${config.field}`;
+           select.className = 'dg-filter rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm outline-none min-w-[120px]';
 
-	        select.innerHTML = `<option value="">${config.title} 전체</option>`;
-	        const options = [...new Set(this.allData.map(i => i[config.field]))]
-	            .filter(Boolean)
-	            .sort();
-	        options.forEach(opt => select.add(new Option(opt, opt)));
+           select.innerHTML = `<option value="">${config.title} 전체</option>`;
+           const options = [...new Set(this.allData.map(i => i[config.field]))]
+               .filter(Boolean)
+               .sort();
+           options.forEach(opt => select.add(new Option(opt, opt)));
 
-	        // 🔥 여기
-	        select.addEventListener('change', () => {
-	            this.executeFiltering(true);
-	        });
-	    });
+           // 🔥 여기
+           select.addEventListener('change', () => {
+               this.executeFiltering(true);
+           });
+       });
 
-	    wrapper.classList.remove('hidden');
-	    wrapper.classList.add('flex');
-	}
-	
-	bindEvents() {
-	    const c = this.config;
-	    const searchInput = document.getElementById(c.searchId);
-	    const perPageSelect = document.getElementById(c.perPageId);
-	    const btnSearch = document.getElementById(c.btnSearchId);
+       wrapper.classList.remove('hidden');
+       wrapper.classList.add('flex');
+   }
+   
+   bindEvents() {
+       const c = this.config;
+       const searchInput = document.getElementById(c.searchId);
+       const perPageSelect = document.getElementById(c.perPageId);
+       const btnSearch = document.getElementById(c.btnSearchId);
 
-	    // [핵심 수정] 모든 필터(.dg-filter)를 찾아서 이벤트를 연결합니다.
-	    const allFilters = document.querySelectorAll('.dg-filter');
+       // [핵심 수정] 모든 필터(.dg-filter)를 찾아서 이벤트를 연결합니다.
+       const allFilters = document.querySelectorAll('.dg-filter');
 
-	    // 실시간 필터링 함수 (이미 작성하신 executeFiltering을 호출)
-	    const runLocalFilter = () => {
-	        this.executeFiltering(true);
-	    };
+       // 실시간 필터링 함수 (이미 작성하신 executeFiltering을 호출)
+       const runLocalFilter = () => {
+           this.executeFiltering(true);
+       };
 
-	    // 1. 검색창 이벤트
-	    if (searchInput) {
-	        searchInput.addEventListener('input', runLocalFilter);
-	        searchInput.addEventListener('keyup', (e) => {
-	            if (e.key === 'Enter') {
-	                if (typeof window.fetchData === 'function') window.fetchData();
-	                else runLocalFilter();
-	            }
-	        });
-	    }
+       // 1. 검색창 이벤트
+       if (searchInput) {
+           searchInput.addEventListener('input', runLocalFilter);
+           searchInput.addEventListener('keyup', (e) => {
+               if (e.key === 'Enter') {
+                   if (typeof window.fetchData === 'function') window.fetchData();
+                   else runLocalFilter();
+               }
+           });
+       }
 
-	    // 2. 모든 필터 셀렉트박스에 이벤트 연결 (필터가 2개든 10개든 작동)
-	    allFilters.forEach(filter => {
-	        filter.addEventListener('change', runLocalFilter);
-	    });
+       // 2. 모든 필터 셀렉트박스에 이벤트 연결 (필터가 2개든 10개든 작동)
+       allFilters.forEach(filter => {
+           filter.addEventListener('change', runLocalFilter);
+       });
 
-	    // 3. 페이지당 개수 변경
-	    if (perPageSelect) {
-	        perPageSelect.addEventListener('change', (e) => {
-	            this.perPage = parseInt(e.target.value);
-	            this.currentPage = 1;
-	            this.updateGrid();
-	        });
-	    }
+       // 3. 페이지당 개수 변경
+       if (perPageSelect) {
+           perPageSelect.addEventListener('change', (e) => {
+               this.perPage = parseInt(e.target.value);
+               this.currentPage = 1;
+               this.updateGrid();
+           });
+       }
 
-	    // 4. 조회 버튼 (서버 조회 우선)
-	    if (btnSearch) {
-	        btnSearch.addEventListener('click', () => {
-	            if (typeof window.fetchData === 'function') window.fetchData();
-	            else runLocalFilter();
-	        });
-	    }
-	}
-	
+       // 4. 조회 버튼 (서버 조회 우선)
+       if (btnSearch) {
+           btnSearch.addEventListener('click', () => {
+               if (typeof window.fetchData === 'function') window.fetchData();
+               else runLocalFilter();
+           });
+       }
+   }
+   
     updateGrid() {
         const start = (this.currentPage - 1) * this.perPage;
         // [중요] resetData는 행을 아예 새로 만들기 때문에 렌더링 섞임 방지에 최적입니다.
         this.grid.resetData(this.filteredData.slice(start, start + this.perPage));
         this.renderPagination();
     }
-	
+   
     // --- 요청하신 기존 페이징 로직 그대로 유지 ---
-	renderPagination() {
-	    const paginationId = this.config.paginationId || 'dg-pagination';
-	    const pagination = document.getElementById(paginationId);
-	    if (!pagination) return;
-	    pagination.innerHTML = '';
-		
-		const totalPages = Math.ceil(this.filteredData.length / this.perPage) || 0;
+   renderPagination() {
+       const paginationId = this.config.paginationId || 'dg-pagination';
+       const pagination = document.getElementById(paginationId);
+       if (!pagination) return;
+       pagination.innerHTML = '';
+      
+      const totalPages = Math.ceil(this.filteredData.length / this.perPage) || 0;
 
-		    // [핵심 추가] 데이터가 아예 없거나, 1페이지뿐이라면 페이징을 그리지 않고 종료
-		    if (totalPages <= 1) {
-		        return; 
-		    }
-	    const pageGroup = Math.ceil(this.currentPage / 10);
-	    const lastPageOfGroup = pageGroup * 10;
-	    const firstPageOfGroup = lastPageOfGroup - 9;
-	    const groupLast = Math.min(lastPageOfGroup, totalPages);
+          // [핵심 추가] 데이터가 아예 없거나, 1페이지뿐이라면 페이징을 그리지 않고 종료
+          if (totalPages <= 1) {
+              return; 
+          }
+       const pageGroup = Math.ceil(this.currentPage / 10);
+       const lastPageOfGroup = pageGroup * 10;
+       const firstPageOfGroup = lastPageOfGroup - 9;
+       const groupLast = Math.min(lastPageOfGroup, totalPages);
 
-	    const navContainer = document.createElement('div');
-	    navContainer.className = 'inline-flex items-center -space-x-px shadow-sm';
+       const navContainer = document.createElement('div');
+       navContainer.className = 'inline-flex items-center -space-x-px shadow-sm';
 
-	    const hasPrev = this.currentPage > 1;
-	    const prevGroupTarget = pageGroup > 1 ? firstPageOfGroup - 10 : 1;
-	    navContainer.appendChild(this.createNavBtn('prevGroup', hasPrev, prevGroupTarget));
-	    navContainer.appendChild(this.createNavBtn('prev', hasPrev, this.currentPage - 1));
+       const hasPrev = this.currentPage > 1;
+       const prevGroupTarget = pageGroup > 1 ? firstPageOfGroup - 10 : 1;
+       navContainer.appendChild(this.createNavBtn('prevGroup', hasPrev, prevGroupTarget));
+       navContainer.appendChild(this.createNavBtn('prev', hasPrev, this.currentPage - 1));
 
-	    for (let i = firstPageOfGroup; i <= groupLast; i++) {
-	        navContainer.appendChild(this.createPageBtn(i, i === this.currentPage));
-	    }
+       for (let i = firstPageOfGroup; i <= groupLast; i++) {
+           navContainer.appendChild(this.createPageBtn(i, i === this.currentPage));
+       }
 
-	    const hasNext = this.currentPage < totalPages;
-	    const nextGroupTarget = groupLast < totalPages ? groupLast + 1 : totalPages;
-	    navContainer.appendChild(this.createNavBtn('next', hasNext, this.currentPage + 1));
-	    navContainer.appendChild(this.createNavBtn('nextGroup', hasNext, nextGroupTarget));
+       const hasNext = this.currentPage < totalPages;
+       const nextGroupTarget = groupLast < totalPages ? groupLast + 1 : totalPages;
+       navContainer.appendChild(this.createNavBtn('next', hasNext, this.currentPage + 1));
+       navContainer.appendChild(this.createNavBtn('nextGroup', hasNext, nextGroupTarget));
 
-	    pagination.appendChild(navContainer);
-	}
+       pagination.appendChild(navContainer);
+   }
 
     createPageBtn(page, isActive) {
         const btn = document.createElement('button');
