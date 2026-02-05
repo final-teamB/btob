@@ -134,8 +134,8 @@ class DataGrid {
 		    rowHeight: 55,
 			width: 'auto',
 			/*20260205 가로 횡스크롤때문에 추가*/
-		    /*bodyHeight: 'auto',*/
-			bodyHeight: this.config.bodyHeight || 500, // auto가 아닌 고정 높이가 있어야 스크롤이 명확해짐
+		    bodyHeight: 'auto',
+			//bodyHeight: this.config.bodyHeight || 500, // auto가 아닌 고정 높이가 있어야 스크롤이 명확해짐
 		    rowHeaders: this.config.showCheckbox ? ['rowNum', 'checkbox'] : ['rowNum'],
 			selectionUnit: 'cell',
 		    usageStatistics: false,
