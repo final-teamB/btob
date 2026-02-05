@@ -26,12 +26,12 @@
 	    <result property="useYn"           column="use_yn" />
 	
 	    <result property="apiGrv"          column="api_grv" />
-	    <result property="sulfurPcnt"      column="sulfur_pcnt" />
+	    <result property="sulfurPCnt"      column="sulfur_p_cnt" />
 	    <result property="flashPnt"        column="flash_pnt" />
 	    <result property="viscosity"       column="viscosity" />
 	    <result property="density15c"      column="density_15c" />
 
-    	<collection property="fileList" ofType="io.github.teamb.btob.dto.common.AtchFileDto">
+    	<collection property="fileList" ofType="io.github.teamb.btob.dto.attachfile.AtchFileDto">
 	        <id     property="fileId"      column="file_id" />
 	        <result property="systemId"    column="system_id" />
 	        <result property="strFileNm"   column="str_file_nm" />
@@ -40,16 +40,16 @@
 
 	<sql id="oilMstJoins">
 	
-				LEFT OUTER JOIN COMMON_TBL b 
+				LEFT OUTER JOIN COMM_TBL b 
 					ON a.fuel_cat_cd = b.comm_no 
 					AND b.param_value = 'FUEL_CAT'
-				LEFT OUTER JOIN COMMON_TBL c 
+				LEFT OUTER JOIN COMM_TBL c 
 					ON a.origin_cntry_cd = c.comm_no 
 					AND c.param_value = 'COUNTRY'
-				LEFT OUTER JOIN COMMON_TBL d 
+				LEFT OUTER JOIN COMM_TBL d 
 					ON a.vol_unit_cd = d.comm_no 
 					AND d.param_value = 'VOL_UNIT'
-				LEFT OUTER JOIN COMMON_TBL e 
+				LEFT OUTER JOIN COMM_TBL e 
 					ON a.item_stts_cd = e.comm_no 
 					AND e.param_value = 'FUEL_ITEM_STTS'
 				LEFT OUTER JOIN TB_ATCH_FILE_MST f

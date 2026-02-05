@@ -49,10 +49,11 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 									Map<String, Object> searchParams) throws Exception {
 
 		// 파라미터 검증
-		if ( !(commonService.nullEmptyChkValidate(searchParams)) ) {
-			
-			throw new Exception("유효 하지 않은 파라미터 입니다.");
-		}
+		/* 조회 빈값이면 오류 떠서 주석처리
+		 * if ( !(commonService.nullEmptyChkValidate(searchParams)) ) {
+		 * 
+		 * throw new Exception("유효 하지 않은 파라미터 입니다."); }
+		 */
 		
 		// 1. 전체 건수 조회 (검색 조건 유지)
 	    // searchParams에서 검색 키워드만 뽑아서 전달

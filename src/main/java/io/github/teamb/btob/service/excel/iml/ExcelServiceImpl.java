@@ -26,7 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import io.github.teamb.btob.dto.excel.ExcelUploadResult;
+import io.github.teamb.btob.dto.excel.ExcelUploadResultDTO;
 import io.github.teamb.btob.service.excel.ExcelService;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -307,7 +307,7 @@ public class ExcelServiceImpl implements ExcelService {
      * ----------  --------    ---------------------------
      * 2026. 2. 3.  GD       최초 생성
      */
-    public <T> ExcelUploadResult<T> uploadAndSave (
+    public <T> ExcelUploadResultDTO<T> uploadAndSave (
             MultipartFile file, 
             Map<String, String> headerMap, 
             List<String> validKeys, 
@@ -329,7 +329,7 @@ public class ExcelServiceImpl implements ExcelService {
         // 성공 리스트
         List<T> successList = new ArrayList<>();
         // 실패 리스트
-        List<ExcelUploadResult.ExcelFailDetail> failList = new ArrayList<>();
+        List<ExcelUploadResultDTO.ExcelFailDetail> failList = new ArrayList<>();
 
         for (int i = 0; i < dtoList.size(); i++) {
             T dto = dtoList.get(i);
@@ -343,11 +343,11 @@ public class ExcelServiceImpl implements ExcelService {
             } catch (Exception e) {
             	
                 // DB 제약조건 위반, 중복 데이터 등 에러 발생 시 실패 리스트에 담기
-                failList.add(new ExcelUploadResult.ExcelFailDetail(rowNum, e.getMessage()));
+                failList.add(new ExcelUploadResultDTO.ExcelFailDetail(rowNum, e.getMessage()));
             }
         }
 
-        return ExcelUploadResult.<T>builder()
+        return ExcelUploadResultDTO.<T>builder()
                 .totalCount(dtoList.size())
                 .successCount(successList.size())
                 .failCount(failList.size())
@@ -369,7 +369,7 @@ public class ExcelServiceImpl implements ExcelService {
      * 2026. 2. 3.  GD       최초 생성
      */
     @Override
-    public void downloadFailReport(HttpServletResponse response, List<ExcelUploadResult.ExcelFailDetail> failList) throws Exception {
+    public void downloadFailReport(HttpServletResponse response, List<ExcelUploadResultDTO.ExcelFailDetail> failList) throws Exception {
         
         SXSSFWorkbook workbook = new SXSSFWorkbook(100);
         Sheet sheet = workbook.createSheet("실패리포트");
@@ -381,7 +381,7 @@ public class ExcelServiceImpl implements ExcelService {
 
         // 데이터 생성
         int rowIdx = 1;
-        for (ExcelUploadResult.ExcelFailDetail fail : failList) {
+        for (ExcelUploadResultDTO.ExcelFailDetail fail : failList) {
             Row row = sheet.createRow(rowIdx++);
             row.createCell(0).setCellValue(fail.getRowNum());
             row.createCell(1).setCellValue(fail.getErrorMsg());

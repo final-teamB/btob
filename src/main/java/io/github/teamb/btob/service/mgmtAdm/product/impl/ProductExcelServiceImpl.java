@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.github.teamb.btob.dto.attachfile.AtchFileDto;
-import io.github.teamb.btob.dto.excel.ExcelUploadResult;
+import io.github.teamb.btob.dto.excel.ExcelUploadResultDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUploadExcelDTO;
@@ -76,7 +76,7 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	 * 2026. 2. 3.  GD       최초 생성
 	 */
 	@Override
-	public ExcelUploadResult<ProductUploadExcelDTO> processUpload(MultipartFile file) throws Exception {
+	public ExcelUploadResultDTO<ProductUploadExcelDTO> processUpload(MultipartFile file) throws Exception {
 		
 		// 이 작업에서 사용할 임시 경로 설정 (예: 사용자별 혹은 세션별 폴더)
 	    // String currentTempPath = rootPath + "/batch_temp/" + SecurityUtils.getCurrentUserId();
@@ -145,7 +145,7 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 								        	"density15c");  
 								        
         // 3. [수정 핵심] 공통 모듈의 uploadAndSave 호출
-	    ExcelUploadResult<ProductUploadExcelDTO> result = excelService.uploadAndSave(
+	    ExcelUploadResultDTO<ProductUploadExcelDTO> result = excelService.uploadAndSave(
 	            file, 
 	            myHeader, 
 	            validKeys, 

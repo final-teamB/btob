@@ -1,5 +1,7 @@
 package io.github.teamb.btob.mapper.bizworkflow;
 
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import io.github.teamb.btob.dto.bizworkflow.EtpDynamicParamsDTO;
@@ -28,4 +30,7 @@ public interface BizWorkflowMapper {
 	
 	// 견적/주문/구매/결제 이력 추가
 	Integer insertEtpHist(EtpHistInsertDTO etpHistInsertDTO);
+	
+	// 견적서 승인
+	Integer updateEstDocApprUser(Map<String, Object> param);
 }

@@ -17,7 +17,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class ExcelUploadResult<T> {
+public class ExcelUploadResultDTO<T> {
     private Integer totalCount;      // 전체 행 수
     private Integer successCount;    // 성공 건수
     private Integer failCount;       // 실패 건수
