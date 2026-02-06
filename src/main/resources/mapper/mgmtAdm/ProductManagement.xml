@@ -30,6 +30,7 @@
 	    <result property="flashPnt"        column="flash_pnt" />
 	    <result property="viscosity"       column="viscosity" />
 	    <result property="density15c"      column="density_15c" />
+	    <result property="fuelMemo"      column="fuel_memo" />
 
     	<collection property="fileList" ofType="io.github.teamb.btob.dto.attachfile.AtchFileDto">
 	        <id     property="fileId"      column="file_id" />
@@ -101,7 +102,7 @@
 		    ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
 			<if test="startRow != null and limit != null">
             	LIMIT #{startRow}, #{limit}
-        	</if>
+        	</if> 
 			
 	</select>
 	
@@ -150,7 +151,7 @@
 		        ,fnc_get_usernm(a.upd_id) AS upd_nm                             
 		        ,a.use_yn
 		        ,b.api_grv
-		        ,b.sulfur_pcnt
+		        ,b.sulfur_p_cnt
 		        ,b.flash_pnt
 		        ,b.viscosity
 		        ,b.density_15c
@@ -215,6 +216,7 @@
 					,flash_pnt
 					,viscosity
 					,density_15c
+					,fuel_memo
 					,reg_id
 					,use_yn
 				) VALUES (
@@ -224,6 +226,7 @@
 					,#{flashPnt}
 					,#{viscosity}
 					,#{density15c}
+					,#{fuelMemo}
 					,#{regId}
 					,#{useYn}
 				)    

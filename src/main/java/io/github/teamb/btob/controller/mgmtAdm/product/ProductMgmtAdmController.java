@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
+import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductModifyRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
@@ -33,15 +34,29 @@ public class ProductMgmtAdmController {
     @GetMapping("/list")
     public String productListPage(Model model) {
         model.addAttribute("pageTitle", "상품 관리");
+        
+        // 추가: 셀렉박스 데이터(유류종류, 원산지, 단위, 상태) 조회 및 전달
+        model.addAttribute("selectBoxes", productManagementService.registerProductSelectBoxList());
+        
         // 레이아웃의 content 영역에 삽입될 JSP 경로
         model.addAttribute("content", "mgmtAdm/product/productMgmtAdm.jsp");
         return "layout/layout";
     }
-
     /* =========================================================
        API 영역 (모달 및 리스트 비동기 통신용)
        ========================================================= */
 
+    /**
+     * [API] 셀렉박스 리스트만 별도로 필요할 경우 (비동기 호출용)
+     */
+    @GetMapping("/api/select-boxes")
+    @ResponseBody
+    public ResponseEntity<Map<String, List<SelectBoxVO>>> getSelectBoxes() {
+    	
+        return ResponseEntity.ok(productManagementService.registerProductSelectBoxList());
+    }
+    
+    
     /**
      * [API] 상품 목록 조회 (페이징 및 검색)
      */
@@ -69,17 +84,19 @@ public class ProductMgmtAdmController {
 
     /**
      * [API] 상품 등록 (모달에서 호출)
+     * 이제 이미지는 임시 폴더에 있으므로 JSON 데이터만 받습니다.
      */
-    @PostMapping(value = "/api/register", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/api/register")
     @ResponseBody
     public ResponseEntity<Integer> registerProduct(
-            @RequestPart("productData") ProductRegisterRequestDTO requestDTO,
-            @RequestPart(value = "mainFiles", required = false) List<MultipartFile> mainFiles,
-            @RequestPart(value = "subFiles", required = false) List<MultipartFile> subFiles,
-            @RequestPart(value = "detailFiles", required = false) List<MultipartFile> detailFiles) throws Exception {
+            @RequestBody ProductRegisterRequestDTO requestDTO) throws Exception {
 
-        log.info("상품 등록 API 호출: {}", requestDTO.getProductBase().getFuelNm());
-        Integer result = productManagementService.registerProduct(requestDTO, mainFiles, subFiles, detailFiles);
+        log.info("상품 등록 API 호출 (임시파일 이동 방식): {}", requestDTO.getProductBase().getFuelNm());
+        
+        // 1. DTO에 담긴 mainTempNames, subTempNames를 사용하여 서비스 호출
+        // 서비스에서 registerInternalImgFile을 호출하여 파일을 이동시킵니다.
+        Integer result = productManagementService.registerProduct(requestDTO);
+        
         return ResponseEntity.ok(result);
     }
 

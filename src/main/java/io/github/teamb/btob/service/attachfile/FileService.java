@@ -31,6 +31,9 @@ public interface FileService {
     // 일반 미사용 처리
     Integer updateUnuseAtchFile(List<Integer> refIds, Integer userNo) throws Exception;
     
+    // 임시파일 저장
+    AtchFileDto uploadImgTempFile(MultipartFile file) throws Exception;
+    
     // 서버 내 특정 임시 경로의 파일을 시스템 저장소로 이동 및 등록
-    AtchFileDto registerInternalFile(AtchFileDto fileDto, String tempPath) throws Exception;
+    AtchFileDto registerInternalImgFile(AtchFileDto fileDto) throws Exception;
 }

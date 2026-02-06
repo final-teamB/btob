@@ -2,15 +2,19 @@ package io.github.teamb.btob.service.mgmtAdm.product.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
+import io.github.teamb.btob.dto.common.SelectBoxListDTO;
+import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductModifyRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
@@ -28,6 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 @RequiredArgsConstructor
 public class ProductManagementServiceImpl implements ProductManagementService{
+	
+	@Value("${file.upload.root}")
+    private String rootPath;
 	
 	private final CommonService commonService;
 	private final FileService fileService;
@@ -128,60 +135,67 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 
 	/**
 	 * 
-	 * 상품 등록
+	 * 상품 등록 (임시 업로드된 파일을 정식 경로로 이동 처리)
 	 * @author GD
-	 * @since 2026. 2. 2.
-	 * @param RequestDTO
-	 * @return result
+	 * @since 2026. 2. 6. (수정)
+	 * @param requestDTO 상품 정보 및 임시 파일명 리스트
+	 * @return 등록 결과 (성공 시 1 이상)
 	 * @throws Exception
-	 * 수정일        수정자       수정내용
-	 * ----------  --------    ---------------------------
-	 * 2026. 2. 2.  GD       최초 생성
 	 */
-	@Transactional(rollbackFor = Exception.class) // 에러 발생 시 모든 DB 작업 롤백
+	@Transactional(rollbackFor = Exception.class)
 	@Override
-	public Integer registerProduct(ProductRegisterRequestDTO requestDTO
-									,List<MultipartFile> mainFiles 
-							        ,List<MultipartFile> subFiles 
-							        ,List<MultipartFile> detailFiles) throws Exception {
-		
-		if ( !(commonService.nullEmptyChkValidate(requestDTO)) ) {
-			throw new Exception("유효 하지 않은 파라미터 입니다.");
-		}
-		
-		// 상품 기본 정보 등록
+	public Integer registerProduct(ProductRegisterRequestDTO requestDTO) throws Exception {
+	    
+	    // 1. 상품 기본 정보 등록
+	    // Insert 후 Mybatis의 selectKey 등을 통해 requestDTO.getProductBase().getFuelId()에 값이 채워져야 합니다.
 	    Integer result = productMgmtAdmMapper.insertProductAdm(requestDTO.getProductBase());
 	    
 	    if (result > 0) {
+	        Integer fuelId = requestDTO.getProductBase().getFuelId();
+	        
+	        if (fuelId == null || fuelId == 0) {
+	            throw new Exception("상품 ID(fuelId) 생성에 실패하였습니다.");
+	        }
 
-	    	Integer fuelId = requestDTO.getProductBase().getFuelId();
-	    	
-	    	// 파일 업로드 처리 (각 유형별로 호출)
-	        // 메인 이미지
-	        if (mainFiles != null && !mainFiles.isEmpty()) {
-	            fileService.uploadFiles(mainFiles, "PRODUCT_M", fuelId);
+	        // 2. 메인 이미지 처리 (임시 폴더 -> 정식 폴더 이동 및 DB 등록)
+	        if (requestDTO.getMainTempNames() != null && !requestDTO.getMainTempNames().isEmpty()) {
+	            for (String tempName : requestDTO.getMainTempNames()) {
+	                if (tempName == null || tempName.isEmpty()) continue;
+	                
+	                AtchFileDto fileDto = new AtchFileDto();
+	                fileDto.setOrgFileNm(tempName);   // 미리보기 시 서버에 저장된 임시 파일명
+	                fileDto.setSystemId("PRODUCT_M"); // 메인 이미지 구분값
+	                fileDto.setRefId(fuelId);         // 생성된 상품 fuelId 연결
+	                
+	                // 파일 서비스의 이동 로직 호출
+	                fileService.registerInternalImgFile(fileDto);
+	            }
+	        }
+
+	        // 3. 서브 이미지 처리 (임시 폴더 -> 정식 폴더 이동 및 DB 등록)
+	        if (requestDTO.getSubTempNames() != null && !requestDTO.getSubTempNames().isEmpty()) {
+	            for (String tempName : requestDTO.getSubTempNames()) {
+	                if (tempName == null || tempName.isEmpty()) continue;
+
+	                AtchFileDto fileDto = new AtchFileDto();
+	                fileDto.setOrgFileNm(tempName);   // 임시 파일명
+	                fileDto.setSystemId("PRODUCT_S"); // 서브 이미지 구분값
+	                fileDto.setRefId(fuelId);         // 생성된 상품 fuelId 연결
+	                
+	                fileService.registerInternalImgFile(fileDto);
+	            }
 	        }
 	        
-	        // 서브 이미지
-	        if (subFiles != null && !subFiles.isEmpty()) {
-	            fileService.uploadFiles(subFiles, "PRODUCT_S", fuelId);
-	        }
-	        
-	        // 상세 이미지
-	        if (detailFiles != null && !detailFiles.isEmpty()) {
-	            fileService.uploadFiles(detailFiles, "PRODUCT_D", fuelId);
-	        }
-	    	
-	    	requestDTO.getProductDetail().setFuelId(fuelId);
-	        
-	        // 상품 상세 정보 등록
+	        // 4. 상품 상세 정보 등록
+	        // 에디터 본문 내용(fuelMemo) 등이 포함된 상세 정보 테이블 저장
+	        requestDTO.getProductDetail().setFuelId(fuelId);
 	        Integer detailResult = productMgmtAdmMapper.insertProductDetailInfoAdm(requestDTO.getProductDetail());
 	        
 	        if (detailResult <= 0) {
-	            throw new Exception("상품 상세 정보 등록에 실패했습니다.");
+	            throw new Exception("상품 상세 정보 등록에 실패하였습니다.");
 	        }
 	    } else {
-	        throw new Exception("상품 기본 정보 등록에 실패했습니다.");
+	        throw new Exception("상품 기본 정보 등록에 실패하였습니다.");
 	    }
 	    
 	    return result; 
@@ -299,6 +313,71 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		   }
 		   
 		return result;
+	}
+
+
+	/**
+	 * 
+	 * 셀렉박스 리스트 추출
+	 * @author GD
+	 * @since 2026. 2. 6.
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 6.  GD       최초 생성
+	 */
+	@Override
+	public Map<String, List<SelectBoxVO>> registerProductSelectBoxList() {
+	    
+	    Map<String, List<SelectBoxVO>> resultMap = new HashMap<>();
+	    
+	    // 공통 설정 (테이블명, 컬럼명 등)
+	    String table = "COMM_TBL";
+	    String codeCol = "COMM_NO";
+	    String nameCol = "COMM_NAME";
+	    String targetCol = "PARAM_VALUE"; 
+
+	    // 1. 유류종류 (FUEL_CAT)
+	    resultMap.put("fuelCatList", getSelectBox(table, codeCol, nameCol, targetCol, "FUEL_CAT"));
+
+	    // 2. 원산지 국가 (COUNTRY)
+	    resultMap.put("countryList", getSelectBox(table, codeCol, nameCol, targetCol, "COUNTRY"));
+
+	    // 3. 단위 (VOL_UNIT)
+	    resultMap.put("volUnitList", getSelectBox(table, codeCol, nameCol, targetCol, "VOL_UNIT"));
+
+	    // 4. 재고상태 (FUEL_ITEM_STTS)
+	    resultMap.put("itemSttsList", getSelectBox(table, codeCol, nameCol, targetCol, "FUEL_ITEM_STTS"));
+
+	    return resultMap;
+	}
+
+	/**
+	 * 
+	 * 셀렉박스 파라미터 세팅을 위한 내부 헬퍼 메서드 (리턴타입 VO로 수정)
+	 * @author GD
+	 * @since 2026. 2. 6.
+	 * @param table
+	 * @param cd
+	 * @param nm
+	 * @param target
+	 * @param where
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 6.  GD       최초 생성
+	 */
+	private List<SelectBoxVO> getSelectBox(String table, String cd, String nm, String target, String where) {
+	    
+	    SelectBoxListDTO dto = new SelectBoxListDTO();
+	    dto.setCommonTable(table);
+	    dto.setCommNo(cd);
+	    dto.setCommName(nm);
+	    dto.setTargetCols(target);
+	    dto.setWhereCols(where);
+	    
+	    // 이제 Generic 파라미터(class)를 넘길 필요 없이 깔끔하게 호출 가능합니다.
+	    return commonService.getSelectBoxList(dto);
 	}
 
 }

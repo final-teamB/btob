@@ -171,13 +171,13 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 	                    // 3. 메인 이미지 등록
 	                    if (dto.getMainFileNm() != null && !dto.getMainFileNm().isEmpty()) {
 	                        AtchFileDto mainDto = dto.toAtchFileDTO(fuelId, "PRODUCT_M", dto.getMainFileNm());
-	                        fileService.registerInternalFile(mainDto, currentTempPath);
+	                        //fileService.registerInternalFile(mainDto, currentTempPath);
 	                    }
 
 	                    // 4. 서브 이미지 등록
 	                    if (dto.getSubFileNm() != null && !dto.getSubFileNm().isEmpty()) {
 	                        AtchFileDto subDto = dto.toAtchFileDTO(fuelId, "PRODUCT_S", dto.getSubFileNm());
-	                        fileService.registerInternalFile(subDto, currentTempPath);
+	                        //fileService.registerInternalFile(subDto, currentTempPath);
 	                    }
 	                } catch (Exception e) {
 	                	

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
+import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductModifyRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
@@ -22,10 +23,7 @@ public interface ProductManagementService {
 	SearchDetailInfoProductDTO getProductDetailInfo (Integer fuelId) throws Exception;
 	
 	// 상품 등록
-	Integer registerProduct(ProductRegisterRequestDTO RequestDTO
-								,List<MultipartFile> mainFiles 
-						        ,List<MultipartFile> subFiles 
-						        ,List<MultipartFile> detailFiles) throws Exception;
+	Integer registerProduct(ProductRegisterRequestDTO requestDTO) throws Exception;
 	
 	// 상품 수정
 	Integer modifyProduct(ProductModifyRequestDTO requestDTO
@@ -38,4 +36,7 @@ public interface ProductManagementService {
 	
 	// 상품 삭제
 	Integer unUseProduct(ProductUnUseRequestDTO requestDTO) throws Exception;
+	
+	// 셀렉박스 == 유류종류, 원산지 국가, 단위, 재고상태
+	Map<String, List<SelectBoxVO>> registerProductSelectBoxList();
 }

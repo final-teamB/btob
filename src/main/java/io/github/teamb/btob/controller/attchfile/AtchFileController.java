@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
@@ -183,4 +184,33 @@ public class AtchFileController {
         }
     }
 
+    
+    
+    /**
+     * 
+     * 첨부파일 등록 시 이미지 파일을 서버 임시 폴더에 미리 저장
+     * @author GD
+     * @since 2026. 2. 6.
+     * @param file
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 6.  GD       최초 생성
+     */
+    @PostMapping("/temp-img-upload")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> tempUpload(@RequestPart("file") MultipartFile file) throws Exception {
+    	
+    	// 1. 실제로 서버 temp 폴더에 파일을 물리적으로 저장함
+        AtchFileDto dto = fileService.uploadImgTempFile(file); 
+        
+        Map<String, String> response = new HashMap<>();
+        
+        // 브라우저가 즉시 보여줄 수 있는 URL 반환
+        response.put("url", "/api/file/display/TEMP?fileName=" + dto.getStrFileNm());
+        response.put("fileName", dto.getStrFileNm());
+        
+        return ResponseEntity.ok(response);
+    }
 }

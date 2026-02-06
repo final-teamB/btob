@@ -2,9 +2,11 @@ package io.github.teamb.btob.service.attachfile.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +42,10 @@ public class FileServiceImpl implements FileService {
     // 루트 경로 (공통)
     @Value("${file.upload.root}")
     private String rootPath;
+    
+    // 파일 이미지 미리보기 임시저장폴더
+    @Value("${file.upload.path.temp}")
+    private String imgTempPath;
 
     @Autowired
     private Environment env; // 설정값을 동적으로 가져오기 위함
@@ -107,18 +113,27 @@ public class FileServiceImpl implements FileService {
         // 변경파일명
         String strFileNm = UUID.randomUUID().toString() + "." + ext;
         
+        String subPath = env.getProperty("file.upload.path." + systmeId, ""); // 없으면 빈값
+        
         // 디렉토리가 없다면 디렉토리 생성
-        File dir = new File(rootPath);
-        if (!dir.exists()) dir.mkdirs();
+        File dir = new File(rootPath, subPath);
+        if (!dir.exists()) {
+            boolean created = dir.mkdirs(); // 디렉토리 생성 시도
+            if (!created) {
+                // 디렉토리 생성 실패 시(권한 문제 등)에 대한 예외 처리
+                throw new IOException("업로드 경로를 생성할 수 없습니다: " + rootPath + subPath);
+            }
+        }
 
         // 디렉토리에 파일 저장 처리
-        File target = new File(rootPath, strFileNm);
+        // rootPath 대신 객체 dir 사용 권장
+        File target = new File(dir, strFileNm); 
         file.transferTo(target);
 
         AtchFileDto dto = new AtchFileDto();
         dto.setOrgFileNm(orgFileNm);
         dto.setStrFileNm(strFileNm);
-        dto.setFilePath(new File(rootPath, strFileNm).getAbsolutePath());
+        dto.setFilePath(target.getAbsolutePath());
         dto.setFileExt(ext);
         dto.setFileSize(file.getSize());
         dto.setSystemId(systmeId);
@@ -217,21 +232,28 @@ public class FileServiceImpl implements FileService {
     @Override
     public void displayImage(String systemId, String fileName, HttpServletResponse response) throws Exception {
         
-    	// 1. 파일 저장 경로
-    	String subPath = env.getProperty("file.upload.path." + systemId);
-    	
-    	if (subPath == null) {
-            throw new Exception("정의되지 않은 시스템 경로입니다: " + systemId);
+    	File file;
+
+        // 1. 경로 결정
+        if ("TEMP".equals(systemId)) {
+            // 임시 폴더에서 찾기
+            file = new File(imgTempPath, fileName);
+        } else {
+            // 정식 폴더(PRODUCT_M, PRODUCT_D 등)에서 찾기
+            String subPath = env.getProperty("file.upload.path." + systemId);
+            if (subPath == null) {
+                throw new Exception("정의되지 않은 시스템 경로입니다: " + systemId);
+            }
+            file = new File(rootPath + subPath, fileName);
         }
         
-    	// 2. 전체 경로 조합 (루트 + 세부경로 + 파일명)
-        File file = new File(rootPath + subPath, fileName);
-        
+        // 2. 파일 존재 여부 확인
         if (!file.exists()) {
+            log.error("파일을 찾을 수 없습니다. 경로: {}", file.getAbsolutePath());
             throw new Exception("파일을 찾을 수 없습니다.");
         }
 
-        // 3. 파일의 MIME 타입 파악 (image/jpeg, image/png 등)
+        // 3. 파일의 MIME 타입 파악
         String contentType = Files.probeContentType(file.toPath());
         if (contentType == null) {
             contentType = "application/octet-stream";
@@ -243,7 +265,7 @@ public class FileServiceImpl implements FileService {
         // 5. 파일 복사 (스트림 전송)
         try (InputStream is = new FileInputStream(file);
              OutputStream os = response.getOutputStream()) {
-            StreamUtils.copy(is, os); // Spring의 StreamUtils 사용 시 간편함
+            StreamUtils.copy(is, os);
             os.flush();
         }
     }
@@ -275,10 +297,45 @@ public class FileServiceImpl implements FileService {
 	    return fileMapper.unUseAtchFile(params);
 	}
 	
+	/**
+	 * 
+	 * 첨부파일 등록시 이미지 임시파일 저장
+	 * @author GD
+	 * @since 2026. 2. 6.
+	 * @param file
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 6.  GD       최초 생성
+	 */
+	@Override
+	public AtchFileDto uploadImgTempFile(MultipartFile file) throws Exception {
+	    
+		// 1. 임시 디렉토리 생성
+	    File tempDir = new File(imgTempPath);
+	    if (!tempDir.exists()) tempDir.mkdirs();
+
+	    // 2. 파일명 생성 (원본명 유지 혹은 UUID)
+	    String orgNm = file.getOriginalFilename();
+	    String ext = orgNm.substring(orgNm.lastIndexOf(".") + 1);
+	    String strFileNm = UUID.randomUUID().toString() + "." + ext;
+
+	    // 3. 물리적 저장
+	    File targetFile = new File(tempDir, strFileNm);
+	    file.transferTo(targetFile);
+
+	    // 4. 정보 반환 (DB 저장은 하지 않음)
+	    AtchFileDto dto = new AtchFileDto();
+	    dto.setOrgFileNm(strFileNm); // 저장된 파일명
+	    dto.setStrFileNm(strFileNm);
+	    return dto;
+	}
+	
 	
 	/**
 	 * 
-	 * 서버 내 특정 임시 경로의 파일을 시스템 저장소로 이동 및 등록
+	 * 서버 내 특정 임시 경로의 이미지 파일을 시스템 저장소로 이동 및 등록
 	 * @author GD
 	 * @since 2026. 2. 4.
 	 * @param orgFileNm
@@ -292,37 +349,53 @@ public class FileServiceImpl implements FileService {
 	 * 2026. 2. 4.  GD       최초 생성
 	 */
 	@Override
-	public AtchFileDto registerInternalFile(AtchFileDto fileDto, String tempPath) throws Exception {
-		// 1. 시스템별 정식 저장 경로 확인
-	    String subPath = env.getProperty("file.upload.path." + fileDto.getSystemId());
-	    File targetDir = new File(rootPath + subPath);
-	    if (!targetDir.exists()) targetDir.mkdirs();
+	public AtchFileDto registerInternalImgFile(AtchFileDto fileDto) throws Exception {
+	    
+	    // 1. 시스템별 정식 저장 경로 확인 (기존 uploadFile 로직과 동일하게 env에서 가져옴)
+	    String subPath = env.getProperty("file.upload.path." + fileDto.getSystemId(), "");
+	    File dir = new File(rootPath, subPath);
+	    if (!dir.exists()) {
+	        if (!dir.mkdirs()) {
+	            throw new IOException("업로드 경로를 생성할 수 없습니다: " + dir.getPath());
+	        }
+	    }
 
-	    // 2. 임시 경로에서 파일 확인
-	    File tempFile = new File(tempPath, fileDto.getOrgFileNm());
+	    // 2. 임시 경로에서 파일 확인 (D:\temp\img 등)
+	    File tempFile = new File(imgTempPath, fileDto.getOrgFileNm());
 	    if (!tempFile.exists()) {
-	    	
 	        log.warn("파일이 임시 경로에 없습니다: {}", fileDto.getOrgFileNm());
 	        return null;
 	    }
 
-	    // 3. 파일명 변환 및 정보 업데이트
-	    String ext = fileDto.getOrgFileNm().substring(fileDto.getOrgFileNm().lastIndexOf(".") + 1);
+	    // 3. 파일명 변환 및 확장자 추출 (기존 uploadFile과 동일한 UUID 방식)
+	    String orgFileNm = fileDto.getOrgFileNm();
+	    String ext = orgFileNm.substring(orgFileNm.lastIndexOf(".") + 1);
 	    String strFileNm = UUID.randomUUID().toString() + "." + ext;
-	    File targetFile = new File(targetDir, strFileNm);
 	    
-	    // 파일 이동
-	    tempFile.renameTo(targetFile);
-
-	    // 4. DTO에 서버 저장 정보 채우기
-	    fileDto.setStrFileNm(strFileNm);
-	    fileDto.setFilePath(targetFile.getAbsolutePath());
-	    fileDto.setFileExt(ext);
-	    fileDto.setFileSize(targetFile.length());
-
-	    // 5. DB 등록
-	    fileMapper.insertFile(fileDto);
+	    File targetFile = new File(dir, strFileNm);
 	    
-	    return fileDto;
+	    try {
+	        // [파일 이동] MultipartFile.transferTo 대신 Files.move 사용
+	        Files.move(tempFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+	        log.info("임시 파일 정식 저장소 이동 완료: {}", targetFile.getAbsolutePath());
+	    } catch (IOException e) {
+	        log.error("파일 이동 중 오류 발생: {}", e.getMessage());
+	        throw new Exception("파일 저장소 이동 실패");
+	    }
+
+	    // 4. DTO 정보 세팅 (기존 uploadFile의 필드 세팅과 동일하게 맞춤)
+	    AtchFileDto resultDto = new AtchFileDto();
+	    resultDto.setOrgFileNm(orgFileNm);           // 원본파일명
+	    resultDto.setStrFileNm(strFileNm);           // 변경파일명(UUID)
+	    resultDto.setFilePath(targetFile.getAbsolutePath()); // 절대경로 (기존 로직이 absolutePath를 쓰므로 동일하게 유지)
+	    resultDto.setFileExt(ext);                   // 확장자
+	    resultDto.setFileSize(targetFile.length());  // 파일크기
+	    resultDto.setSystemId(fileDto.getSystemId());// 시스템ID (PRODUCT_M 등)
+	    resultDto.setRefId(fileDto.getRefId());       // 참조ID (fuelId)
+
+	    // 5. DB 등록 (기존 uploadFile과 동일한 매퍼 호출)
+	    fileMapper.insertFile(resultDto);
+	    
+	    return resultDto;
 	}
 }

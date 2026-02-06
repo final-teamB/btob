@@ -5,11 +5,11 @@
 	<!-- 셀렉박스 리스트 -->
 	<select id="selectBoxList"
 		parameterType="io.github.teamb.btob.dto.common.SelectBoxListDTO"
-		resultType="java.util.Map">
+		resultType="io.github.teamb.btob.dto.common.SelectBoxVO">
 		
 			SELECT 
-				${commonCd}, 
-				${commonNm}
+				${commNo} AS "value",
+				${commName} AS "text"
 			FROM 
 				${commonTable}
 			WHERE 1=1

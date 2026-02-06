@@ -2,50 +2,22 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="cp" value="${pageContext.request.contextPath}" />
 
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
 <style>
     .fuel-link { color: #2563eb !important; text-decoration: underline !important; cursor: pointer; font-weight: 600; }
-    input[readonly] { background-color: #f9fafb !important; color: #6b7280 !important; cursor: not-allowed; }
-
-    .tui-grid-cell-row-header input[type="checkbox"] {
-        cursor: pointer; width: 18px !important; height: 18px !important;
-        border: 2px solid #374151 !important; accent-color: #2563eb; appearance: auto;
-    }
-
+    .input-edit { background-color: #ffffff !important; color: #111827 !important; cursor: text !important; }
     #dg-container { width: 100%; margin-top: 1rem; }
-    
-    /* [핵심 수정] 검색창 라인에 버튼을 강제로 맞추기 위한 absolute 설정 */
-    .grid-relative-wrapper {
-        position: relative;
-        width: 100%;
-    }
-
-    .batch-action-fixed {
-        position: absolute;
-        /* [보정] 28px에서 33px로 조정하여 수평을 맞췄습니다 */
-        top: 60px; 
-        right: 20px;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-    }
-    
-    /* 버튼 텍스트와 아이콘이 찌그러지지 않도록 너비 확보 */
-    .btn-batch-delete {
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-    }
+    .grid-relative-wrapper { position: relative; width: 100%; }
 </style>
 
 <div class="max-w-screen-2xl mx-auto">
     <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-        
-        <%-- [1] 상단 헤더 --%>
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">상품 관리</h2>
-                <p class="text-sm text-gray-500 mt-1">리스트에서 상품을 선택하여 일괄 미사용 처리가 가능합니다.</p>
+                <p class="text-sm text-gray-500 mt-1">등록된 유류 상품의 상세 정보를 조회하고 관리할 수 있습니다.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄양식 다운로드</button>
@@ -55,18 +27,7 @@
             </div>
         </div>
 
-        <%-- [2] 그리드 영역 및 부유 버튼 --%>
         <div class="grid-relative-wrapper">
-            <div class="batch-action-fixed">
-                <button type="button" onclick="handleBatchDelete()" 
-                        class="btn-batch-delete px-4 py-2 text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition active:scale-95 shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    선택 미사용 처리
-                </button>
-            </div>
-
             <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
                 <jsp:param name="showSearchArea" value="true" />
                 <jsp:param name="showPerPage" value="true" />
@@ -75,55 +36,122 @@
     </div>
 </div>
 
-<%-- 등록/수정 모달 --%>
-<div id="productModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-[calc(100%-1rem)] max-h-full">
-    <div class="relative w-full max-w-4xl max-h-full">
-        <div class="relative bg-white rounded-xl shadow-2xl border border-gray-200 dark:bg-gray-700">
-            <div class="flex items-center justify-between p-4 border-b">
-                <h2 id="modalTitle" class="text-2xl font-bold text-gray-900 dark:text-white">상품 정보 상세 설정</h2>
-                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-900 ml-auto p-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <form id="productForm">
-                <input type="hidden" id="fuelId" name="fuelId">
-                <div class="p-6 grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">상품명 (fuelNm)</label>
-                        <input type="text" id="fuelNm" name="fuelNm" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
-                    </div>
-                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">유류코드</label><input type="text" id="fuelCd" class="w-full border rounded-lg p-2.5 text-sm" readonly></div>
-                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">유류종류</label><input type="text" id="fuelCatNm" class="w-full border rounded-lg p-2.5 text-sm" readonly></div>
-                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">단가</label><input type="number" id="baseUnitPrc" name="baseUnitPrc" class="w-full border rounded-lg p-2.5 text-sm"></div>
-                    <div><label class="block text-sm font-semibold text-gray-700 mb-1">안전재고</label><input type="number" id="safeStockVol" name="safeStockVol" class="w-full border rounded-lg p-2.5 text-sm"></div>
-                </div>
-                <div class="flex items-center p-6 border-t gap-2">
-                    <button type="button" onclick="saveProduct()" class="px-3 py-1.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">저장</button>
-                    <button type="button" id="btnDeleteProduct" onclick="deleteProduct()" class="px-3 py-1.5 text-sm font-bold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 border border-red-200 transition" style="display:none;">미사용 처리</button>
-                    <button type="button" onclick="closeModal()" class="px-3 py-1.5 text-sm font-medium text-gray-500 bg-white border rounded-lg hover:bg-gray-50 ml-auto">취소</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<jsp:include page="productMgmtInsertAdm.jsp" />
 
 <script>
-    /* ... 스크립트 로직은 이전과 동일하므로 유지 ... */
     const cp = '${cp}';
-    let myGrid;
-    let productModal;
+    let myGrid, productModal, quill;
+
+    // 이미지 임시 파일명을 보관할 변수 (등록 시 사용)
+    let mainTempName = null;
+    let subTempName = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof Modal !== 'undefined') {
             productModal = new Modal(document.getElementById('productModal'));
         }
+
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: '상품의 상세 설명 및 주의사항을 입력하세요...',
+            modules: { 
+                toolbar: [
+                    ['bold', 'italic', 'underline'], 
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }], 
+                    ['image', 'clean'] 
+                ] 
+            }
+        });
+
+        const toolbar = quill.getModule('toolbar');
+        toolbar.addHandler('image', () => {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+
+            input.onchange = function() {
+                const file = input.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch(cp + '/api/file/temp-img-upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const range = quill.getSelection();
+                    quill.insertEmbed(range ? range.index : 0, 'image', data.url);
+                    quill.setSelection((range ? range.index : 0) + 1);
+                })
+                .catch(e => console.error("에디터 업로드 실패:", e));
+            };
+        });
+
         window.fetchData(); 
     });
 
+    // --- 미리보기 함수 (비동기 처리 최적화 및 문구 제거) ---
+    function previewImage(input, containerId) {
+        var container = document.getElementById(containerId);
+        
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            var formData = new FormData();
+            formData.append("file", file);
+
+            fetch(cp + '/api/file/temp-img-upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.url) {
+                    // 서버에서 생성된 실제 임시 파일명 저장 (UUID.확장자 형태라고 가정)
+                    // URL에서 파일명만 추출하거나 서버 응답에 fileName 필드가 있다면 그것을 사용
+                    const tempFileName = data.url.substring(data.url.lastIndexOf('/') + 1);
+                    
+                    if (containerId === 'mainPreview') mainTempName = tempFileName;
+                    if (containerId === 'subPreview') subTempName = tempFileName;
+
+                    var imgHtml = 
+                        '<div class="preview-item">' +
+                            '<img src="' + data.url + '" onclick="insertImageToEditor(\'' + data.url + '\')">' +
+                            '<div class="preview-remove" onclick="removeSingleFile(\'' + input.id + '\', \'' + containerId + '\')">×</div>' +
+                        '</div>';
+                    
+                    container.innerHTML = imgHtml;
+                }
+            })
+            .catch(function(error) {
+                console.error("미리보기 업로드 에러:", error);
+            });
+        } else {
+            container.innerHTML = '';
+        }
+    }
+
+    function insertImageToEditor(url) {
+        const range = quill.getSelection();
+        quill.insertEmbed(range ? range.index : 0, 'image', url);
+    }
+
+    function removeSingleFile(inputId, containerId) {
+        document.getElementById(inputId).value = '';
+        document.getElementById(containerId).innerHTML = '';
+        if (containerId === 'mainPreview') mainTempName = null;
+        if (containerId === 'subPreview') subTempName = null;
+    }
+
+    // --- 데이터 그리드 및 조회 기능 ---
     window.fetchData = function() {
         const searchInput = document.getElementById('dg-search-input');
         const searchCondition = searchInput && searchInput.value ? encodeURIComponent(searchInput.value) : '';
-        
         fetch(cp + '/admin/products/api/list?limit=5000&searchCondition=' + searchCondition)
             .then(res => res.json())
             .then(data => {
@@ -137,21 +165,22 @@
 
     function initGrid(data) {
         const container = document.getElementById('dg-container');
-        if (container) container.innerHTML = '';
-
+        if (!container) return;
+        if (myGrid && myGrid.grid) {
+            myGrid.grid.resetData(data);
+            return;
+        }
+        container.innerHTML = '';
         myGrid = new DataGrid({
             containerId: 'dg-container',
             searchId: 'dg-search-input',
             btnSearchId: 'dg-btn-search',
             paginationId: 'dg-pagination',
             perPageId: 'dg-per-page',
-            showCheckbox: true, 
+            showCheckbox: false, 
             bodyHeight: 'auto',
-            scrollY: false,
-            scrollX: true,
             data: data,
             perPage: parseInt(document.getElementById('dg-per-page')?.value || 10),
-            columnOptions: { frozenCount: 1, resizable: true, minWidth: 150 },
             columns: [
                 { header: '유류코드', name: 'fuelCd', width: 140, align: 'center' },
                 { 
@@ -166,6 +195,7 @@
                                 this.el = el;
                             }
                             getElement() { return this.el; }
+                            render(props) { this.el.innerText = props.value; }
                         }
                     }
                 },
@@ -175,69 +205,144 @@
                 { header: '현재고', name: 'currStockVol', width: 140, align: 'right', formatter: (v) => (v.value || 0).toLocaleString() + ' ' + (v.row.volUnitNm || '') },
                 { header: '재고상태', name: 'itemSttsNm', width: 120, align: 'center' },
                 { header: '등록일', name: 'regDtime', width: 170, align: 'center' },
-                { header: '상태', name: 'useYn', width: 100, renderer: { type: CustomStatusRenderer, options: { theme: 'accStatus' } } }
+                { header: '상태', name: 'useYn', width: 100, align: 'center', renderer: { type: CustomStatusRenderer, options: { theme: 'accStatus' } } }
             ]
         });
-
-        if (myGrid.initFilters) {
-            myGrid.initFilters([
-                { field: 'fuelCatNm', title: '유류종류' },
-                { field: 'originCntryNm', title: '원산지' },
-                { field: 'itemSttsNm', title: '재고상태' }
-            ]);
-        }
-        setTimeout(() => { if (myGrid && myGrid.grid) myGrid.grid.refreshLayout(); }, 200);
-    }
-
-    window.handleBatchDelete = function() {
-        if (!myGrid || !myGrid.grid) return;
-        const checkedRows = myGrid.grid.getCheckedRows();
-        if (checkedRows.length === 0) {
-            alert('미사용 처리할 상품을 선택해주세요.');
-            return;
-        }
-        const targetIds = checkedRows.map(row => row.fuelId);
-        if (confirm(`선택한 \${checkedRows.length}건의 상품을 미사용 처리하시겠습니까?`)) {
-            alert('처리되었습니다.');
-            myGrid.grid.uncheckAll();
-            window.fetchData();
-        }
-    };
-
-    function openEditModal(rowKey) {
-        const rowData = myGrid.grid.getRow(rowKey);
-        const fuelId = rowData.fuelId;
-        fetch(cp + '/admin/products/api/' + fuelId)
-            .then(res => res.json())
-            .then(data => {
-                const b = data.productBase;
-                document.getElementById('fuelId').value = b.fuelId;
-                document.getElementById('fuelCd').value = b.fuelCd;
-                document.getElementById('fuelNm').value = b.fuelNm;
-                document.getElementById('fuelCatNm').value = b.fuelCatNm;
-                document.getElementById('baseUnitPrc').value = b.baseUnitPrc;
-                document.getElementById('safeStockVol').value = b.safeStockVol;
-                document.getElementById('modalTitle').innerText = '상품 정보 상세 수정';
-                document.getElementById('btnDeleteProduct').style.display = 'inline-block';
-                if(productModal) productModal.show();
-            });
     }
 
     window.handleAddAction = function() {
         document.getElementById('productForm').reset();
         document.getElementById('fuelId').value = '';
+        document.getElementById('fuelCd').value = '';
+        quill.setContents([]);
+        document.getElementById('mainPreview').innerHTML = '';
+        document.getElementById('subPreview').innerHTML = '';
+        mainTempName = null;
+        subTempName = null;
         document.getElementById('modalTitle').innerText = '신규 상품 등록';
         document.getElementById('btnDeleteProduct').style.display = 'none';
         if(productModal) productModal.show();
     };
 
-    function deleteProduct() {
-        if (confirm('해당 상품을 미사용 처리하시겠습니까?')) {
-            alert('미사용 처리되었습니다.');
-            closeModal();
-            window.fetchData();
+    function openEditModal(rowKey) {
+        const rowData = myGrid.grid.getRow(rowKey);
+        fetch(cp + '/admin/products/api/' + rowData.fuelId)
+            .then(res => res.json())
+            .then(data => {
+                const b = data.productBase;
+                const d = data.productDetail || {};
+                const files = data.fileList || []; 
+                
+                document.getElementById('fuelId').value = b.fuelId;
+                document.getElementById('fuelCd').value = b.fuelCd;
+                document.getElementById('fuelNm').value = b.fuelNm;
+                document.getElementById('fuelCatCd').value = b.fuelCatCd;
+                document.getElementById('originCntryCd').value = b.originCntryCd;
+                document.getElementById('baseUnitPrc').value = b.baseUnitPrc;
+                document.getElementById('currStockVol').value = b.currStockVol;
+                document.getElementById('safeStockVol').value = b.safeStockVol;
+                document.getElementById('volUnitCd').value = b.volUnitCd;
+                document.getElementById('itemSttsCd').value = b.itemSttsCd;
+                
+                document.getElementById('apiGrv').value = d.apiGrv || '';
+                document.getElementById('sulfurPCnt').value = d.sulfurPCnt || '';
+                document.getElementById('flashPnt').value = d.flashPnt || '';
+                document.getElementById('viscosity').value = d.viscosity || '';
+                document.getElementById('density15c').value = d.density15c || '';
+                quill.root.innerHTML = d.fuelMemo || '';
+                
+                document.getElementById('mainPreview').innerHTML = '';
+                document.getElementById('subPreview').innerHTML = '';
+                
+                files.forEach(file => {
+                    const imgUrl = cp + '/api/file/display/' + file.systemId + '?fileName=' + file.strFileNm;
+                    const imgHtml = `
+                        <div class="preview-item">
+                            <img src="${imgUrl}" onclick="insertImageToEditor('${imgUrl}')">
+                            <div class="preview-remove" onclick="this.parentElement.remove()">×</div>
+                            <input type="hidden" name="${file.systemId}_remain" value="${file.strFileNm}">
+                        </div>`;
+
+                    if (file.systemId === 'PRODUCT_M') {
+                        document.getElementById('mainPreview').innerHTML = imgHtml;
+                    } else if (file.systemId === 'PRODUCT_S') {
+                        document.getElementById('subPreview').innerHTML = imgHtml;
+                    }
+                });
+                
+                document.getElementById('modalTitle').innerText = '상품 정보 상세 수정';
+                document.getElementById('btnDeleteProduct').style.display = (b.useYn === 'Y') ? 'inline-block' : 'none';
+                if(productModal) productModal.show();
+            });
+    }
+
+    // --- 상품 저장 (JSON 기반 임시 파일명 전송 방식) ---
+    async function saveProduct() {
+        const fuelId = document.getElementById('fuelId').value;
+        const isEdit = fuelId !== '';
+        
+        const productData = {
+            productBase: {
+                fuelId: fuelId || null,
+                fuelCd: document.getElementById('fuelCd').value,
+                fuelNm: document.getElementById('fuelNm').value,
+                fuelCatCd: document.getElementById('fuelCatCd').value,
+                originCntryCd: document.getElementById('originCntryCd').value,
+                baseUnitPrc: document.getElementById('baseUnitPrc').value,
+                currStockVol: document.getElementById('currStockVol').value,
+                safeStockVol: document.getElementById('safeStockVol').value,
+                volUnitCd: document.getElementById('volUnitCd').value,
+                itemSttsCd: document.getElementById('itemSttsCd').value,
+                useYn: 'Y'
+            },
+            productDetail: {
+                apiGrv: document.getElementById('apiGrv').value,
+                sulfurPCnt: document.getElementById('sulfurPCnt').value,
+                flashPnt: document.getElementById('flashPnt').value,
+                viscosity: document.getElementById('viscosity').value,
+                density15c: document.getElementById('density15c').value,
+                fuelMemo: quill.root.innerHTML,
+                useYn: 'Y'
+            },
+            // [중요] 임시 폴더에 저장된 파일명을 DTO 필드에 맞춰 전달
+            mainTempNames: mainTempName ? [mainTempName] : [],
+            subTempNames: subTempName ? [subTempName] : []
+        };
+
+        const url = isEdit ? cp + '/admin/products/api/modify/' + fuelId : cp + '/admin/products/api/register';
+
+        try {
+            // [변경] FormData가 아닌 JSON 전송 방식으로 변경
+            const response = await fetch(url, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData) 
+            });
+
+            if (response.ok) {
+                alert(isEdit ? "수정되었습니다." : "등록되었습니다.");
+                closeModal();
+                window.fetchData();
+            } else { 
+                alert("저장 실패"); 
+            }
+        } catch (error) { 
+            console.error("저장 오류:", error);
+            alert("오류 발생"); 
         }
     }
+
+    function deleteProduct() {
+        const fuelId = document.getElementById('fuelId').value;
+        if (!fuelId || !confirm('해당 상품을 미사용 처리하시겠습니까?')) return;
+        fetch(cp + '/admin/products/api/unuse', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fuelId: fuelId, useYn: 'N', userNo: 1 })
+        }).then(res => {
+            if(res.ok) { alert('미사용 처리되었습니다.'); closeModal(); window.fetchData(); }
+        });
+    }
+
     function closeModal() { if(productModal) productModal.hide(); }
-    function saveProduct() { alert('저장되었습니다.'); closeModal(); window.fetchData(); }
 </script>
