@@ -21,25 +21,24 @@
       <div class="flex items-center">
         
         <div class="relative mr-3">
-          <button type="button" id="notificationButton" data-dropdown-toggle="notification-dropdown" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700">
-            <span class="sr-only">View notifications</span>
-            <img src="https://img.icons8.com/ios-glyphs/30/6B7280/alarm.png" class="w-6 h-6" alt="notifications">
-            <div id="notification-badge" class="hidden absolute inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 border-2 border-white rounded-full -top-0 -right-0 dark:border-gray-900">0</div>
-          </button>
+         	 <button type="button" id="notificationButton" data-dropdown-toggle="notification-dropdown" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700">
+           		 <span class="sr-only">View notifications</span>
+          		 <img src="https://img.icons8.com/ios-glyphs/30/6B7280/alarm.png" class="w-6 h-6" alt="notifications">
+           		 <div id="notification-badge" class="hidden absolute inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 border-2 border-white rounded-full -top-0 -right-0 dark:border-gray-900">0</div>
+          	</button>
           
-          <div class="z-50 hidden max-w-sm my-4 overflow-hidden text-base list-none bg-white divide-y divide-gray-100 rounded shadow-lg dark:divide-gray-600 dark:bg-gray-700" id="notification-dropdown">
-            <div class="block px-4 py-2 font-medium text-center text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-400">알림 목록</div>
-            <div id="notification-list" class="max-h-96 overflow-y-auto min-w-[300px]">
-              <p class="py-4 text-center text-sm text-gray-500">알림을 불러오는 중...</p>
-            </div>
-          </div>
+          	<div id="notification-dropdown" class="z-50 hidden w-72 absolute -right-10 mt-3 bg-white rounded-xl shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
+			    <div class="px-4 py-3 border-b dark:border-gray-700">
+			        <span class="text-sm font-bold text-gray-900 dark:text-white">알림 목록</span>
+			    </div>
+			    <div id="notification-list" class="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700 custom-scrollbar"> </div>
+			</div>
         </div>
 
         <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-2">
           <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
           <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
         </button>
-
         <div class="flex items-center ml-3">
           <div>
             <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" id="user-menu-button-2" aria-expanded="false" data-dropdown-toggle="dropdown-2">
@@ -48,17 +47,40 @@
             </button>
           </div>
           <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600" id="dropdown-2">
-            <div class="px-4 py-3" role="none">
-              <p class="text-sm text-gray-900 dark:text-white" role="none">
-                <sec:authentication property="principal.username" />
-              </p>
-            </div>
-            <ul class="py-1" role="none">
-              <li><a href="${cp}/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Dashboard</a></li>
-              <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Settings</a></li>
-              <li><a href="${cp}/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Sign out</a></li>
-            </ul>
-          </div>
+  
+		  <%-- 1. 로그인한 사용자에게만 이름 표시 --%>
+		  <sec:authorize access="isAuthenticated()">
+		    <div class="px-4 py-3" role="none">
+		      <p class="text-sm text-gray-900 dark:text-white" role="none">
+		        <sec:authentication property="principal.username" />님 반갑습니다.
+		      </p>
+		    </div>
+		  </sec:authorize>
+		
+		  <%-- 2. 로그인하지 않은 사용자(익명)에게 표시 --%>
+		  <sec:authorize access="isAnonymous()">
+		    <div class="px-4 py-3" role="none">
+		      <p class="text-sm text-gray-500 dark:text-gray-400" role="none">
+		        로그인이 필요합니다.
+		      </p>
+		    </div>
+		  </sec:authorize>
+		
+		  <ul class="py-1" role="none">
+		    <li><a href="${cp}/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Dashboard</a></li>
+		    <li><a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Settings</a></li>
+		    
+		    <%-- 3. 로그아웃 버튼도 로그인 상태일 때만 노출 --%>
+		    <sec:authorize access="isAuthenticated()">
+		      <li><a href="${cp}/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Sign out</a></li>
+		    </sec:authorize>
+		    
+		    <%-- 4. 로그인하지 않았다면 로그인 버튼 노출 --%>
+		    <sec:authorize access="isAnonymous()">
+		      <li><a href="${cp}/login" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600" role="menuitem">Sign in</a></li>
+		    </sec:authorize>
+		  </ul>
+		</div>
         </div>
 
       </div>
@@ -90,33 +112,34 @@
     function renderNotificationUI(notifications) {
         var listContainer = document.getElementById('notification-list');
         var badge = document.getElementById('notification-badge');
-
-        var unread = notifications.filter(function(n) { return n.isRead === 'N'; });
+        var unread = notifications.filter(n => n.isRead === 'N');
         
-        if (unread.length > 0) {
-            badge.innerText = unread.length;
-            badge.classList.remove('hidden');
-        } else {
-            badge.classList.add('hidden');
-        }
+        badge.innerText = unread.length;
+        unread.length > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
 
         if (notifications.length === 0) {
-            listContainer.innerHTML = '<p class="py-4 text-center text-sm text-gray-500">알림이 없습니다.</p>';
+            listContainer.innerHTML = '<p class="py-10 text-center text-xs text-gray-400">알림이 없습니다.</p>';
             return;
         }
 
         var html = '';
         notifications.forEach(function(item) {
             var isUnread = item.isRead === 'N';
-            var bgClass = isUnread ? 'bg-blue-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700';
+            var bgClass = isUnread ? 'bg-blue-50/40 dark:bg-blue-900/10' : 'bg-white dark:bg-gray-800';
             
-            html += '<a href="javascript:void(0);" onclick="handleNotiClick(' + item.notificationId + ', \'' + item.notificationType + '\', ' + item.targetId + ')" ';
-            html += 'class="flex px-4 py-3 border-b hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-600 ' + bgClass + '">';
-            html += '<div class="w-full pl-3">';
-            html += '<div class="text-gray-500 font-normal text-sm mb-1.5 dark:text-gray-400">';
-            html += '<span class="font-semibold text-gray-900 dark:text-white">' + item.notificationType + '</span>: ' + item.message;
-            html += '</div><div class="text-xs font-medium text-primary-700 dark:text-primary-400">' + item.regDtime + '</div>';
-            html += '</div></a>';
+            html += `
+                <a href="javascript:void(0);" onclick="handleNotiClick(\${item.notificationId}, '\${item.notificationType}', \${item.targetId})" 
+                   class="block px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition \${bgClass}">
+                    <div class="flex flex-col">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight">\${item.notificationType}</span>
+                            <span class="text-[9px] text-gray-400">\${item.regDtime}</span>
+                        </div>
+                        <p class="text-[13px] \${isUnread ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500'} leading-snug line-clamp-2">
+                            \${item.message}
+                        </p>
+                    </div>
+                </a>`;
         });
         listContainer.innerHTML = html;
     }
@@ -190,3 +213,16 @@
         }
     });
 </script>
+
+<style>
+    /* 종 아이콘 아래 적당한 위치에 정렬 */
+    #notification-dropdown {
+        top: 100% !important;
+        /* -right-10 대신 정교하게 조절하고 싶으면 여기서 px로 조절해 */
+        right: -20px !important; 
+        left: auto !important;
+        transform: none !important;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+</style>

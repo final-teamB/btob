@@ -36,7 +36,6 @@ public class DeliveryController {
         model.addAttribute("search", deliveryDTO);
         model.addAttribute("statusList", DeliveryStatus.values());
         
-        model.addAttribute("pageTitle", "배송 관리 목록");
         model.addAttribute("content", "adminsh/adminDelivery/deliveryList.jsp"); // 실제 파일 경로
         return "layout/layout";
     }
@@ -69,7 +68,8 @@ public class DeliveryController {
         model.addAttribute("deliveryDTO", deliveryService.getDeliveryDetail(deliveryId));
         model.addAttribute("statusList", DeliveryStatus.values());
         
-        return "adminsh/adminDelivery/deliveryDetail";
+        model.addAttribute("content", "adminsh/adminDelivery/deliveryDetail.jsp"); // 실제 파일 경로
+        return "layout/layout";
     }
 
     @PostMapping("/deleteDelivery")
