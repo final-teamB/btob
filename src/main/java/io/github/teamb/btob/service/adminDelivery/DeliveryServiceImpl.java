@@ -64,12 +64,13 @@ public class DeliveryServiceImpl implements DeliveryService {
         // 알림
         DeliveryStatus newStatus = deliveryDTO.getDeliveryStatus();
         if(newStatus  != null && (oldData == null || oldData.getDeliveryStatus() != newStatus)) {
-        	String orderId = oldData.getRegId();
+        	String receiverUserId =
+        		    deliveryMapper.selectReceiverUserId(deliveryDTO.getDeliveryId());
         	
-        	if(orderId != null && !orderId.isEmpty()) {
+        	if(receiverUserId != null && !receiverUserId.isEmpty()) {
         		String msg = String.format("주문하신 상품이 [%s] 상태로 변경되었습니다.", newStatus.getDescription());
         		
-        		notificationService.send(orderId, "DELIVERY", deliveryDTO.getDeliveryId(), msg, deliveryDTO.getUpdId());
+        		notificationService.send(receiverUserId, "DELIVERY", deliveryDTO.getDeliveryId(), msg, deliveryDTO.getUpdId());
         	}
         }
 	}

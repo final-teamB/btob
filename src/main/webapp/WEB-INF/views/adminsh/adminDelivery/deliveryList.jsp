@@ -57,6 +57,17 @@
 	    box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1) !important;
 	    background-image: none !important; /* 입력 중엔 아이콘 숨김 */
 	}
+	
+	/* 그리드 바디의 데이터 셀에 마우스 올리면 포인터로 변경 (상세 이동 가능 암시) */
+	.tui-grid-body-area .tui-grid-cell {
+	    cursor: pointer;
+	}
+	
+	/* 하지만 직접 수정하는 영역(Input, Select)과 관리 버튼 위에서는 기본 커서 유지 */
+	.tui-grid-body-area .tui-grid-cell .direct-edit-el,
+	.tui-grid-body-area .tui-grid-cell .custom-action-btn {
+	    cursor: auto;
+	}
 </style>
 
 <div class="mx-4 my-6 space-y-6">
@@ -93,9 +104,9 @@ class DirectSelectRenderer {
         el.className = 'direct-edit-el';
         el.addEventListener('mousedown', e => e.stopPropagation());
         const list = [
-            {v:'READY', t:'상품준비중'}, {v:'L_SHIPPING', t:'국내배송중'}, {v:'L_WH', t:'국내창고입고'},
-            {v:'ABROAD', t:'국제운송중'}, {v:'IN_CUSTOMS', t:'통관진행중'}, {v:'C_DONE', t:'통관완료'},
-            {v:'D_SHIPPING', t:'배송중'}, {v:'COMPLETE', t:'배송완료'}
+            {v:'READY', t:'상품준비중'}, {v:'L_SHIPPING', t:'국제운송중'}, {v:'L_WH', t:'보세창고입고'},
+            {v:'IN_CUSTOMS', t:'통관진행중'}, {v:'C_DONE', t:'통관완료'},
+            {v:'D_SHIPPING', t:'국내배송중'}, {v:'COMPLETE', t:'배송완료'}
         ];
         list.forEach(i => {
             const o = document.createElement('option');
@@ -135,9 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filterWrapper.querySelector('label').textContent = '배송상태';
         
         const enumList = [
-            {v:'READY', t:'상품준비중'}, {v:'L_SHIPPING', t:'국내배송중'}, {v:'L_WH', t:'국내창고입고'},
-            {v:'ABROAD', t:'국제운송중'}, {v:'IN_CUSTOMS', t:'통관진행중'}, {v:'C_DONE', t:'통관완료'},
-            {v:'D_SHIPPING', t:'배송중'}, {v:'COMPLETE', t:'배송완료'}
+        	{v:'READY', t:'상품준비중'}, {v:'L_SHIPPING', t:'국제운송중'}, {v:'L_WH', t:'보세창고입고'},
+            {v:'IN_CUSTOMS', t:'통관진행중'}, {v:'C_DONE', t:'통관완료'},
+            {v:'D_SHIPPING', t:'국내배송중'}, {v:'COMPLETE', t:'배송완료'}
         ];
         filterSelect.innerHTML = '<option value="">전체 상태</option>';
         enumList.forEach(s => {
@@ -150,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dg-search-input').parentElement.insertAdjacentHTML('beforebegin', dateHtml);
     }
 
-    // [B] 그리드 초기화 (중요: 정렬 옵션 및 페이징 포함)
+    // [B] 그리드 초기화 (정렬 옵션 및 페이징)
     deliveryGrid = new DataGrid({
         containerId: 'dg-container',
         searchId: 'dg-search-input',
@@ -187,26 +198,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         deliveryGrid.grid.resetData(filtered);
     });
+    
+ // [D] 행 클릭 시 상세 페이지 이동
+    deliveryGrid.grid.on('click', (ev) => {
+        // 클릭된 대상이 '관리(save)' 버튼이나 'input/select'인 경우는 제외하고 행 이동
+        if (ev.columnName !== 'manage' && ev.columnName !== 'deliveryStatus' && ev.columnName !== 'trackingNo') {
+            const rowData = deliveryGrid.grid.getRow(ev.rowKey);
+            if (rowData && rowData.deliveryId) {
+                location.href = '/admin/delivery/detail/' + rowData.deliveryId;
+            }
+        }
+    });
 });
 
-/* [E] 저장 처리 - 형님, 이 코드가 최종 정답입니다! */
+/* 저장 처리 */
 window.handleGridAction = function(rowData) {
     const rowKey = rowData.rowKey;
     
-    // 1. 그리드에서 현재 선택된 값들을 가져옵니다.
     const currentCode = deliveryGrid.grid.getValue(rowKey, 'deliveryStatus'); 
     const trackingNo = deliveryGrid.grid.getValue(rowKey, 'trackingNo');
     const deliveryId = deliveryGrid.grid.getValue(rowKey, 'deliveryId');
 
-    // [중요] 형님의 DeliveryStatus.java Enum 설정과 1:1 매칭 완료
     const statusMap = {
         'READY': '상품준비중',
-        'L_SHIPPING': '국내배송중',
-        'L_WH': '국내창고입고',
-        'ABROAD': '국제운송중',
+        'L_SHIPPING': '국제운송중',
+        'L_WH': '보세창고입고',
         'IN_CUSTOMS': '통관진행중',
         'C_DONE': '통관완료',
-        'D_SHIPPING': '배송중',
+        'D_SHIPPING': '국내배송중',
         'COMPLETE': '배송완료'
     };
 
@@ -237,11 +256,10 @@ window.handleGridAction = function(rowData) {
         if (res.success) {
             alert('저장되었습니다.');
 
-            // 2. statusMap에서 한글 이름을 가져옵니다. 없으면 코드라도 띄웁니다.
+            // statusMap에서 한글 이름, 없으면 코드
             const statusKor = statusMap[currentCode] || currentCode;
             
-            // 3. [핵심] 현재 상태(statusDisplay) 컬럼을 새로고침 없이 강제 업데이트
-            // 형님 JSP의 <strong>${item.statusName}</strong> 구조를 그대로 재현합니다.
+            // 현재 상태(statusDisplay) 컬럼을 새로고침 없이 강제 업데이트
             const newStatusHtml = '<strong>' + statusKor + '</strong><br><small>(' + currentCode + ')</small>';
             
             deliveryGrid.grid.setValue(rowKey, 'statusDisplay', newStatusHtml);
