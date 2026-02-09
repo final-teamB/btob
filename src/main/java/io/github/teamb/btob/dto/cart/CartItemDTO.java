@@ -1,5 +1,7 @@
 package io.github.teamb.btob.dto.cart;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,10 +16,14 @@ import lombok.Setter;
 public class CartItemDTO {
 	// CART
     private int cartId;
-    private int userId;
-    private String fuelName;
+    private String userId;
+    private String orderNo;
     private int totalQty;
     private int totalPrice;
+    private String cartStatus;
+    private LocalDateTime regDtime;
+    private String regId;
+    private String useYn;
     
     // OIL
     private int fuelId;
@@ -26,4 +32,17 @@ public class CartItemDTO {
     private String fuelCatCd;
     private String originCntryCd;
     private int baseUnitPrc;
+    
+    // ORDER
+    private String orderStatus;
+    
+    // USERS
+    private String userName;
+    private String phone;
+    
+    // COMPANIES
+    private String companyCd;
+    private String companyName;
+    private String bizNumber;
+    private String masterName;
 }

@@ -58,12 +58,33 @@ public class TradeDocController {
 	    model.addAttribute("doc", doc);
 	    
 	    switch(doc.getDocType()) {
-	    case "QUOTE": return "/ocument/previewQuote"; 				// 견적서
+	    case "ESTIMATE": return "/document/previewEst"; 				// 견적서
 	    case "CONTRACT": return "document/previewContract";		// 계약서
 	    case "TRANSACTION": return "document/previewTransaction";	// 거래내역서
 	    default: return "document/previewDefault";					// 예외 처리용 기본 화면
 	    }
 	    	 
 	}
+	
+	@GetMapping("/previewEst")
+	public String previewEst() {
+		return "document/previewEst";
+	}
+	
+	@GetMapping("/previewOrder")
+	public String previewOrder() {
+		return "document/previewOrder";
+	}
+	
+	@GetMapping("/previewContract")
+	public String previewContract() {
+		return "document/previewContract";
+	}
+	
+	@GetMapping("/previewTransaction")
+	public String previewTransaction() {
+		return "document/previewTransaction";
+	}
+	
 	
 }

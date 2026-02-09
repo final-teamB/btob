@@ -7,7 +7,7 @@ import io.github.teamb.btob.dto.cart.CartItemInsertDTO;
 
 public interface CartService {
 	// 장바구니 목록 조회
-    List<CartItemDTO> getCartItemList();
+    List<CartItemDTO> getCartItemList(String orderNo);
 
     // 장바구니 담기 / 수량 증가
     void addToCart(CartItemInsertDTO dto);
@@ -18,8 +18,8 @@ public interface CartService {
     // 삭제
     void deleteCartItem(int cartId);
 
-	void clearCart(String userId);
+	void clearCart(String userId, String orderNo);
 
-	String getCartStatusByUser(String userId);
+	List<CartItemDTO> selectCartItemListByIds(List<String> idList);
 
 }

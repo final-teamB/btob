@@ -12,23 +12,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.common.ExcelUploadResult;
+import io.github.teamb.btob.dto.order.OrderHistoryDTO;
 import io.github.teamb.btob.dto.user.UserDTO;
 import io.github.teamb.btob.dto.user.UserListDTO;
 import io.github.teamb.btob.dto.user.UserPendingActionDTO;
 import io.github.teamb.btob.dto.user.UserPendingDTO;
 import io.github.teamb.btob.dto.user.UserStatusDTO;
 import io.github.teamb.btob.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserManagementController {
 	private final UserService userService;
+	private final LoginUserProvider loginUserProvider;
 
-	public UserManagementController(UserService userService) {
-		this.userService = userService;
-	}
-	
     // 전체 사원 목록 페이지
     @GetMapping("/test")
     public String test(
@@ -112,6 +113,21 @@ public class UserManagementController {
         }
 
         return "redirect:/users/list";
+    }
+    
+    @GetMapping("/orderHistory")
+    public String orderHistory(OrderHistoryDTO dto, Model model) {
+    	String userId = loginUserProvider.getLoginUserId();
+    	String userType = loginUserProvider.getUserType(userId);
+    	dto.setRegId(userId);
+    	
+    	List<OrderHistoryDTO> orderList = userService.selectUserOrderList(dto, userType);
+    	
+      	model.addAttribute("orderList", orderList);
+    	model.addAttribute("pageTitle", "주문/배송 내역");  
+    	model.addAttribute("userType", userType);
+        model.addAttribute("content", "users/orderHistory.jsp"); 
+        return "layout/layout"; 
     }
 	
 }

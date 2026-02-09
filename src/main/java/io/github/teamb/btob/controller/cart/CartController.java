@@ -1,10 +1,10 @@
 package io.github.teamb.btob.controller.cart;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,22 +27,15 @@ public class CartController {
 	}
 	
 	@GetMapping("/cart")
-	public String cart(Model model
-	                  ) { // 로그인 유저 정보
+	public String cart(Model model,
+	                  @RequestParam(required = false) String orderNo) { // 로그인 유저 정보
 		 // @AuthenticationPrincipal CustomUserDetails user
 	    String userId = ""; 
 		/* user.getUserId(); // CustomUserDetails에 정의된 ID 가져오기 */
-	    String cartStatus = cartService.getCartStatusByUser(userId);
-
-	    // REJECTED,ORDERED이면 장바구니 비우기
-	    if("REJECTED".equals(cartStatus) || "ORDERED".equals(cartStatus)) {
-	        cartService.clearCart(userId);
-	    }
-
-	    List<CartItemDTO> cartList = cartService.getCartItemList();
+	  
+	    List<CartItemDTO> cartList = cartService.getCartItemList(orderNo);
 
 	    model.addAttribute("cartList", cartList);
-	    model.addAttribute("cartStatus", cartStatus);
 	    model.addAttribute("pageTitle", "거래 바구니");
 	    model.addAttribute("content", "/cart/cart.jsp");
 
@@ -88,16 +81,32 @@ public class CartController {
 	}
 		
 
-	@PostMapping("/order")
-	public String order() {
-				
-		return "redirect:/cart/cart";
+	@PostMapping("/estimateReq") 
+	public String previewPage(@RequestParam String cartIds, Model model) {
+	    List<String> idList = Arrays.asList(cartIds.split(","));
+	    List<CartItemDTO> itemList = cartService.selectCartItemListByIds(idList);
+	    
+	    if (!itemList.isEmpty()) {
+	        model.addAttribute("itemList", itemList);
+	        model.addAttribute("cartIds", cartIds);
+	        model.addAttribute("info", itemList.get(0));
+	    }
+	    
+	    return "document/previewEst";
 	}
-	
-	@PostMapping("/estimate")
-	public String estimate() {
-		
-		return "redirect:/cart/cart";
+
+	@PostMapping("/orderReq")
+	public String previewOrder(@RequestParam String cartIds, Model model) {
+	    List<String> idList = Arrays.asList(cartIds.split(","));
+	    List<CartItemDTO> itemList = cartService.selectCartItemListByIds(idList);
+	    
+	    if (!itemList.isEmpty()) {
+	        model.addAttribute("itemList", itemList);
+	        model.addAttribute("cartIds", cartIds);
+	        model.addAttribute("info", itemList.get(0));
+	    }
+	    
+	    return "document/previewOrder"; 
 	}
-	
+			
 }
