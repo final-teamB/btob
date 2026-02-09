@@ -43,5 +43,5 @@ public class EstDocDTO {
     private Integer targetProductAmt;// 희망단가 * 물품수량
     
     // 사용자 공통
-    private Integer regId;	// 생성한 사용자
+    private String regId;	// 생성한 사용자
 }

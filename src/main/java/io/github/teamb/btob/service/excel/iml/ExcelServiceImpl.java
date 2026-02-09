@@ -282,8 +282,21 @@ public class ExcelServiceImpl implements ExcelService {
                 resultList.add(mapper.convertValue(map, clazz));
             } catch (IllegalArgumentException e) {
                 // Jackson이 던지는 에러 메시지를 분석하여 사용자용 메시지로 변환
+                //String errorMsg = e.getMessage();
+                //throw new Exception(rowNum + "행의 데이터 형식이 올바르지 않습니다. (입력값 확인 필요)"); 
+            	// 임시주석함
+                
+                // 디버깅을 위해 콘솔에 상세 내용을 찍습니다.
+                System.err.println("=== 엑셀 변환 오류 발생 ===");
+                System.err.println("행 번호: " + rowNum);
+                System.err.println("원인 데이터(Map): " + map); // 여기서 어떤 컬럼이 문제인지 보입니다.
+                System.err.println("에러 메시지: " + e.getMessage());
+                System.err.println("===========================");
+
+                // 사용자에게는 좀 더 친절하게 어떤 필드가 문제인지 알려주면 좋습니다.
                 String errorMsg = e.getMessage();
-                throw new Exception(rowNum + "행의 데이터 형식이 올바르지 않습니다. (입력값 확인 필요)");
+                // 만약 에러 메시지에 특정 필드명이 포함되어 있다면 추출해서 보여줄 수도 있습니다.
+                throw new Exception(rowNum + "행의 데이터 형식이 올바르지 않습니다. 상세원인: " + errorMsg);
             }
         }
         

@@ -1,5 +1,6 @@
 package io.github.teamb.btob.controller.mgmtAdm.product;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,12 +12,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
+import io.github.teamb.btob.dto.excel.ExcelUploadResultDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductModifyRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.ProductUploadExcelDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
+import io.github.teamb.btob.service.mgmtAdm.product.ProductExcelService;
 import io.github.teamb.btob.service.mgmtAdm.product.ProductManagementService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,9 +32,19 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductMgmtAdmController {
 
     private final ProductManagementService productManagementService;
+    private final ProductExcelService productExcelService;
+
 
     /**
+     * 
      * [PAGE] 상품 관리 메인 (목록 + 등록/수정 모달 통합 페이지)
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param model
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @GetMapping("/list")
     public String productListPage(Model model) {
@@ -47,7 +62,14 @@ public class ProductMgmtAdmController {
        ========================================================= */
 
     /**
+     * 
      * [API] 셀렉박스 리스트만 별도로 필요할 경우 (비동기 호출용)
+     * @author GD
+     * @since 2026. 2. 9.
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @GetMapping("/api/select-boxes")
     @ResponseBody
@@ -57,8 +79,18 @@ public class ProductMgmtAdmController {
     }
     
     
+
     /**
+     * 
      * [API] 상품 목록 조회 (페이징 및 검색)
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param searchParams
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @GetMapping("/api/list")
     @ResponseBody
@@ -70,8 +102,18 @@ public class ProductMgmtAdmController {
         return ResponseEntity.ok(response);
     }
 
+
     /**
+     * 
      * [API] 상품 상세 정보 조회 (수정 모달 데이터 바인딩용)
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param fuelId
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @GetMapping("/api/{fuelId}")
     @ResponseBody
@@ -82,9 +124,19 @@ public class ProductMgmtAdmController {
         return ResponseEntity.ok(detail);
     }
 
+
     /**
+     * 
      * [API] 상품 등록 (모달에서 호출)
      * 이제 이미지는 임시 폴더에 있으므로 JSON 데이터만 받습니다.
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param requestDTO
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @PostMapping(value = "/api/register")
     @ResponseBody
@@ -100,8 +152,23 @@ public class ProductMgmtAdmController {
         return ResponseEntity.ok(result);
     }
 
+
     /**
+     * 
      * [API] 상품 수정 (모달에서 호출)
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param fuelId
+     * @param requestDTO
+     * @param mainRemainNames
+     * @param mainFiles
+     * @param subRemainNames
+     * @param subFiles
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @PostMapping(value = "/api/modify/{fuelId}", consumes = {"multipart/form-data"}) // PUT 대신 파일처리를 위해 POST 권장하는 경우도 있음
     @ResponseBody
@@ -123,7 +190,16 @@ public class ProductMgmtAdmController {
     }
 
     /**
+     * 
      * [API] 상품 삭제/미사용 처리
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param requestDTO
+     * @return
+     * @throws Exception
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
      */
     @PutMapping("/api/unuse")
     @ResponseBody
@@ -132,5 +208,68 @@ public class ProductMgmtAdmController {
         log.info("상품 미사용 처리 API 호출 - ID: {}", requestDTO.getFuelId());
         Integer result = productManagementService.unUseProduct(requestDTO);
         return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 
+     * 상품 관리 엑셀 일괄등록 양식 다운로드
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param response
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
+     */
+    @GetMapping("/download/template")
+    public void downloadTemplate(HttpServletResponse response) {
+        try {
+        	productExcelService.productTempDownload(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+
+    /**
+     * 
+     * 상품 엑셀 일괄 업로드 실행
+     * @author GD
+     * @since 2026. 2. 9.
+     * @param file 엑셀 파일 (MultipartFile)
+     * @return 성공/실패 건수 및 내역
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 9.  GD       최초 생성
+     */
+    @PostMapping("/api/upload/excel")
+    public ResponseEntity<Map<String, Object>> uploadExcel(@RequestParam("file") MultipartFile file) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 1. 파일 유효성 검사
+            if (file == null || file.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "업로드할 엑셀 파일을 선택해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 2. 엑셀 프로세스 실행 (서비스 호출)
+            ExcelUploadResultDTO<ProductUploadExcelDTO> result = productExcelService.processUpload(file);
+
+            // 3. 결과 정보 구성
+            response.put("success", true);
+            response.put("totalCount", result.getTotalCount());     // 전체 행
+            response.put("successCount", result.getSuccessCount()); // 저장 성공
+            response.put("failCount", result.getFailCount());       // 저장 실패
+            response.put("failList", result.getFailList());         // 실패 상세(행번호, 에러메시지)
+            
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "엑셀 처리 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 }

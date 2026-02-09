@@ -314,17 +314,14 @@
 	<select id="selectAutoObjId"
 		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO"
 		resultType="int">
-		
-			SELECT MAX(rownm) AS rownm
-				FROM (
+			
 				    SELECT 
-				        ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				        (COUNT(a.fuel_id) + 1) AS rownm
 				    FROM TB_OIL_MST a
 				    <include refid="oilMstJoins" />
 				    WHERE 1=1
 				      AND a.fuel_cat_cd = #{fuelCatCd}
 				      AND a.origin_cntry_cd = #{originCntryCd}
-				) t;
 				
 	</select>
 	

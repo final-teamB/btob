@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
@@ -67,6 +66,7 @@ public class FileServiceImpl implements FileService {
      * ----------  --------    ---------------------------
      * 2026. 1. 26.  GD       최초 생성
      */
+    @Transactional
     @Override
     public List<AtchFileDto> uploadFiles(List<MultipartFile> files, 
     										String systmeId, 
@@ -102,6 +102,7 @@ public class FileServiceImpl implements FileService {
      * ----------  --------    ---------------------------
      * 2026. 1. 26.  GD       최초 생성
      */
+    @Transactional
     @Override
     public AtchFileDto uploadFile(MultipartFile file, 
     								String systmeId, 
@@ -158,6 +159,7 @@ public class FileServiceImpl implements FileService {
      * ----------  --------    ---------------------------
      * 2026. 2. 3.  GD       최초 생성
      */
+    @Transactional
     @Override
 	public AtchFileDto getFileForDownload(Integer fileId, 
 								Integer systemId, 
@@ -202,6 +204,7 @@ public class FileServiceImpl implements FileService {
      * ----------  --------    ---------------------------
      * 2026. 2. 4.  GD       최초 생성
      */
+    @Transactional
     @Override
     public void updateUnusedFiles(String systemId, 
     						Integer refId, 
@@ -229,6 +232,7 @@ public class FileServiceImpl implements FileService {
      * ----------  --------    ---------------------------
      * 2026. 2. 4.  GD       최초 생성
      */
+    @Transactional
     @Override
     public void displayImage(String systemId, String fileName, HttpServletResponse response) throws Exception {
         
@@ -283,6 +287,7 @@ public class FileServiceImpl implements FileService {
      * ----------  --------    ---------------------------
      * 2026. 2. 4.  GD       최초 생성
      */
+    @Transactional
 	@Override
 	public Integer updateUnuseAtchFile(List<Integer> refIds, Integer userNo) throws Exception {
 		
@@ -309,6 +314,7 @@ public class FileServiceImpl implements FileService {
 	 * ----------  --------    ---------------------------
 	 * 2026. 2. 6.  GD       최초 생성
 	 */
+	@Transactional
 	@Override
 	public AtchFileDto uploadImgTempFile(MultipartFile file) throws Exception {
 	    

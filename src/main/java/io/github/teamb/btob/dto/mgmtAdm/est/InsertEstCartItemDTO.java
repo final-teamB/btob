@@ -25,5 +25,5 @@ public class InsertEstCartItemDTO {
     private Integer baseProductAmt;  // 기존단가 * 물품수량
     private Integer targetProductPrc;// 희망단가
     private Integer targetProductAmt;// 희망단가 * 물품수량
-    private Integer regId;			// 등록자
+    private String regId;			// 등록자
 }

@@ -35,8 +35,12 @@
                 <p class="text-sm text-gray-500 mt-1">등록된 유류 상품의 상세 정보를 조회하고 관리할 수 있습니다.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄양식 다운로드</button>
-                <button type="button" class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄 업로드</button>
+                <button type="button" 
+                onclick="ProductExcelHandler.downloadBatchTemplate()" 
+                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄양식 다운로드</button>
+                <button type="button" 
+                onclick="ProductExcelHandler.openUploadModal()"
+                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄 업로드</button>
                 <button type="button" id="dg-btn-download-custom" class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">엑셀 다운로드</button>
                 <button type="button" onclick="handleAddAction()" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95">+ 신규 등록</button>
             </div>
@@ -54,6 +58,7 @@
 <jsp:include page="productMgmtInsertAdm.jsp" />
 <jsp:include page="productMgmtDetailInfo.jsp" />
 <jsp:include page="productMgmtEditInfo.jsp" />
+
 
 <script>
     //const cp = '${cp}';
@@ -467,3 +472,4 @@
 
     function closeModal() { if(productModal) productModal.hide(); }
 </script>
+<jsp:include page="productMgmtExcel.jsp" />
