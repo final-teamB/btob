@@ -97,4 +97,14 @@
 	        #{memo}, NOW(), #{regId}, 'Y'
 	    )
 	</insert>
+	
+	<!-- 알림 수신자 user_id(email) 조회 -->
+	<select id="selectReceiverUserId" parameterType="int" resultType="string">
+	    SELECT u.user_id
+	    FROM TB_DELIVERY d
+	    JOIN TB_ORDER_MST o ON d.order_id = o.order_id
+	    JOIN TB_USERS u ON o.user_id = u.user_no
+	    WHERE d.delivery_id = #{deliveryId}
+	</select>
+	
 </mapper>

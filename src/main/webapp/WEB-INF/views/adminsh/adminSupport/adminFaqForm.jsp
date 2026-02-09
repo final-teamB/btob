@@ -1,27 +1,25 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- [팀 공통 가이드: Charcoal & White 미니멀 폼 레이아웃] --%>
 <div class="mx-4 my-6 space-y-6">
     
-    <%-- [1. 타이틀 영역] --%>
-    <div class="px-8 py-4 border-b border-gray-100 dark:border-gray-700">
+    <%-- [1. 타이틀 영역] 중앙 정렬 통일 --%>
+    <div class="px-5 py-4 text-center">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
             <c:choose>
-                <c:when test="${not empty faq.faqId}">FAQ 수정</c:when>
+                <c:when test="${not empty faq.faqId}">FAQ</c:when>
                 <c:otherwise>FAQ 신규 등록</c:otherwise>
             </c:choose>
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">사용자가 자주 묻는 질문에 대한 정확한 정보를 입력해 주세요.</p>
     </div>
 
-    <%-- [2. 입력 폼 영역] --%>
-    <section class="mx-5 p-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-		<form action="/support/admin/${faq.faqId > 0 ? 'modifyFaq' : 'registerFaq'}" method="post" class="space-y-6 max-w-4xl">
-            <%-- 수정 시 필수 ID 값 --%>
+    <%-- [2. 입력 폼 영역] max-w-4xl mx-auto 추가하여 중앙 배치 --%>
+    <section class="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+        <form action="/support/admin/${faq.faqId > 0 ? 'modifyFaq' : 'registerFaq'}" method="post" class="space-y-6">
             <c:if test="${faq.faqId > 0}">
-        <input type="hidden" name="faqId" value="${faq.faqId}">
-    </c:if>
+                <input type="hidden" name="faqId" value="${faq.faqId}">
+            </c:if>
 
             <%-- 카테고리 선택 --%>
             <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-4">

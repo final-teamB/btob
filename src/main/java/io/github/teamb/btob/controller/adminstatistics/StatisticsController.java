@@ -1,5 +1,6 @@
 package io.github.teamb.btob.controller.adminstatistics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.github.teamb.btob.dto.adminStatistics.OrderStatisticsDTO;
@@ -118,10 +120,23 @@ public class StatisticsController {
     public Map<String, Object> getDeliveryFullData() {
         Map<String, Object> result = new HashMap<>();
         result.put("kpi", statisticsService.getDeliveryKPI());
+        
         result.put("status", statisticsService.getDeliveryStatusCounts());
+        
         result.put("region", statisticsService.getDeliveryRegionStats());
-        result.put("trend", statisticsService.getDeliveryTrend());
+        
+        Object gridList = statisticsService.getRecentDeliveryList(null, null);
+        result.put("gridList", gridList != null ? gridList : new ArrayList<>());
+        
         return result;
+    }
+    
+    @GetMapping("/delivery-list-filtered")
+    @ResponseBody
+    public List<Map<String, Object>> getFilteredDeliveryList(
+            @RequestParam(required = false) String type, 
+            @RequestParam(required = false) String value) {
+        return statisticsService.getRecentDeliveryList(type, value);
     }
 
     @GetMapping("/user-full-data")
@@ -129,11 +144,28 @@ public class StatisticsController {
     public Map<String, Object> getUserFullData() {
         return statisticsService.getUserFullData();
     }
+    
+    @GetMapping("/user-list-filtered")
+    @ResponseBody
+    public List<Map<String, Object>> getFilteredUserList(
+            @RequestParam String type, 
+            @RequestParam(required = false) String value) {
+        return statisticsService.getFilteredUserList(type, value);
+    }
 
     @GetMapping("/product-full-data")
     @ResponseBody
     public Map<String, Object> getProductFullData() {
         return statisticsService.getProductFullData();
+    }
+    
+    @GetMapping("/product-list-filtered")
+    @ResponseBody
+    public List<Map<String, Object>> getProductList(
+            @RequestParam(value="type", required=false, defaultValue="all") String type,
+            @RequestParam(value="value", required=false, defaultValue="") String value) {
+        
+        return statisticsService.getFilteredProductList(type, value);
     }
 
     @RequestMapping(value = "/snapshot", method = {RequestMethod.GET, RequestMethod.PUT})
@@ -151,6 +183,7 @@ public class StatisticsController {
         return response;
     }
 
+    // 주문 통계 최신화버튼
     @PutMapping("/refresh")
     @ResponseBody
     public String refreshData() {

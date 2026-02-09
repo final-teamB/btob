@@ -23,7 +23,7 @@ public class StatisticsScheduler {
 	@Autowired
     private StatisticsMapper statisticsMapper;
 	
-	@Scheduled(cron = "0 0 * * * *")
+	@Scheduled(cron = "0 59 23 * * *")
 	public void runOrderStatsBatch() {
 		try {
 			JobParameters params = new JobParametersBuilder()
