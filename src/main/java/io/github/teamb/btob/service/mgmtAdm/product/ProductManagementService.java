@@ -30,9 +30,7 @@ public interface ProductManagementService {
 							,List<String> mainRemainNames  
 				            ,List<MultipartFile> mainFiles 
 				            ,List<String> subRemainNames
-				            ,List<MultipartFile> subFiles
-				            ,List<String> DetailRemainNames
-				            ,List<MultipartFile> detailFiles) throws Exception;
+				            ,List<MultipartFile> subFiles) throws Exception;
 	
 	// 상품 삭제
 	Integer unUseProduct(ProductUnUseRequestDTO requestDTO) throws Exception;

@@ -99,6 +99,7 @@
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 		       <include refid="searchCondi" />
 		    </if>
+		    AND f.use_yn = 'Y'
 		    ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
 			<if test="startRow != null and limit != null">
             	LIMIT #{startRow}, #{limit}
@@ -120,6 +121,7 @@
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 			    <include refid="searchCondi" />
 			</if>
+			AND f.use_yn = 'Y'
 	
 	</select>
 	
@@ -167,8 +169,8 @@
 					ON a.fuel_id = c.ref_id
 					AND c.system_id IN ('PRODUCT_M', 'PRODUCT_S')
 			WHERE 1=1
-			AND a.use_yn = 'Y'
 			AND a.fuel_id = #{fuelId}
+			AND c.use_yn = 'Y'
 	
 	</select>
 	
@@ -241,7 +243,6 @@
 			UPDATE 
 		        TB_OIL_MST
 		    SET
-		        fuel_cd          = #{fuelCd},
 		        fuel_nm          = #{fuelNm},
 		        fuel_cat_cd      = #{fuelCatCd},
 		        origin_cntry_cd  = #{originCntryCd},
@@ -269,7 +270,8 @@
 		        sulfur_p_cnt    = #{sulfurPCnt},     
 		        flash_pnt       = #{flashPnt},       
 		        viscosity       = #{viscosity},      
-		        density_15c     = #{density15c},     
+		        density_15c     = #{density15c},
+		        fuel_memo		= #{fuelMemo},     
 		        use_yn          = #{useYn},
 		        upd_dtime       = CURRENT_TIMESTAMP,
 		        upd_id          = #{updId}

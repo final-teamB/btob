@@ -53,9 +53,11 @@
 
 <jsp:include page="productMgmtInsertAdm.jsp" />
 <jsp:include page="productMgmtDetailInfo.jsp" />
+<jsp:include page="productMgmtEditInfo.jsp" />
 
 <script>
-    const cp = '${cp}';
+    //const cp = '${cp}';
+    const cp = window.location.origin + ( '${pageContext.request.contextPath}' === '/' ? '' : '${pageContext.request.contextPath}' );
     let myGrid, productModal, quill;
 
     // 이미지 임시 파일명을 보관할 변수
@@ -402,11 +404,6 @@
                 document.getElementById('btnDeleteProduct').style.display = (b.useYn === 'Y') ? 'inline-block' : 'none';
                 if(productModal) productModal.show();
             });
-    }
-    
- 	// 상세조회 JSP 내 버튼이 이 이름을 찾고 있다면 추가해 주세요.
-    function openEditModalByFuelId(fuelId) {
-        openEditModal(fuelId);
     }
 
     window.handleAddAction = function() {

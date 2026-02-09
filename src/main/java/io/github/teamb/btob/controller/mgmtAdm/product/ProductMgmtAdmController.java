@@ -111,17 +111,14 @@ public class ProductMgmtAdmController {
             @RequestParam(value = "mainRemainNames", required = false) List<String> mainRemainNames,
             @RequestPart(value = "mainFiles", required = false) List<MultipartFile> mainFiles,
             @RequestParam(value = "subRemainNames", required = false) List<String> subRemainNames,
-            @RequestPart(value = "subFiles", required = false) List<MultipartFile> subFiles,
-            @RequestParam(value = "detailRemainNames", required = false) List<String> detailRemainNames,
-            @RequestPart(value = "detailFiles", required = false) List<MultipartFile> detailFiles) throws Exception {
+            @RequestPart(value = "subFiles", required = false) List<MultipartFile> subFiles) throws Exception {
 
         log.info("상품 수정 API 호출 - ID: {}", fuelId);
         requestDTO.getProductBase().setFuelId(fuelId);
         
         Integer result = productManagementService.modifyProduct(
                 requestDTO, mainRemainNames, mainFiles, 
-                subRemainNames, subFiles, 
-                detailRemainNames, detailFiles);
+                subRemainNames, subFiles); 
         return ResponseEntity.ok(result);
     }
 

@@ -124,7 +124,7 @@
             </div>
 
             <div class="flex items-center p-6 border-t gap-2">
-                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition">이 정보로 수정하기</button>
+                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition">정보 수정</button>
                 <button type="button" onclick="closeDetailModal()" class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border rounded-lg ml-auto">닫기</button>
             </div>
         </div>
@@ -148,7 +148,9 @@
     if(!fuelId) return;
 
     // 1. URL 구성 확인 (Context Path 포함)
-    const url = cp + '/admin/products/api/' + fuelId;
+    const url = '${pageContext.request.contextPath}/admin/products/api/' + fuelId;
+    
+    console.log("호출 시도 URL:", url);
 
     fetch(url)
         .then(res => {
@@ -234,6 +236,7 @@
         })
         .catch(err => {
             console.error("Fetch error:", err);
+            console.dir(err); // 에러의 객체 구조까지 출력
             alert("상세 데이터를 가져오는 데 실패했습니다.");
         });
 }

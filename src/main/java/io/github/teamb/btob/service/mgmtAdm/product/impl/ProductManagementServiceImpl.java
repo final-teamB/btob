@@ -237,9 +237,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 									,List<String> mainRemainNames  
 						            ,List<MultipartFile> mainFiles 
 						            ,List<String> subRemainNames
-						            ,List<MultipartFile> subFiles
-						            ,List<String> DetailRemainNames
-						            ,List<MultipartFile> detailFiles) throws Exception {
+						            ,List<MultipartFile> subFiles) throws Exception {
 		
 		if ( !(commonService.nullEmptyChkValidate(requestDTO)) ) {
 			throw new Exception("유효 하지 않은 파라미터 입니다.");
@@ -255,25 +253,40 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 				// 메인 이미지 처리 (PRODUCT_M)
 			    // 기존 파일 정리: 남겨둔 파일 리스트(mainRemainNames)에 없는 건 다 N 처리
 			    fileService.updateUnusedFiles("PRODUCT_M", fuelId, mainRemainNames);
-			    // 신규 파일 저장
-			    if (mainFiles != null && !mainFiles.isEmpty()) {
-			        fileService.uploadFiles(mainFiles, "PRODUCT_M", fuelId);
-			    }
-	
-			    // 서브 이미지 처리 (PRODUCT_S)
-			    fileService.updateUnusedFiles("PRODUCT_S", fuelId, subRemainNames);
-			    // 신규 파일 저장
-			    if (subFiles != null && !subFiles.isEmpty()) {
-			        fileService.uploadFiles(subFiles, "PRODUCT_S", fuelId);
-			    }
+			    System.out.println("여기 타고 있냐? 11111111111111" + mainRemainNames);
+			    // 새로 추가된(또는 유지된) 파일명을 정식 등록 로직으로 처리
+		        if (mainRemainNames != null) {
+		            for (String fileName : mainRemainNames) {
+		                if (fileName == null || fileName.isEmpty()) continue;
+		                
+		                AtchFileDto fileDto = new AtchFileDto();
+		                fileDto.setOrgFileNm(fileName); // 임시 파일명
+		                fileDto.setSystemId("PRODUCT_M");
+		                fileDto.setRefId(fuelId);
+		                
+		                System.out.println("여기 타고 있냐? 2222222222222222" + fileName);
+		                // registerInternalImgFile 내부에서 임시폴더에 파일이 있을 경우에만 정식 이동/DB등록 수행함
+		                fileService.registerInternalImgFile(fileDto);
+		            }
+		        }
+
+		        // [서브 이미지 처리]
+		        fileService.updateUnusedFiles("PRODUCT_S", fuelId, subRemainNames);
+		        System.out.println("여기 타고 있냐? 3333333333333333" + subRemainNames);
+		        if (subRemainNames != null) {
+		            for (String fileName : subRemainNames) {
+		                if (fileName == null || fileName.isEmpty()) continue;
+		                
+		                AtchFileDto fileDto = new AtchFileDto();
+		                fileDto.setOrgFileNm(fileName);
+		                fileDto.setSystemId("PRODUCT_S");
+		                fileDto.setRefId(fuelId);
+		                
+		                System.out.println("여기 타고 있냐? 444444444444444444" + fileName);
+		                fileService.registerInternalImgFile(fileDto);
+		            }
+		        }
 			    
-			    // 상세 이미지 처리 (PRODUCT_D)
-			    fileService.updateUnusedFiles("PRODUCT_D", fuelId, DetailRemainNames);
-			    // 신규 파일 저장
-			    if (detailFiles != null && !detailFiles.isEmpty()) {
-			        fileService.uploadFiles(detailFiles, "PRODUCT_D", fuelId);
-			    }
-		       
 		       // 상품 상세 정보 수정
 		       Integer detailResult = productMgmtAdmMapper.updateProductDetailInfoAdm(requestDTO.getProductDetail());
 		       
