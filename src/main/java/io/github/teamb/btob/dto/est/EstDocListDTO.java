@@ -15,7 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
-public class EstDocDTO {
+public class EstDocListDTO {
 
     private Integer estDocId;            // 고유식별자
     private String estNo;                // 견적번호
