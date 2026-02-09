@@ -34,3 +34,4 @@ public class EtpStatusUpdateDTO {
 	private String updateStatus;
 	private Integer refId;				// 프론트단에서 가져온 고유식별번호
 }
+

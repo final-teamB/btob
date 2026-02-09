@@ -53,8 +53,8 @@ public class DocumentPdfServiceImpl implements DocumentPdfService{
 		
 	private String resolveJspPath(String docType) {
 	    switch (docType) {
-	        case "QUOTE":
-	            return "/WEB-INF/views/document/previewQuote.jsp";
+	        case "ESTIMATE":
+	            return "/WEB-INF/views/document/previewEst.jsp";
 	        case "CONTRACT":
 	            return "/WEB-INF/views/document/previewContract.jsp";
 	        case "TRANSACTION":

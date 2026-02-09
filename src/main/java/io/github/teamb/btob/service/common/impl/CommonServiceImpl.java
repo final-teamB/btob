@@ -1,19 +1,25 @@
 package io.github.teamb.btob.service.common.impl;
 
 import java.util.Collection;
-import java.util.Collections;
+
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
+import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.mapper.common.CommonMapper;
 import io.github.teamb.btob.service.common.CommonService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Collections;
+
+import java.util.stream.Collectors;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @Service
 @RequiredArgsConstructor

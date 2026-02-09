@@ -22,3 +22,4 @@ public class EtpStatusSelectDTO {
 	private Integer refId;			// 고유식별번호
 	private Integer apprUserNo;		// 요청자
 }
+

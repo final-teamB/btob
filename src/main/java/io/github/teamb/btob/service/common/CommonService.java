@@ -1,9 +1,12 @@
 package io.github.teamb.btob.service.common;
 
 import java.util.List;
-import java.util.Map;
 
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
+import io.github.teamb.btob.dto.common.SelectBoxVO;
+
+import java.util.Map;
+
 
 public interface CommonService {
 

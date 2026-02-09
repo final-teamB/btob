@@ -25,3 +25,4 @@ public class EtpStatusSeqDTO {
 	// 현재상태코드
 	private String currentEtpStatus;
 }
+

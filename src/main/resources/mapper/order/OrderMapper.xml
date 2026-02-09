@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.order.OrderMapper">
+	
+
+	<!-- est_no 생성 -->
+	<select id="selectFormattedEstNo" resultType="string">
+	    SELECT 
+	        CONCAT(
+	            #{systemId}, '-', 
+	            (SELECT company_code FROM TB_USER WHERE user_id = #{userId}), '-', 
+	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',
+	            LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(est_no, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0')
+	        )
+	    FROM TB_EST_DOC
+	    WHERE est_date = CURDATE()  AND est_no LIKE CONCAT(
+	          #{systemId}, '-', 
+	          (SELECT company_code FROM TB_USER WHERE user_id = #{userId}), '-%'
+	      )
+	</select>
+	
+	<!-- order_no 생성 -->
+	<select id="selectFormattedOrderNo" resultType="string">
+	    SELECT 
+	        CONCAT(
+	            #{prefix}, '-', 
+	            (SELECT company_code FROM TB_USER WHERE user_id = #{userId}), '-', 
+	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',
+	            LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(order_no, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0')
+	        )
+	    FROM TB_ORDER_MST
+	    WHERE order_date = CURDATE()
+	      AND order_no LIKE CONCAT(
+	            #{prefix}, '-', 
+	            (SELECT company_code FROM TB_USER WHERE user_id = #{userId}), '-%'
+	        )
+	</select>
+	
+	<select id="getOrderIdByOrderNo" parameterType="string" resultType="int">
+	    SELECT order_id 
+	    FROM TB_ORDER_MST 
+	    WHERE order_no = #{orderNo}
+	</select>
+	
+	<!-- ORDER_MST 에 주문 생성 -->
+	<insert id="upsertOrderMaster" parameterType="io.github.teamb.btob.dto.order.OrderDTO" 
+      	 useGeneratedKeys="true" keyProperty="orderId" keyColumn="order_id">
+	    INSERT INTO TB_ORDER_MST (
+	        order_no, 
+	        user_no, 
+	        order_status, 
+	        reg_dtime,
+	        reg_id,
+	        use_yn
+	    ) VALUES (
+	        #{orderNo}, 
+	        #{userNo}, 
+	        #{orderStatus}, 
+	        NOW(),
+	        #{regId},
+	        'Y'
+	    )
+	    ON DUPLICATE KEY UPDATE
+	        order_status = #{orderStatus},
+	        upd_dtime = NOW(),
+	        upd_id = #{regId}
+	</insert>
+		
+	<insert id="insertEstDoc" parameterType="io.github.teamb.btob.dto.est.EstDocDTO" 
+      	 useGeneratedKeys="true" keyProperty="estDocId" keyColumn="est_doc_id">
+		INSERT INTO TB_EST_DOC (
+	        est_no,
+	        company_name,
+	        company_phone,
+	        request_user_id,
+	        ctrt_nm,
+	        base_total_amount,
+	        target_total_amount,
+	        estdt_memo,
+	        reg_id,
+	        reg_dtime
+	    ) VALUES (
+	        #{estNo},
+	        #{companyName},
+	        #{companyPhone},
+	        #{requestUserId},
+	        #{ctrtNm},
+	        #{baseTotalAmount},
+	        #{targetTotalAmount},
+	        #{estdtMemo},
+	        #{regId},
+	        NOW()
+	    )
+	</insert>
+	
+</mapper>

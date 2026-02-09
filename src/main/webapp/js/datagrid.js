@@ -9,16 +9,31 @@
  */
 
 const GRID_STATUS_THEMES = {
+	'deliveryStatus' : { bgColor: 'bg-gray-100', textColor: 'text-gray-600' },
+	
+	'orderStatusNm': {
+	    '1차결제완료': { bgColor: 'bg-blue-200', textColor: 'text-blue-800', label: '1차 결제완료' },
+		'2차결제요청': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: '2차 결제요청' },
+	    '2차결제완료': { bgColor: 'bg-green-200', textColor: 'text-green-800', label: '2차 결제완료'}
+	},
+	
+	'docType': {
+	        'ESTIMATE': { bgColor: 'bg-blue-200', textColor: 'text-blue-700', label: '견적서' },
+	        'PURCHASE ORDER': { bgColor: 'bg-emerald-200', textColor: 'text-emerald-700', label: '발주서' }
+    },
+	
     'accStatus': {
         'ACTIVE': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'Active' },
         'STOP': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'Stop' },
         'SLEEP': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'Sleep' }
     },
-   'appStatus': {
-           'APPROVED': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'APPROVED' },
-           'REJECTED': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'REJECTED' },
-           'PENDING': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'PENDING' }
-       }
+
+	'appStatus': {
+	        'APPROVED': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'APPROVED' },
+	        'REJECTED': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'REJECTED' },
+	        'PENDING': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: 'PENDING' }
+    }
+
 };
 
 // [1] 상태값 렌더러 - render 메서드를 추가하여 데이터 변경 시 강제 갱신
@@ -46,7 +61,7 @@ class CustomStatusRenderer {
         this.el.innerHTML = `
             <span class="relative inline-block px-3 py-1 font-bold leading-tight ${config.textColor} text-xs">
                 <span class="absolute inset-0 ${config.bgColor} rounded-full opacity-50"></span>
-                <span class="relative">${config.label}</span>
+                <span class="relative">${config.label || realValue}</span>
             </span>
         `;
     }
@@ -63,6 +78,7 @@ class CustomActionRenderer {
     
     render(props) {
         const { grid, rowKey, columnInfo } = props;
+		const rowData = grid.getRow(rowKey);
         this.el.innerHTML = ''; // 기존 버튼 초기화
 
         const options = columnInfo.renderer.options || {};
@@ -71,6 +87,14 @@ class CustomActionRenderer {
         const buttonConfigs = options.buttons || [{ text: options.btnText || '수정', action: 'edit' }];
 
         buttonConfigs.forEach(btnCfg => {
+			if (btnCfg.visibleIf) {
+			            const { field, value } = btnCfg.visibleIf;
+			            // 해당 필드의 값이 설정한 값과 다르면 버튼을 생성하지 않음
+			            if (rowData[field] !== value) {
+			                return; 
+			            }
+			        }
+			
             const btn = document.createElement('button');
          const textColor = btnCfg.color || 'text-gray-600 hover:text-gray-900';
                      
