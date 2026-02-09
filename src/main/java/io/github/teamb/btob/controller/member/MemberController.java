@@ -3,7 +3,7 @@ package io.github.teamb.btob.controller.member;
 import io.github.teamb.btob.dto.member.MemberDto;
 import io.github.teamb.btob.service.member.MemberService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // 로그 확인용
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -38,7 +38,12 @@ public class MemberController {
 
     @PostMapping("/register")
     public String register(MemberDto memberDto) {
-        // 주소와 권한 정보가 잘 들어오는지 로그로 확인 가능합니다.
+        // [수정] MemberDto의 userType이 String이므로 문자열로 비교 및 설정합니다.
+        // "MASTER"가 아닌 모든 권한 요청(ADMIN 포함)은 "USER"로 강제 변환합니다.
+        if (!"MASTER".equals(memberDto.getUserType())) {
+            memberDto.setUserType("USER");
+        }
+        
         log.info("회원가입 요청: ID={}, 권한={}, 주소={}", 
                  memberDto.getUserId(), memberDto.getUserType(), memberDto.getAddress());
         
@@ -49,6 +54,6 @@ public class MemberController {
     @PostMapping("/mypage/update")
     public String updateInfo(MemberDto memberDto) {
         memberService.updateInfo(memberDto);
-        return "redirect:/mypage?success=true";
+        return "redirect:/mypage";
     }
 }
