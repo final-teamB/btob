@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import io.github.teamb.btob.dto.est.EstDocDTO;
+import io.github.teamb.btob.dto.est.EstDocListDTO;
 import io.github.teamb.btob.dto.order.OrderDTO;
 
 
@@ -19,6 +19,6 @@ public interface OrderMapper {
 
 	String selectFormattedEstNo(String systemId, String loginUserId);
 
-	void insertEstDoc(EstDocDTO docDto);
+	void insertEstDoc(EstDocListDTO docDto);
 
 }
