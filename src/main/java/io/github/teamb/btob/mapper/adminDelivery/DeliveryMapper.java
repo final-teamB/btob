@@ -28,4 +28,7 @@ public interface DeliveryMapper {
 	
 	// 배송 이력 등록
 	int insertDeliveryHistory(DeliveryHistoryDTO deliveryHistoryDTO);
+	
+	// 알림 수신자 user_id(email) 조회
+	String selectReceiverUserId(int deliveryId); 
 }

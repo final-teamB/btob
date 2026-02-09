@@ -1,6 +1,7 @@
 package io.github.teamb.btob.controller.adminSupport;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,7 +29,16 @@ public class ChatController {
 	}
 	
 	@GetMapping("/chatbot") 
-	public String chatbotPage() {
-	    return "test/chat/chatbot"; 
+	public String chatbotPage(Model model) {
+	    
+	    model.addAttribute("content", "adminsh/adminSupport/chatbot.jsp"); 
+        return "layout/layout";
+	}
+	
+	// 새창 띄우기
+	@GetMapping("/chatbot-inner") 
+	public String chatbotInner() {
+
+		return "adminsh/adminSupport/chatbotInner"; 
 	}
 }
