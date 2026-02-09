@@ -366,7 +366,7 @@ public class FileServiceImpl implements FileService {
 	        log.warn("파일이 임시 경로에 없습니다: {}", fileDto.getOrgFileNm());
 	        return null;
 	    }
-
+	    
 	    // 3. 파일명 변환 및 확장자 추출 (기존 uploadFile과 동일한 UUID 방식)
 	    String orgFileNm = fileDto.getOrgFileNm();
 	    String ext = orgFileNm.substring(orgFileNm.lastIndexOf(".") + 1);

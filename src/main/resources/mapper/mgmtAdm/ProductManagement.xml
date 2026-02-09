@@ -155,6 +155,7 @@
 		        ,b.flash_pnt
 		        ,b.viscosity
 		        ,b.density_15c
+		        ,b.fuel_memo
 		        ,c.file_id 
 		        ,c.system_id 
 		        ,c.str_file_nm 
@@ -164,7 +165,7 @@
 					ON a.fuel_id = b.fuel_id
 				LEFT OUTER JOIN TB_ATCH_FILE_MST c
 					ON a.fuel_id = c.ref_id
-					AND c.system_id IN ('PRODUCT_M', 'PRODUCT_D')
+					AND c.system_id IN ('PRODUCT_M', 'PRODUCT_S')
 			WHERE 1=1
 			AND a.use_yn = 'Y'
 			AND a.fuel_id = #{fuelId}
@@ -306,5 +307,23 @@
 		    	fuel_id = #{fuelId}
 		    	
 	</update>
+	
+	<!-- 유류코드 자동생성 식별번호 -->
+	<select id="selectAutoObjId"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO"
+		resultType="int">
+		
+			SELECT MAX(rownm) AS rownm
+				FROM (
+				    SELECT 
+				        ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				    FROM TB_OIL_MST a
+				    <include refid="oilMstJoins" />
+				    WHERE 1=1
+				      AND a.fuel_cat_cd = #{fuelCatCd}
+				      AND a.origin_cntry_cd = #{originCntryCd}
+				) t;
+				
+	</select>
 	
 </mapper>

@@ -1,5 +1,6 @@
 package io.github.teamb.btob.service.mgmtAdm.product.impl;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
+import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductModifyRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
@@ -147,6 +149,19 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	public Integer registerProduct(ProductRegisterRequestDTO requestDTO) throws Exception {
 	    
 	    // 1. 상품 기본 정보 등록
+		// 유류코드 자동생성 fuel_cd
+		String fuelCatCd = requestDTO.getProductBase().getFuelCatCd();
+		String fuelCntryCd = requestDTO.getProductBase().getOriginCntryCd();
+		InsertProductDTO getObjId = InsertProductDTO.builder()
+									.fuelCatCd(fuelCatCd)
+									.originCntryCd(fuelCntryCd)
+									.build();
+		
+		Integer objId = productMgmtAdmMapper.selectAutoObjId(getObjId);
+		int year = LocalDate.now().getYear(); 
+		String fuelCd = year + "-" + fuelCatCd + "-" + fuelCntryCd + "-" + objId;
+		requestDTO.getProductBase().setFuelCd(fuelCd);
+
 	    // Insert 후 Mybatis의 selectKey 등을 통해 requestDTO.getProductBase().getFuelId()에 값이 채워져야 합니다.
 	    Integer result = productMgmtAdmMapper.insertProductAdm(requestDTO.getProductBase());
 	    

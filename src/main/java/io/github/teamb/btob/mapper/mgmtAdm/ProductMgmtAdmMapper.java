@@ -43,4 +43,7 @@ public interface ProductMgmtAdmMapper {
 	
 	// 상품 상세정보 삭제 ( 비활성화 )
 	Integer deleteProductDetailInfoByIdAdm(ProductUnUseRequestDTO productUnUseRequestDTO);
+	
+	// 상품 유류코드 자동생성 식별번호 확인
+	Integer selectAutoObjId(InsertProductDTO insertProductDTO);
 }
