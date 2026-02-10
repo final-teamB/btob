@@ -46,8 +46,7 @@
 	<jsp:include page="/WEB-INF/views/layout/header.jsp" />
 	
 	<div class="flex pt-16">
-		<jsp:include page="/WEB-INF/views/layout/adminSidebar.jsp" />
-		<jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
+		<jsp:include page="/WEB-INF/views/layout/productViewSidebar.jsp" />
 		
 		<div class="flex flex-col flex-1 ml-64 min-h-screen">
 

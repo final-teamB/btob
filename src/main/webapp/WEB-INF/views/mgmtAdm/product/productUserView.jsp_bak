@@ -1,0 +1,233 @@
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%-- 1. 스타일 정의 --%>
+<style>
+    .product-card {
+        transition: transform 0.2s, shadow 0.2s;
+        cursor: pointer;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .img-wrapper {
+        position: relative;
+        padding-top: 75%; /* 4:3 비율 */
+        overflow: hidden;
+        border-radius: 0.75rem 0.75rem 0 0;
+        background-color: #f3f4f6;
+    }
+    .img-wrapper img {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+    }
+    .status-badge {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    /* 페이징 버튼 스타일 */
+    .pagination-btn {
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e5e7eb;
+        background: white;
+        transition: all 0.2s;
+    }
+    .pagination-btn.active {
+        background-color: #2563eb;
+        color: white;
+        border-color: #2563eb;
+    }
+    .pagination-btn:disabled {
+        background-color: #f9fafb;
+        color: #d1d5db;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="max-w-screen-2xl mx-auto px-4 py-8">
+    <%-- 상단 헤더 및 검색 --%>
+    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
+            <p class="text-gray-500 mt-2">다양한 유류 상품을 확인해 보세요.</p>
+        </div>
+        
+        <div class="flex gap-2 w-full md:w-auto">
+            <input type="text" id="user-search-input" 
+                   class="flex-1 md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                   placeholder="상품명 또는 국가 검색...">
+            <button onclick="loadUserProducts(0)" 
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                검색
+            </button>
+        </div>
+    </div>
+
+    <%-- 상품 리스트 영역 (4x5 그리드 지향) --%>
+    <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+        </div>
+
+    <%-- 데이터 없음 표시 --%>
+    <div id="no-data" class="hidden py-20 text-center">
+        <p class="text-gray-400 text-lg">조회된 상품이 없습니다.</p>
+    </div>
+
+    <%-- 페이징 영역 --%>
+    <div class="flex justify-center items-center mt-12 gap-2" id="user-pagination">
+        </div>
+</div>
+
+<script>
+    var currentPage = 0;
+    var pageSize = 12; 
+    var contextPath = '${pageContext.request.contextPath}'; // 컨텍스트 루트 경로 전역 변수화
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUserProducts(0);
+        
+        // 엔터키 검색 이벤트
+        document.getElementById('user-search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') loadUserProducts(0);
+        });
+    });
+
+    /**
+     * 상품 데이터 로드 (필터 포함)
+     */
+    function loadUserProducts(page) {
+        currentPage = page;
+        var searchVal = document.getElementById('user-search-input').value;
+        var startRow = page * pageSize;
+        
+        // 1. URLSearchParams 객체 생성 (파라미터 구성을 편리하게 함)
+        var params = new URLSearchParams();
+        params.append('startRow', startRow);
+        params.append('limit', pageSize);
+        params.append('searchCondition', searchVal);
+
+        // 2. 사이드바 체크박스 필터 값 수집
+        // sidebar.jsp에서 정의한 name 속성들 (fuelCatList, countryList, sttsList)
+        var filterNames = ['fuelCatList', 'countryList', 'sttsList'];
+        
+        filterNames.forEach(function(name) {
+            document.querySelectorAll('input[name="' + name + '"]:checked').forEach(function(checkbox) {
+                // MyBatis Map에서 List로 받기 위해 동일한 키로 여러 번 append
+                params.append(name, checkbox.value);
+            });
+        });
+
+        // 3. API 호출 URL 생성
+        var url = contextPath + '/usr/productView/api/list?' + params.toString();
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                renderProductGrid(data.list || []);
+                renderPagination(data.totalCnt || 0);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                // alert('데이터 로드 중 오류가 발생했습니다.');
+            });
+    }
+
+    /**
+     * 필터 초기화 함수 (사이드바 resetFilters 호출용)
+     */
+    function resetFilters() {
+        // 모든 체크박스 해제
+        document.querySelectorAll('aside input[type="checkbox"]').forEach(function(cb) {
+            cb.checked = false;
+        });
+        // 검색어 초기화
+        document.getElementById('user-search-input').value = '';
+        // 1페이지부터 다시 로드
+        loadUserProducts(0);
+    }
+
+    /**
+     * 그리드 렌더링 (기존 로직 유지)
+     */
+    function renderProductGrid(list) {
+        var grid = document.getElementById('product-grid');
+        var noData = document.getElementById('no-data');
+        grid.innerHTML = '';
+
+        if (list.length === 0) {
+            noData.classList.remove('hidden');
+            return;
+        }
+        noData.classList.add('hidden');
+
+        list.forEach(item => {
+            var imgPath = item.imgUrl || contextPath + '/images/no-image.png';
+            var regDate = item.regDtime ? item.regDtime.substring(0, 10) : '';
+
+            var html = `
+                <div class="product-card bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
+                     onclick="goProductDetail(\${item.fuelId})">
+                    <div class="img-wrapper">
+                        <img src="\${imgPath}" alt="\${item.fuelNm}" onerror="this.src='\${contextPath}/images/no-image.png'">
+                        <span class="status-badge \${item.itemSttsNm === '품절' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                            \${item.itemSttsNm}
+                        </span>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-1">
+                            <p class="text-xs text-blue-600 font-bold uppercase">\${item.fuelCatNm}</p>
+                            <span class="text-[10px] text-gray-400 font-medium">\${regDate}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate mb-2">\${item.fuelNm}</h3>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm text-gray-500 font-medium">\${item.originCntryNm}</span>
+                            <span class="text-xl font-black text-gray-900 dark:text-white">
+                                ₩\${Number(item.baseUnitPrc || 0).toLocaleString()} 
+                                <small class="text-xs font-normal text-gray-400">/\${item.volUnitNm}</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            grid.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    /**
+     * 페이징 렌더링 (기존 로직 유지)
+     */
+    function renderPagination(totalCnt) {
+        var pagination = document.getElementById('user-pagination');
+        pagination.innerHTML = '';
+        
+        var totalPages = Math.ceil(totalCnt / pageSize);
+        if (totalPages <= 1) return;
+
+        var prevBtn = `<button onclick="loadUserProducts(\${currentPage - 1})" class="pagination-btn" \${currentPage === 0 ? 'disabled' : ''}>이전</button>`;
+        pagination.insertAdjacentHTML('beforeend', prevBtn);
+
+        for (var i = 0; i < totalPages; i++) {
+            if (i >= currentPage - 2 && i <= currentPage + 2) {
+                var pageBtn = `<button onclick="loadUserProducts(\${i})" class="pagination-btn \${i === currentPage ? 'active' : ''}">\${i + 1}</button>`;
+                pagination.insertAdjacentHTML('beforeend', pageBtn);
+            }
+        }
+
+        var nextBtn = `<button onclick="loadUserProducts(\${currentPage + 1})" class="pagination-btn" \${currentPage >= totalPages - 1 ? 'disabled' : ''}>다음</button>`;
+        pagination.insertAdjacentHTML('beforeend', nextBtn);
+    }
+
+    function goProductDetail(fuelId) {
+        // 상세 페이지 이동 로직
+        location.href = contextPath + '/usr/productView/detail/' + fuelId;
+    }
+</script>

@@ -64,6 +64,19 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		 * throw new Exception("유효 하지 않은 파라미터 입니다."); }
 		 */
 		
+		
+		
+		// [중요] LIMIT 절 에러 방지를 위해 String으로 넘어온 숫자를 Integer로 명시적 형변환
+	    if (searchParams.get("startRow") != null) {
+	        int startRow = Integer.parseInt(String.valueOf(searchParams.get("startRow")));
+	        searchParams.put("startRow", startRow);
+	    }
+	    
+	    if (searchParams.get("limit") != null) {
+	        int limit = Integer.parseInt(String.valueOf(searchParams.get("limit")));
+	        searchParams.put("limit", limit);
+	    }
+		
 		// 1. 전체 건수 조회 (검색 조건 유지)
 	    // searchParams에서 검색 키워드만 뽑아서 전달
 	    String searchCondition = (String) searchParams.get("searchCondition");
@@ -81,7 +94,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	            if (dto.getStrFileNm() != null) {
 	            	
 	                // 예: /api/file/display?fileName=uuid.jpg 형태
-	                dto.setImgUrl("/api/file/display/PRODUCT?fileName=" + dto.getStrFileNm());
+	                dto.setImgUrl("/api/file/display/PRODUCT_S?fileName=" + dto.getStrFileNm());
 	            } else {
 	                // 이미지가 없는 경우 기본 이미지 경로
 	                dto.setImgUrl("/images/no-image.png");
@@ -253,7 +266,6 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 				// 메인 이미지 처리 (PRODUCT_M)
 			    // 기존 파일 정리: 남겨둔 파일 리스트(mainRemainNames)에 없는 건 다 N 처리
 			    fileService.updateUnusedFiles("PRODUCT_M", fuelId, mainRemainNames);
-			    System.out.println("여기 타고 있냐? 11111111111111" + mainRemainNames);
 			    // 새로 추가된(또는 유지된) 파일명을 정식 등록 로직으로 처리
 		        if (mainRemainNames != null) {
 		            for (String fileName : mainRemainNames) {
@@ -264,7 +276,6 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		                fileDto.setSystemId("PRODUCT_M");
 		                fileDto.setRefId(fuelId);
 		                
-		                System.out.println("여기 타고 있냐? 2222222222222222" + fileName);
 		                // registerInternalImgFile 내부에서 임시폴더에 파일이 있을 경우에만 정식 이동/DB등록 수행함
 		                fileService.registerInternalImgFile(fileDto);
 		            }
@@ -272,7 +283,6 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 
 		        // [서브 이미지 처리]
 		        fileService.updateUnusedFiles("PRODUCT_S", fuelId, subRemainNames);
-		        System.out.println("여기 타고 있냐? 3333333333333333" + subRemainNames);
 		        if (subRemainNames != null) {
 		            for (String fileName : subRemainNames) {
 		                if (fileName == null || fileName.isEmpty()) continue;
@@ -282,7 +292,6 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		                fileDto.setSystemId("PRODUCT_S");
 		                fileDto.setRefId(fuelId);
 		                
-		                System.out.println("여기 타고 있냐? 444444444444444444" + fileName);
 		                fileService.registerInternalImgFile(fileDto);
 		            }
 		        }
