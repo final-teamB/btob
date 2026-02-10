@@ -1,6 +1,8 @@
 package io.github.teamb.btob.controller.mgmtAdm.product;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
@@ -19,6 +24,7 @@ import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUploadExcelDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
+import io.github.teamb.btob.service.excel.ExcelService;
 import io.github.teamb.btob.service.mgmtAdm.product.ProductExcelService;
 import io.github.teamb.btob.service.mgmtAdm.product.ProductManagementService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,6 +39,7 @@ public class ProductMgmtAdmController {
 
     private final ProductManagementService productManagementService;
     private final ProductExcelService productExcelService;
+    private final ExcelService excelService;
 
 
     /**
@@ -270,6 +277,90 @@ public class ProductMgmtAdmController {
             response.put("success", false);
             response.put("message", "엑셀 처리 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    /**
+     * 
+     * 엑셀 업로드 실패 내역 및 다운로ㅡ 기능
+     * @author GD
+     * @since 2026. 2. 10.
+     * @param response
+     * @param failListJson
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 10.  GD       최초 생성
+     */
+    @PostMapping("/api/download/fail-report")
+    public void downloadFailReport(HttpServletResponse response, @RequestParam("failListJson") String failListJson) {
+        try {
+            // 1. JSON 문자열을 객체 리스트로 변환
+            ObjectMapper mapper = new ObjectMapper();
+            List<ExcelUploadResultDTO.ExcelFailDetail> failList = mapper.readValue(
+                failListJson, 
+                new TypeReference<List<ExcelUploadResultDTO.ExcelFailDetail>>() {}
+            );
+
+            // 2. [추가] 업로드 시 사용했던 것과 동일한 headerMap 정의
+            // 이 맵은 업로드 로직(uploadAndSave)을 호출할 때 썼던 맵과 구성이 같아야 합니다.
+            Map<String, String> headerMap = new LinkedHashMap<>();
+            headerMap.put("유류명칭", "fuelNm");
+            headerMap.put("유류종류코드", "fuelCatCd");
+            headerMap.put("원산지국가코드", "originCntryCd");
+            headerMap.put("기준단가", "baseUnitPrc");
+            headerMap.put("현재재고량", "currStockVol");
+            headerMap.put("안전재고량", "safeStockVol");
+            headerMap.put("용량단위코드", "volUnitCd");
+            headerMap.put("재고상태코드", "itemSttsCd");
+            headerMap.put("등록자ID", "regId");
+            headerMap.put("사용여부", "useYn");
+            headerMap.put("API비중", "apiGrv");
+            headerMap.put("유황함량", "sulfurPCnt");
+            headerMap.put("인화점", "flashPnt");
+            headerMap.put("점도", "viscosity");
+            headerMap.put("15도밀도", "density15c");
+            headerMap.put("상세내용", "fuelMemo");
+            headerMap.put("메인이미지명", "mainFileNm"); // 엑셀헤더 "메인이미지명" -> DTO "mainFileNm"
+            headerMap.put("서브이미지명", "subFileNm"); // 엑셀헤더 "서브이미지명" -> DTO "subFileNm"
+
+            // 3. 수정된 서비스 호출 (headerMap 인자 추가)
+            excelService.downloadFailReport(response, failList, headerMap);
+            
+        } catch (Exception e) {
+            log.error("실패 리포트 다운로드 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 
+     * 상품 목록 엑셀 다운로드
+     * @author GD
+     * @since 2026. 2. 10.
+     * @param params 검색 조건 (fuelNm, itemSttsCd 등)
+     * @param response
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 10.  GD       최초 생성
+     */
+    @GetMapping("/download/excel")
+    public void downloadProductExcel(@RequestParam Map<String, Object> params, HttpServletResponse response) {
+        try {
+        	
+            // 서비스 호출 (조회부터 엑셀 생성까지 처리)
+        	productExcelService.downloadProductExcel(response, params);
+            
+        } catch (Exception e) {
+        	
+            log.error("상품 목록 엑셀 다운로드 중 오류 발생", e);
+            // 에러 발생 시 사용자에게 알림을 줄 수 있도록 처리 (예: 스크립트 출력 등)
+            response.setContentType("text/html; charset=UTF-8");
+            try {
+            	
+                response.getWriter().write("<script>alert('엑셀 다운로드 중 오류가 발생했습니다.'); history.back();</script>");
+            } catch (IOException ioException) {
+            	
+                ioException.printStackTrace();
+            }
         }
     }
 }

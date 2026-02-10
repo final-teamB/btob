@@ -41,7 +41,9 @@
                 <button type="button" 
                 onclick="ProductExcelHandler.openUploadModal()"
                 class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄 업로드</button>
-                <button type="button" id="dg-btn-download-custom" class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">엑셀 다운로드</button>
+                <button type="button"
+                onclick="ProductExcelHandler.downloadProductExcel()"
+                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">엑셀 다운로드</button>
                 <button type="button" onclick="handleAddAction()" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95">+ 신규 등록</button>
             </div>
         </div>

@@ -99,11 +99,23 @@
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 		       <include refid="searchCondi" />
 		    </if>
+		    <if test="fuelCatNm != null and fuelCatNm != ''">
+		        AND b.comm_name = #{fuelCatNm}
+		    </if>
+		    <if test="originCntryNm != null and originCntryNm != ''">
+		        AND c.comm_name = #{originCntryNm}
+		    </if>
+		    <if test="itemSttsNm != null and itemSttsNm != ''">
+		        AND e.comm_name = #{itemSttsNm}
+		    </if>
 		    AND f.use_yn = 'Y'
 		    ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
-			<if test="startRow != null and limit != null">
-            	LIMIT #{startRow}, #{limit}
-        	</if> 
+			
+			<if test='isExcel == null or isExcel != "Y"'>
+			    <if test="startRow != null and limit != null">
+			        LIMIT #{startRow}, #{limit}
+			    </if> 
+			</if>
 			
 	</select>
 	

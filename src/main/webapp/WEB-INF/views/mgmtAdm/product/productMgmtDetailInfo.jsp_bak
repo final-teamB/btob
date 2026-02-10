@@ -124,7 +124,7 @@
             </div>
 
             <div class="flex items-center p-6 border-t gap-2">
-                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition">이 정보로 수정하기</button>
+                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition">정보 수정</button>
                 <button type="button" onclick="closeDetailModal()" class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border rounded-lg ml-auto">닫기</button>
             </div>
         </div>

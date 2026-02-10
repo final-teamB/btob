@@ -16,6 +16,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
@@ -24,6 +25,7 @@ import org.springframework.web.util.UriUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.github.teamb.btob.dto.excel.ExcelUploadResultDTO;
@@ -32,6 +34,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class ExcelServiceImpl implements ExcelService {
+	
+	@Value("${file.upload.path.excel}")
+    private String excelUploadPath; // D:/upload/excel 경로가 주입됨
 
 	/**
 	 * 
@@ -95,6 +100,27 @@ public class ExcelServiceImpl implements ExcelService {
     		MultipartFile file, 
     		Map<String, String> headerMap,
     		List<String> validKeys) throws Exception {
+    	
+    	// --- [추가] 파일 물리 저장 로직 시작 ---
+    	if (file != null && !file.isEmpty()) {
+            String originalFileName = file.getOriginalFilename();
+            String dateStr = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+            String serverFileName = dateStr + "_" + java.util.UUID.randomUUID().toString().substring(0, 8) + "_" + originalFileName;
+            
+            java.io.File dir = new java.io.File(excelUploadPath);
+            if (!dir.exists()) dir.mkdirs();
+
+            java.io.File targetFile = new java.io.File(dir, serverFileName);
+            
+            // [중요] transferTo(targetFile) 대신 아래 코드를 사용하세요.
+            try (InputStream is = file.getInputStream();
+                 java.io.OutputStream os = new java.io.FileOutputStream(targetFile)) {
+                org.springframework.util.FileCopyUtils.copy(is, os);
+            }
+            
+            System.out.println("엑셀 업로드 파일 저장 완료: " + targetFile.getAbsolutePath());
+        }
+        // --- [추가] 파일 물리 저장 로직 종료 ---
     	
     	// 개발자가 설정한 영문 Key(Value)들이 유효한지 체크 ( userId, userNm 등등 )
         for (String mappedKey : headerMap.values()) {
@@ -320,48 +346,66 @@ public class ExcelServiceImpl implements ExcelService {
      * ----------  --------    ---------------------------
      * 2026. 2. 3.  GD       최초 생성
      */
-    public <T> ExcelUploadResultDTO<T> uploadAndSave (
+    public <T> ExcelUploadResultDTO<T> uploadAndSave(
             MultipartFile file, 
             Map<String, String> headerMap, 
             List<String> validKeys, 
             List<String> requiredKeys, 
             Class<T> clazz,
-            Consumer<T> saver) { // Consumer를 통해 매퍼 메서드를 주입받음
+            Consumer<T> saver) {
 
-        List<T> dtoList;
+        // 1. 변환된 리스트를 가져오는 대신, 원본 데이터(Map) 리스트만 먼저 가져옵니다.
+        List<Map<String, Object>> dataList;
         try {
-        	
-            // 기존에 만드신 메서드로 DTO 변환 (이미 필수값 검증 포함됨)
-            dtoList = this.uploadExcelToDto(file, headerMap, validKeys, requiredKeys, clazz);
+            dataList = this.uploadExcelFile(file, headerMap, validKeys);
         } catch (Exception e) {
-        	
-            // 파일 자체 오류나 헤더 오류 시 처리
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("엑셀 파일 읽기 실패: " + e.getMessage());
         }
 
-        // 성공 리스트
         List<T> successList = new ArrayList<>();
-        // 실패 리스트
         List<ExcelUploadResultDTO.ExcelFailDetail> failList = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-        for (int i = 0; i < dtoList.size(); i++) {
-            T dto = dtoList.get(i);
-            int rowNum = i + 2; // 엑셀 실제 행 번호
-            
+        // 2. 루프 내부에서 검증, 변환, 저장을 모두 처리합니다.
+        for (int i = 0; i < dataList.size(); i++) {
+            Map<String, Object> map = dataList.get(i);
+            int rowNum = i + 2;
+
             try {
-            	
-                // 외부에서 전달받은 매퍼 로직 실행
+                // A. 필수값 검증 (uploadExcelToDto에 있던 로직을 여기로 가져옴)
+                if (requiredKeys != null) {
+                    for (String reqKey : requiredKeys) {
+                        Object val = map.get(reqKey);
+                        if (val == null || val.toString().trim().isEmpty()) {
+                            String hNm = findKoreanHeader(headerMap, reqKey);
+                            throw new Exception("[" + hNm + "] 항목은 필수값입니다.");
+                        }
+                    }
+                }
+
+                // B. DTO 변환
+                T dto;
+                try {
+                    dto = mapper.convertValue(map, clazz);
+                } catch (Exception e) {
+                    throw new Exception("데이터 형식이 올바르지 않습니다.");
+                }
+
+                // C. 실제 저장 실행 (람다 호출)
                 saver.accept(dto); 
+                
+                // 저장 성공 시 리스트 추가
                 successList.add(dto);
+
             } catch (Exception e) {
-            	
-                // DB 제약조건 위반, 중복 데이터 등 에러 발생 시 실패 리스트에 담기
-                failList.add(new ExcelUploadResultDTO.ExcelFailDetail(rowNum, e.getMessage()));
+                // [중요] 개별 행에서 발생한 모든 에러(검증 실패, 변환 실패, DB 에러)를 여기서 잡습니다.
+                // 에러가 발생해도 루프는 멈추지 않고 다음 i로 넘어갑니다.
+            	failList.add(new ExcelUploadResultDTO.ExcelFailDetail(rowNum, e.getMessage(), map));
             }
         }
 
         return ExcelUploadResultDTO.<T>builder()
-                .totalCount(dtoList.size())
+                .totalCount(dataList.size())
                 .successCount(successList.size())
                 .failCount(failList.size())
                 .successList(successList)
@@ -382,22 +426,45 @@ public class ExcelServiceImpl implements ExcelService {
      * 2026. 2. 3.  GD       최초 생성
      */
     @Override
-    public void downloadFailReport(HttpServletResponse response, List<ExcelUploadResultDTO.ExcelFailDetail> failList) throws Exception {
+    public void downloadFailReport(HttpServletResponse response, 
+    			List<ExcelUploadResultDTO.ExcelFailDetail> failList,
+    			Map<String, String> headerMap) throws Exception {
         
         SXSSFWorkbook workbook = new SXSSFWorkbook(100);
         Sheet sheet = workbook.createSheet("실패리포트");
 
-        // 헤더 생성
+        // 1. 순서를 보장하기 위해 headerMap의 Value(영문키) 리스트를 미리 추출
+        // 컨트롤러에서 LinkedHashMap으로 주었기 때문에 이 리스트는 순서가 고정됩니다.
+        List<String> orderedEngKeys = new ArrayList<>(headerMap.values());
+        // 영문키에 대응하는 한글명을 찾기 위한 맵 (headerMap 자체가 {한글:영문}이므로 역방향 필요)
+        Map<String, String> reverseHeader = new HashMap<>();
+        headerMap.forEach((k, v) -> reverseHeader.put(v, k));
+        
+        // 2. 헤더 생성 (Row 0)
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("엑셀 행 번호");
         headerRow.createCell(1).setCellValue("에러 사유");
+        
+        // 정의된 순서(orderedEngKeys)대로 헤더 컬럼 생성
+        for (int i = 0; i < orderedEngKeys.size(); i++) {
+            String engKey = orderedEngKeys.get(i);
+            String korName = reverseHeader.get(engKey); 
+            headerRow.createCell(i + 2).setCellValue(korName != null ? korName : "");
+        }
 
-        // 데이터 생성
+        // 3. 데이터 생성
         int rowIdx = 1;
         for (ExcelUploadResultDTO.ExcelFailDetail fail : failList) {
             Row row = sheet.createRow(rowIdx++);
             row.createCell(0).setCellValue(fail.getRowNum());
             row.createCell(1).setCellValue(fail.getErrorMsg());
+            
+            // 정의된 순서(orderedEngKeys)대로 데이터 바인딩
+            for (int j = 0; j < orderedEngKeys.size(); j++) {
+                String engKey = orderedEngKeys.get(j);
+                Object val = fail.getRowData().get(engKey);
+                row.createCell(j + 2).setCellValue(val != null ? val.toString() : "");
+            }
         }
 
         String fileName = UriUtils.encode("업로드_실패_리포트", StandardCharsets.UTF_8);
@@ -456,6 +523,9 @@ public class ExcelServiceImpl implements ExcelService {
         // Java 8 date/time 모듈 등록 Convert 오류남
         mapper.registerModule(new JavaTimeModule());
         
+        // 날짜를 [2026, 2, 10...] 처럼 숫자로 쪼개지 않게 설정
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        
         List<Map<String, Object>> convertedList = new ArrayList<>();
         
         if (dataList != null) {
@@ -511,10 +581,19 @@ public class ExcelServiceImpl implements ExcelService {
             for (int i = 0; i < keyOrder.size(); i++) {
             	
                 String key = keyOrder.get(i);
-                String val = String.valueOf(data.get(key));
+             // [추가 포인트 2] 데이터 변환 및 날짜 포맷팅
+                Object rawValue = data.get(key);
+                String val = "";
                 
-                // null 체크를 하여 빈 문자열로 처리
-                // String val = (data.get(key) == null) ? "" : String.valueOf(data.get(key));
+                if (rawValue != null) {
+                    val = String.valueOf(rawValue);
+                    
+                    // ISO 날짜 형식(2026-02-10T10:09:57)일 경우 T를 공백으로 치환
+                    // 위에서 설정을 껐기 때문에 rawValue가 문자열로 넘어옵니다.
+                    if (val.contains("T") && val.length() >= 19) {
+                        val = val.replace("T", " ");
+                    }
+                }
                 
                 row.createCell(i).setCellValue(val);
             }

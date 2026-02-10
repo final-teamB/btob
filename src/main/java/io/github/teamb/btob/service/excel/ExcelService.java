@@ -39,7 +39,8 @@ public interface ExcelService {
     
     // 실패 내역 전용 엑셀 다운로드
     void downloadFailReport(HttpServletResponse response, 
-    						List<ExcelUploadResultDTO.ExcelFailDetail> failList) throws Exception;
+    						List<ExcelUploadResultDTO.ExcelFailDetail> failList,
+    						Map<String, String> headerMap) throws Exception;
     
     // 조회한 자료 엑셀다운로드
     void downloadExcel(HttpServletResponse response, 

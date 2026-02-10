@@ -85,7 +85,7 @@ public class ProductExcelServiceImpl implements ProductExcelService {
 		
 		// 이 작업에서 사용할 임시 경로 설정 (예: 사용자별 혹은 세션별 폴더)
 		// 이미지 일괄업로드 첨부에서만 사용합니다. 일반적인 데이터 일괄업로드시에는 해당 변수 선언 안해도 됩니다.
-	    String currentTempPath = imgTempPath;
+	    //String currentTempPath = imgTempPath;
 		
 		// 1. 실제로 사용할 정확한 영문 Key 목록 (White List)
         List<String> validKeys = Arrays.asList( 
