@@ -43,21 +43,35 @@ public class DeliveryController {
     // 수정
     @PostMapping({"/deliveryUpdate", "/updateDeliveryDetail"})
     @ResponseBody
-    public Map<String, Object> updateDelivery(@RequestBody DeliveryDTO deliveryDTO, Principal principal) {
-        
-    	Map<String, Object> result = new HashMap<>();
-        String adminId = (principal != null) ? principal.getName() : "admin";
-        deliveryDTO.setUpdId(adminId);
+    public Map<String, Object> updateDelivery(@RequestBody Map<String, Object> params, Principal principal) {
+        Map<String, Object> result = new HashMap<>();
         
         try {
+            DeliveryDTO deliveryDTO = new DeliveryDTO();
+            // 1. 기본 값 세팅 (JS에서 보낸 키값과 매칭)
+            deliveryDTO.setDeliveryId(Integer.parseInt(params.get("deliveryId").toString()));
+            deliveryDTO.setTrackingNo((String) params.get("trackingNo"));
+            
+            // 2. Enum 처리 (문자열 dv001 -> Enum DeliveryStatus.dv001 변환)
+            String statusStr = (String) params.get("deliveryStatus");
+            if (statusStr != null && !statusStr.isEmpty()) {
+                deliveryDTO.setDeliveryStatus(DeliveryStatus.valueOf(statusStr));
+            }
+            
+            String adminId = (principal != null) ? principal.getName() : "admin";
+            deliveryDTO.setUpdId(adminId);
+
             deliveryService.modifyDelivery(deliveryDTO);
             
             result.put("success", true);
             result.put("message", "정상적으로 수정되었습니다.");
-            result.put("data", deliveryDTO);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             result.put("success", false);
-            result.put("message", "수정 중 오류 발생: " + e.getMessage());
+            result.put("message", "변경 불가: " + e.getMessage()); // 규칙 위반 시 메시지 출력
+        } catch (Exception e) {
+            e.printStackTrace(); // 콘솔에서 에러 로그 확인용
+            result.put("success", false);
+            result.put("message", "시스템 오류: " + e.getMessage());
         }
         return result;
     }

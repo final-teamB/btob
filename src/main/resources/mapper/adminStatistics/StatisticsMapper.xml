@@ -68,9 +68,9 @@
     <!-- 배송 KPI (평균배송 소요일, 현재 배송중 건수, 지연 배송 건수) -->
     <select id="getDeliveryKPI" resultType="map">
         SELECT 
-        IFNULL(ROUND(AVG(DATEDIFF(upd_dtime, reg_dtime)), 1), 0) as "avg_delivery_time",
-        COUNT(CASE WHEN delivery_status = 'D_SHIPPING' THEN 1 END) as "current_shipping",
-        COUNT(CASE WHEN delivery_status != 'COMPLETE' AND DATEDIFF(NOW(), reg_dtime) >= 3 THEN 1 END) as "delay_count"
+        IFNULL(ROUND(AVG(DATEDIFF(upd_dtime, reg_dtime)), 1), 0) "avg_delivery_time",
+        COUNT(CASE WHEN delivery_status = 'dv006' THEN 1 END) "current_shipping",
+        COUNT(CASE WHEN delivery_status != 'dv007' AND DATEDIFF(NOW(), reg_dtime) >= 3 THEN 1 END) "delay_count"
     FROM TB_DELIVERY
     WHERE use_yn = 'Y'
     </select>
@@ -90,13 +90,13 @@
     <!-- 배송 상태별 건수 -->
     <select id="getDeliveryStatusCounts" resultType="map">
 	    SELECT 
-	        COUNT(CASE WHEN delivery_status = 'READY' THEN 1 END) as "READY",
-	        COUNT(CASE WHEN delivery_status = 'L_SHIPPING' THEN 1 END) as "L_SHIPPING",
-	        COUNT(CASE WHEN delivery_status = 'L_WH' THEN 1 END) as "L_WH",
-	        COUNT(CASE WHEN delivery_status = 'IN_CUSTOMS' THEN 1 END) as "IN_CUSTOMS",
-	        COUNT(CASE WHEN delivery_status = 'C_DONE' THEN 1 END) as "C_DONE",
-	        COUNT(CASE WHEN delivery_status = 'D_SHIPPING' THEN 1 END) as "D_SHIPPING",
-	        COUNT(CASE WHEN delivery_status = 'COMPLETE' THEN 1 END) as "COMPLETE"
+	        COUNT(CASE WHEN delivery_status = 'dv001' THEN 1 END) "dv001",
+	        COUNT(CASE WHEN delivery_status = 'dv002' THEN 1 END) "dv002",
+	        COUNT(CASE WHEN delivery_status = 'dv003' THEN 1 END) "dv003",
+	        COUNT(CASE WHEN delivery_status = 'dv004' THEN 1 END) "dv004",
+	        COUNT(CASE WHEN delivery_status = 'dv005' THEN 1 END) "dv005",
+	        COUNT(CASE WHEN delivery_status = 'dv006' THEN 1 END) "dv006",
+	        COUNT(CASE WHEN delivery_status = 'dv007' THEN 1 END) "dv007"
 	    FROM TB_DELIVERY
 	    WHERE use_yn = 'Y'
 	</select>
@@ -106,7 +106,7 @@
         INSERT INTO TB_STATISTICS (stats_name, stats_value, stats_date, stats_type, use_yn)
         SELECT '일일배송완료', COUNT(*), CURDATE(), 'DELIVERY', 'Y'
         FROM TB_DELIVERY
-        WHERE delivery_status = 'COMPLETE' AND DATE(upd_dtime) = CURDATE()
+        WHERE delivery_status = 'dv007' AND DATE(upd_dtime) = CURDATE()
         ON DUPLICATE KEY UPDATE stats_value = VALUES(stats_value)
     </insert>
     

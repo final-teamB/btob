@@ -127,6 +127,27 @@
                 }
             }
         }
+        
+        const orderStatus = "${deliveryDTO.orderStatus}"; 
+        const $deliverySelect = $("#deliveryStatus");   
+        
+        if (orderStatus === 'pm002') {
+            // pm002(결제완료)일 때: dv001~dv005만 허용 (dv006, dv007 비활성화)
+            $deliverySelect.find("option").each(function() {
+                const val = $(this).val();
+                if (val === 'dv006' || val === 'dv007') {
+                    $(this).prop('disabled', true).css('color', '#ccc');
+                }
+            });
+        } else if (orderStatus === 'pm004') {
+            // pm004(배송시작/출고)일 때: dv005~dv007만 허용 (dv001~dv004 비활성화)
+            $deliverySelect.find("option").each(function() {
+                const val = $(this).val();
+                if (['dv001', 'dv002', 'dv003', 'dv004', 'dv005'].includes(val)) {
+                    $(this).prop('disabled', true).css('color', '#ccc');
+                }
+            });
+        }
     });
 
     function execDaumPostcode() {
