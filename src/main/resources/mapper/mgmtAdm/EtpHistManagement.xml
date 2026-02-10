@@ -6,8 +6,10 @@
 	
 		AND ( 
 			        a.etp_id LIKE CONCAT('%', #{searchCondition}, '%')
-			        OR b.user_name LIKE CONCAT('%', #{searchCondition}, '%')
-					OR c.user_name LIKE CONCAT ('%', #{searchCondition}, '%' )
+			        OR c.user_name LIKE CONCAT('%', #{searchCondition}, '%')
+					OR d.user_name LIKE CONCAT ('%', #{searchCondition}, '%')
+					OR a.rejt_rsn LIKE CONCAT ('%', #{searchCondition}, '%')
+					OR b.etp_stts_nm LIKE CONCAT ('%', #{searchCondition}, '%')
 				)
 				
 	</sql>
@@ -20,39 +22,50 @@
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
 				,a.etp_id
-				,b.user_name AS requestUserNm
-				,c.user_name AS apprUserNm
-				,rejt_rsn
-				,reg_dtime
-				,appr_dtime
+				,b.etp_stts_nm AS etpSttsNm
+				,c.user_name AS requestUserNm
+				,a.reg_dtime
+				,d.user_name AS apprUserNm
+				,a.appr_dtime
+				,a.rejt_rsn
 			FROM
 				TB_ETP_HIST a
-				,TB_USERS b
+				,TB_ETP_STTS_CD b
 				,TB_USERS c
+				,TB_USERS d
+				
 			WHERE 1=1
-			AND a.reg_id = b.user_no
-			AND a.appr_user_id = c.user_no
+			AND a.etp_stts_cd = b.etp_stts_cd
+			AND a.reg_id = c.user_id
+			AND a.appr_user_id = d.user_id
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
 			</if>
 			ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
-			LIMIT #{startRow}, #{limit}
+			<if test='isExcel == null or isExcel != "Y"'>
+			    <if test="startRow != null and limit != null">
+			        LIMIT #{startRow}, #{limit}
+			    </if> 
+			</if>
 	
 	</select>
 	
 	<!-- 히스토리 검색 조회 건수 -->
 	<select id="selectEtpHistSearchConditioinListCntAdm"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+		resultType="int">
 	
 			SELECT 
-				COUNT(etp_id) 
+				COUNT(a.etp_id) 
 			FROM
 				TB_ETP_HIST a
-				,TB_USERS b
+				,TB_ETP_STTS_CD b
 				,TB_USERS c
+				,TB_USERS d
+				
 			WHERE 1=1
-			AND a.reg_id = b.user_no
-			AND a.appr_user_id = c.user_no
+			AND a.etp_stts_cd = b.etp_stts_cd
+			AND a.reg_id = c.user_id
+			AND a.appr_user_id = d.user_id
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
 			</if>
@@ -66,6 +79,7 @@
 	
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
+				,fnc_get_etp_sttsnm(etp_stts_cd) AS etpSttsNm
 				,fnc_get_usernm(regId) AS requestUserNm
 				,fnc_get_usernm(apprUserId) AS apprUserNm
 				,rejt_rsn
@@ -81,7 +95,7 @@
 	<!-- 히스토리 개별 조회 건수 -->
 	<select id="selectEtpHistListCntById"
 		parameterType="int"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+		resultType="int">
 		
 			SELECT
 				COUNT(etp_id)
