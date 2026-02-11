@@ -119,10 +119,10 @@ class DirectSelectRenderer {
         
         // 주문 상태별 선택 옵션 제한 로직
         if (rowData.orderStatus === 'pm004') {
-            // 주문확정(pm004) -> 국내배송중, 배송완료만
+            // 1차결제완료(pm004) -> 국내배송중, 배송완료만
             allowedStatus = list.filter(s => s.v === 'dv006' || s.v === 'dv007');
         } else if (rowData.orderStatus === 'pm002') {
-            // 결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
+            // 2차결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
             allowedStatus = list.filter(s => ['dv001', 'dv002', 'dv003', 'dv004', 'dv005'].includes(s.v));
         }
         
@@ -196,10 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 align: 'center',
                 formatter: ({ value }) => {
                     const map = {
-                        pm001: '주문접수<br><span style="font-size: 11px; color: #666;">(pm001)</span>',
-                        pm002: '결제완료<br><span style="font-size: 11px; color: #666;">(pm002)</span>',
-                        pm003: '주문취소<br><span style="font-size: 11px; color: #666;">(pm003)</span>',
-                        pm004: '주문확정<br><span style="font-size: 11px; color: #666;">(pm004)</span>'
+                        pm001: '1차결제요청<br><span style="font-size: 11px; color: #666;">(pm001)</span>',
+                        pm002: '1차결제완료<br><span style="font-size: 11px; color: #666;">(pm002)</span>',
+                        pm003: '2차결제요청<br><span style="font-size: 11px; color: #666;">(pm003)</span>',
+                        pm004: '2차결제완료<br><span style="font-size: 11px; color: #666;">(pm004)</span>'
                     };
                     return map[value] || value;
                 }

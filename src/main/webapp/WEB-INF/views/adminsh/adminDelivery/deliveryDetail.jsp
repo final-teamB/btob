@@ -162,7 +162,20 @@
     }
 
     function fn_update() {
-        const combinedAddr = $("#postcode").val() + "|" + $("#shipToAddr").val() + "|" + $("#shipToAddrDetail").val();
+        const postcode = $("#postcode").val();
+        const addr = $("#shipToAddr").val();
+        const detail = $("#shipToAddrDetail").val();
+
+        // 데이터 검증
+        if(!postcode || !addr) {
+            alert("주소를 검색하여 입력해주세요.");
+            return;
+        }
+
+        const combinedAddr = postcode + "|" + addr + "|" + detail;
+        
+        console.log("보내는 주소 데이터 확인:", combinedAddr);
+
         const param = {
             deliveryId: $("#deliveryId").val(),
             deliveryStatus: $("#deliveryStatus").val(),
@@ -170,7 +183,9 @@
             carrierName: $("#carrierName").val(),
             shipToAddr: combinedAddr
         };
+
         if(!confirm("수정하시겠습니까?")) return;
+
         $.ajax({
             url: "/admin/delivery/updateDeliveryDetail",
             type: "POST",
@@ -179,6 +194,10 @@
             success: function(res) {
                 alert(res.message);
                 if(res.success) location.reload();
+            },
+            error: function(xhr) {
+                console.error("에러 발생:", xhr.responseText);
+                alert("저장 중 오류가 발생했습니다.");
             }
         });
     }
