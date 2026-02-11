@@ -58,7 +58,11 @@
 		    <%-- 사용자 정보 헤더 영역 (Spring Security 인증 상태에 따른 처리) --%>
 		    <div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/50">
 		        <sec:authorize access="isAuthenticated()">
-		            <p class="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1 uppercase tracking-wider">User Profile</p>
+					<p class="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1 uppercase tracking-wider">
+			            <sec:authorize access="hasRole('MASTER')">Master Profile</sec:authorize>
+			            <sec:authorize access="hasRole('ADMIN') and !hasRole('MASTER')">Admin Profile</sec:authorize>
+			            <sec:authorize access="hasRole('USER') and !hasRole('ADMIN') and !hasRole('MASTER')">User Profile</sec:authorize>
+			        </p>
 		            <p class="text-sm font-bold text-gray-900 dark:text-white truncate" role="none">
 		                <sec:authentication property="principal.username" />님
 		            </p>
