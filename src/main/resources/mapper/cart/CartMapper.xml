@@ -17,24 +17,28 @@
 	        c.order_no,
 	        o.fuel_nm,
 	        o.base_unit_prc,
+	        m.order_id,
 	        m.order_status,
 	        s.etp_stts_nm,
+	        u.user_no,
 	        u.user_name,
-	        u.phone as user_phone, cp.company_cd,
+	        u.phone, 
+	        cp.company_cd,
 	        cp.company_name,
 	        cp.biz_number,
-	        cp.master_name,
+	        cp.master_id,
 	        cp.company_phone,
             cp.addr_kor,
             cp.addr_eng,
             cp.zip_code,
-            cp.customs_num
-	        cp.addr_kor FROM TB_CART c
-	        JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
-	        LEFT JOIN TB_ORDER_MST m ON c.order_no = m.order_no
-	        LEFT JOIN TB_ETP_STTS_CD s ON m.order_status = s.etp_stts_cd  
-	        LEFT JOIN TB_USERS u ON c.user_id = u.user_id
-	        LEFT JOIN TB_COMPANIES cp ON u.company_cd = cp.company_cd
+            cp.customs_num,
+	        cp.addr_kor 
+        FROM TB_CART c
+        JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
+        LEFT JOIN TB_ORDER_MST m ON c.order_no = m.order_no
+        LEFT JOIN TB_ETP_STTS_CD s ON m.order_status = s.etp_stts_cd  
+        LEFT JOIN TB_USERS u ON c.user_id = u.user_id
+        LEFT JOIN TB_COMPANIES cp ON u.company_cd = cp.company_cd
 	    WHERE c.cart_id IN 
 	    <foreach item="id" collection="idList" open="(" separator="," close=")">
 	        #{id}
@@ -56,6 +60,7 @@
             c.order_no,
             o.fuel_nm,
             o.base_unit_prc,
+            m.order_id,
             m.order_status,
             s.etp_stts_nm,
             u.user_name,
@@ -63,7 +68,7 @@
             cp.company_cd,
             cp.company_name,
             cp.biz_number,
-            cp.master_name,
+            cp.master_id,
             cp.company_phone,
             cp.addr_kor,
             cp.addr_eng,
@@ -127,6 +132,7 @@
             upd_dtime   = NOW(),
             upd_id      = #{userId}
         WHERE cart_id = #{cartId}
+          AND user_id = #{userId}
           AND cart_status = 'PENDING' 
     </update>
     
@@ -155,14 +161,11 @@
     <update id="updateCartOrderInfo">
 	    UPDATE TB_CART
 	    SET 
-	        order_no = #{orderNo},
 	        cart_status = #{status},
+	        use_yn = #{useYn},
+	        upd_id = #{userId}, 
 	        upd_dtime = NOW()
-	    WHERE cart_id IN
-	    <foreach item="id" collection="idList" open="(" separator="," close=")">
-	        #{id}
-	    </foreach>
-	    AND user_id = #{userId}
+	    WHERE order_no = #{orderNo} AND user_id = #{userId}
 	</update>
 	
 	<!-- 장바구니 상태 ORDERED 변경 -->

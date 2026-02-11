@@ -52,7 +52,7 @@ public class TradeApprovalController {
 
 	    // 3. [핵심] 마스터 전용 페이지이므로 권한을 MASTER로 고정
 	    // 이렇게 하면 JSP의 <c:when test="${user_type eq 'MASTER'}"> 블록이 무조건 실행됩니다.
-	    model.addAttribute("user_type", "MASTER");
+	    model.addAttribute("userType", "MASTER");
 
 	    return "document/previewEst"; 
 	}
@@ -73,7 +73,7 @@ public class TradeApprovalController {
 	    model.addAttribute("totalSum", params.get("totalPrice"));
 
 	    // 3. [핵심] 마스터 전용 페이지이므로 권한을 MASTER로 고정
-	    model.addAttribute("user_type", "MASTER");
+	    model.addAttribute("userType", "MASTER");
 
 	    return "document/previewOrder"; 
 	}

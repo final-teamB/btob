@@ -20,6 +20,7 @@ public class OrderHistoryDTO {
     private int orderId;
     private String orderNo;
     private String productName;
+    private int amount;
     private String orderStatus;            // 주문 상태 (pm001, pm002, pm003 등)
     private String regId;
     private LocalDateTime regDtime;  // 주문일 (reg_dtime)

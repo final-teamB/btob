@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.teamb.btob.dto.document.DocumentListDTO;
 import io.github.teamb.btob.dto.document.DocumentMemoActionDTO;
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
+import io.github.teamb.btob.dto.trade.TradePendingDTO;
 import io.github.teamb.btob.mapper.document.TradeDocMapper;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -35,5 +36,7 @@ public class TradeDocService {
 		return tradeDocMapper.getDocumentList(docType, keyword);
 	}
 
-
+	public List<TradePendingDTO> getOrderDetailList(int orderId) {
+		return tradeDocMapper.getOrderDetailList(orderId);
+	}
 }

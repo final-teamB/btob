@@ -23,6 +23,7 @@ public class TradeApprovalService {
 	private final BizWorkflowServiceImpl bizWorkflowServiceImpl;
 	private final LoginUserProvider loginUserProvider;
 
+		
 	public List<TradePendingDTO> getTradePendingList(TradePendingDTO dto) {
 		dto.setUserNo(loginUserProvider.getLoginUserNo());
 		return tradeApprovalmapper.getTradePendingList(dto);
@@ -54,6 +55,7 @@ public class TradeApprovalService {
 	    
 	    // 사용자 정보 세팅
 	    requestDto.setApprUserNo(loginUserNo); // 승인권자 번호
+	    requestDto.setUserId((String) params.get("userId"));
 	    
 	    // 원 요청자 번호 (JSP/그리드에서 userNo로 넘겨준 값)
 	    Object requestUserNoObj = params.get("userNo");

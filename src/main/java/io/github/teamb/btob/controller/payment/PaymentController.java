@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import io.github.teamb.btob.dto.payment.PaymentRequestDTO;
 import io.github.teamb.btob.dto.payment.PaymentViewDTO;
+import io.github.teamb.btob.dto.payment.PaymentVo;
 import io.github.teamb.btob.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 
@@ -27,35 +28,41 @@ public class PaymentController {
 	    			
 		model.addAttribute("paymentView", paymentView);
 		model.addAttribute("tossCk", tossCk);
-		model.addAttribute("pageTitle", "1차 결제 페이지");
-		model.addAttribute("content", "payment/payment");
+	
 	    	    
-	    return "layout/layout"; // 결제 전용 JSP로 이동
+	    return "payment/payment"; // 결제 전용 JSP로 이동
 	}
 	
-	@GetMapping("/success")
-	public String paymentSuccess(
-			PaymentRequestDTO payment,
-	        Model model) {
-
-	    try {
-	        // 1. 서비스에서 토스 승인 API 호출 및 DB 업데이트(상태 변경 등) 수행
-	        // 결제 금액이 실제 DB와 맞는지 검증 로직이 서비스에 포함되어야 함
-	        paymentService.confirmPayment(payment);
-
-	        // 2. 성공 화면에 보여줄 정보 담기
-	        model.addAttribute("orderNo", payment.getOrderNo());
-	        model.addAttribute("amount", payment.getAmount());
-	   	        
-	        return "payment/success";
-	        
-	    } catch (Exception e) {
-	        // 승인 실패 시 에러 페이지로
-	        model.addAttribute("message", e.getMessage());
-	        return "payment/fail";
-	    }
-	}
+	 // 2차 결제
+    @GetMapping("/paySecond")
+    public String paySecondGate(@RequestParam("orderNo") String orderNo, Model model) {
+        // 결제에 필요한 금액 정보 등을 다시 조회
+    	PaymentViewDTO paymentView = paymentService.getPaymentViewInfo(orderNo);
+    	model.addAttribute("tossCk", tossCk);
+        model.addAttribute("paymentView", paymentView);
+        return "payment/paySecond";
+    }
 	
+    @GetMapping("/success")
+    public String paymentSuccess(PaymentRequestDTO payment, Model model) {
+        try {
+            // 1. 토스 승인 및 DB 처리
+            paymentService.confirmPayment(payment);
+
+            // 2. 화면에 보여줄 데이터 담기
+            model.addAttribute("orderNo", payment.getOrderNo());
+            model.addAttribute("amount", payment.getAmount());
+            
+            // 3. 1차든 2차든 작성하신 success.jsp 하나로 리턴!
+            return "payment/success"; 
+            
+        } catch (Exception e) {
+        	model.addAttribute("errorCode", "CONFIRM_ERROR"); 
+            model.addAttribute("errorMessage", e.getMessage());
+            return "payment/fail";
+        }
+    }
+    
 	@GetMapping("/fail")
 	public String paymentFail(
 	        @RequestParam(required = false) String code,

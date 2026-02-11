@@ -2,55 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.user.UserMapper">
 		
-		<!-- 주문/배송목록 -->
-		<select id="selectUserOrderList" parameterType="map" resultType="io.github.teamb.btob.dto.order.OrderHistoryDTO">
-	    SELECT 
-	        o.order_id,
-	        o.order_no,
-	        o.reg_id,
-	        CASE 
-	            WHEN COUNT(c.cart_id) > 1 
-	            THEN CONCAT(MAX(c.fuel_nm), ' 외 ', COUNT(c.cart_id) - 1, '건')
-	            ELSE MAX(c.fuel_nm)
-	        END AS productName,
-	        o.order_status,
-	        s1.etp_stts_nm AS statusNm,
-	        p.amount,	
-	        o.reg_dtime,
-	        d.delivery_status,
-	        s2.etp_stts_nm AS deliveryStatusNm
-	    FROM TB_ORDER_MST o
-	    LEFT JOIN TB_CART c ON o.order_no = c.order_no 
-	    LEFT JOIN TB_ETP_STTS_CD s1 ON o.order_status = s1.etp_stts_cd
-	    LEFT JOIN TB_DELIVERY d ON o.order_id = d.order_id
-	    LEFT JOIN TB_ETP_STTS_CD s2 ON d.delivery_status = s2.etp_stts_cd
-	    LEFT JOIN TB_PAYMENT_MST p ON o.order_id = p.order_id 
-	    <where>
-	        <if test="userType != 'MASTER'">
-	            AND o.reg_id = #{userId}
-	        </if>
-	        AND o.use_yn = 'Y'
-	
-	        <if test="orderStatus != null and orderStatus != ''">
-	            AND o.status = #{orderStatus}
-	        </if>
-	
-	        <if test="showSearchArea == 'true' and keyword != null and keyword != ''">
-	            AND (
-	                o.order_no LIKE CONCAT('%', #{keyword}, '%')
-	                OR o.reg_id LIKE CONCAT('%', #{keyword}, '%')
-	            )
-	        </if>
-	    </where>
-	    GROUP BY o.order_id
-	    ORDER BY o.order_no DESC
-	</select>
+		
 	
 	<!-- 아이디로 PK찾기 -->
 	<select id="getUserNoById">
 		SELECT 
 			user_no
-		FROM TB_USER
+		FROM TB_USERS
 		WHERE user_id = #{userId}
 	</select>
 	
@@ -58,7 +16,7 @@
 	<select id="getUserTypeById">
 		SELECT
 		   user_type 
-	    FROM TB_USER 
+	    FROM TB_USERS 
 	    WHERE user_id = #{userId}
 	</select>
 	

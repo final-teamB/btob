@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import io.github.teamb.btob.dto.document.DocumentListDTO;
 import io.github.teamb.btob.dto.document.DocumentMemoActionDTO;
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
+import io.github.teamb.btob.dto.trade.TradePendingDTO;
 
 @Mapper
 public interface TradeDocMapper {
@@ -19,6 +20,8 @@ public interface TradeDocMapper {
 	
 	// 문서 미리보기(PDF변환)
 	DocumentPreviewDTO getDocumentById(int docId);
+
+	List<TradePendingDTO> getOrderDetailList(int orderId);
 
 
 }

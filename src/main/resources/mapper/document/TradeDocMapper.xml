@@ -2,6 +2,35 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.document.TradeDocMapper">
 		
+		<select id="getOrderDetailList" resultType="io.github.teamb.btob.dto.trade.TradePendingDTO">
+		SELECT 
+	        O.order_id,
+	        O.order_no,
+	        O.quote_req_id,
+	        O.order_status,
+	        O.reg_dtime,
+	        C.cart_id,
+	        F.fuel_nm,
+	        C.total_qty,
+	        C.total_price,
+	        F.base_unit_prc,
+	        U.user_no,
+	        U.user_id,
+	        U.user_name,
+	        U.phone,
+	        CO.company_name,
+	        CO.company_cd,
+	        CO.biz_number,
+	        CO.addr_kor
+	    FROM TB_ORDER_MST O
+		    INNER JOIN TB_CART C ON O.order_no = C.order_no
+		    INNER JOIN TB_OIL_MST F ON C.fuel_id = F.fuel_id
+		    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+		    INNER JOIN TB_COMPANIES CO ON U.company_cd = CO.company_cd
+	    WHERE O.order_id = #{orderId}
+	    ORDER BY C.cart_id ASC
+		</select>
+		
 		<update id="modifyMemo">
 			UPDATE TB_DOCUMENT_MST
 			SET memo = #{memo}

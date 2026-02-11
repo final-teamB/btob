@@ -31,8 +31,11 @@ public class SecurityConfig {
                 .requestMatchers("/admin/user/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
+            .headers(headers -> headers
+                    .frameOptions(frame -> frame.sameOrigin())
+             )
             .formLogin(form -> form
-                .loginPage("/login")
+                .loginPage("/login")	
                 .usernameParameter("email")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/main", true)

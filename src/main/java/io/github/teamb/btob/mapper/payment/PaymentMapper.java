@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import io.github.teamb.btob.dto.payment.PaymentRequestDTO;
 import io.github.teamb.btob.dto.payment.PaymentViewDTO;
+import io.github.teamb.btob.dto.payment.PaymentVo;
 
 @Mapper
 public interface PaymentMapper {

@@ -29,17 +29,35 @@
         </div>
     </div>
 
-    <div class="space-y-3">
-        <button onclick="location.href='${pageContext.request.contextPath}/users/orderlist'" 
-                class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">
-            주문 내역 확인하기
-        </button>
-        <button onclick="location.href='${pageContext.request.contextPath}/main'" 
-                class="w-full bg-white border border-gray-200 text-gray-600 py-3 rounded-lg hover:bg-gray-50 transition">
-            홈으로 이동
-        </button>
-    </div>
-</div>
+	<div class="space-y-3">
+	    <button onclick="goToOrderList()" 
+	            class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+	        주문 내역 확인하기
+	    </button>
+	    
+	    <button onclick="location.href='${pageContext.request.contextPath}/main'" 
+	            class="w-full bg-white border border-gray-200 text-gray-600 py-3 rounded-lg hover:bg-gray-50 transition">
+	        홈으로 이동
+	    </button>
+	</div>	
 
+<script>
+	function goToOrderList() {
+	    const listUrl = '${pageContext.request.contextPath}/order/list';
+	    
+	    // 만약 팝업으로 띄웠을 때를 대비한 안전장치 (새창 방식이면 else만 작동)
+	    if (window.opener && !window.opener.closed) {
+	        if (typeof window.opener.fetchData === 'function') {
+	            window.opener.fetchData();
+	        } else {
+	            window.opener.location.reload();
+	        }
+	        window.close();
+	    } else {
+	        location.href = listUrl;
+	    }
+	}
+</script>
+</div>
 </body>
 </html>

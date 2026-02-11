@@ -45,10 +45,6 @@ public interface UserMapper {
 	// 아이디로 PK찾기
 	Integer getUserNoById(String userId);
 	
-	//주문/배송목록
-	List<OrderHistoryDTO> selectUserOrderList(OrderHistoryDTO dto, String userType);
-
-
-
+	
 
 }
