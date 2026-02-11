@@ -84,4 +84,31 @@ public interface AtchFileMapper {
      * 2026. 2. 4.  GD       최초 생성
      */
     Integer unUseAtchFile(Map<String, Object> params);
+    
+    /**
+     * 
+     * 세부정보에서 수정 시 사용여부를 동적 처리하는게 필요함
+     * @author GD
+     * @since 2026. 2. 11.
+     * @param params
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 11.  GD       최초 생성
+     */
+    Integer updateUseYnByDetailInfoChg(Map<String, Object> params);
+    
+    
+    /**
+     * 
+     * 세부정보에서 수정 시 아이디랑 변환파일명따와야함
+     * @author GD
+     * @since 2026. 2. 11.
+     * @param params
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 11.  GD       최초 생성
+     */
+    AtchFileDto selectFileIdStrFileNm(Map<String, Object> params);
 }

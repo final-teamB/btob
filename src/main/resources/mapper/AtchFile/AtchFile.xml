@@ -123,7 +123,7 @@
 			SET
 				use_yn = 'N'
         		,upd_dtime = CURRENT_TIMESTAMP
-        		,upd_id = #{userNo}
+        		,upd_id = #{userId}
 			WHERE ref_id IN
 			<foreach item="refId" 
 				collection="refIds" 
@@ -134,4 +134,35 @@
     		</foreach>
 			
 	</update>
+	
+	
+	<!-- 세부정보에서 수정 시 사용여부를 동적 처리하는게 필요함 -->
+	<update id="updateUseYnByDetailInfoChg"
+		parameterType="java.util.Map">
+	
+			UPDATE
+				TB_ATCH_FILE_MST
+			SET
+				use_yn = #{useYn}
+			WHERE file_id = #{fileId}
+			AND str_file_nm = #{strFileNm}
+	
+	</update>
+	
+	<!-- 세부정보에서 수정 시 아이디랑 변환파일명따와야함.. -->
+	<select id="selectFileIdStrFileNm"
+		parameterType="java.util.Map"
+		resultType="io.github.teamb.btob.dto.attachfile.AtchFileDto">
+	
+			SELECT
+				file_id
+				,str_file_nm
+			FROM
+				TB_ATCH_FILE_MST
+			WHERE 1=1
+			AND ref_id = #{refId}
+			AND system_id = #{systemId}
+			AND use_yn = 'Y'
+		
+	</select>
 </mapper>

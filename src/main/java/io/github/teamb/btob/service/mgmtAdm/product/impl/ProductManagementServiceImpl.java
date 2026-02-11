@@ -257,9 +257,11 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		}
 		
 		Integer fuelId = requestDTO.getProductBase().getFuelId();
+		String useYn = requestDTO.getProductBase().getUseYn();
 
 		// 상품 기본 정보 수정
 		Integer result = productMgmtAdmMapper.updateProductAdm(requestDTO.getProductBase());
+		
 		
 		if (result > 0) {
 			
@@ -277,9 +279,16 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		                fileDto.setRefId(fuelId);
 		                
 		                // registerInternalImgFile 내부에서 임시폴더에 파일이 있을 경우에만 정식 이동/DB등록 수행함
-		                fileService.registerInternalImgFile(fileDto);
+		                AtchFileDto mainSaved = fileService.registerInternalImgFile(fileDto);
+		                if (mainSaved != null && mainSaved.getFileId() != null) {
+		                	
+		                    fileService.updateUseYnByDetailChg(useYn, mainSaved.getFileId(), mainSaved.getStrFileNm());
+		                }
 		            }
-		        }
+		        } 
+		        
+		        // [추가] 이미지가 새로 등록되지 않았더라도 기존 이미지들의 useYn을 동기화해야 함
+		        syncExistingFilesStatus(fuelId, "PRODUCT_M", useYn);
 
 		        // [서브 이미지 처리]
 		        fileService.updateUnusedFiles("PRODUCT_S", fuelId, subRemainNames);
@@ -292,12 +301,20 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		                fileDto.setSystemId("PRODUCT_S");
 		                fileDto.setRefId(fuelId);
 		                
-		                fileService.registerInternalImgFile(fileDto);
+		                AtchFileDto subSaved = fileService.registerInternalImgFile(fileDto);
+		                if (subSaved != null && subSaved.getFileId() != null) {
+		                	
+		                    fileService.updateUseYnByDetailChg(useYn, subSaved.getFileId(), subSaved.getStrFileNm());
+		                }
 		            }
-		        }
+		        } 
+		        
+		       // [추가] 서브 이미지 기존 파일들도 상태 동기화
+		       syncExistingFilesStatus(fuelId, "PRODUCT_S", useYn);
 			    
 		       // 상품 상세 정보 수정
 		       Integer detailResult = productMgmtAdmMapper.updateProductDetailInfoAdm(requestDTO.getProductDetail());
+		       
 		       
 		       if (detailResult <= 0) {
 		           throw new Exception("상품 상세 정보 수정에 실패했습니다.");
@@ -344,7 +361,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		       List<Integer> refIds = new ArrayList<>();
 		       refIds.add(requestDTO.getFuelId());
 		       
-		       fileService.updateUnuseAtchFile(refIds, requestDTO.getUserNo());
+		       fileService.updateUnuseAtchFile(refIds, requestDTO.getUserId());
 		   } else {
 		       throw new Exception("상품 기본 정보 미사용 수정에 실패했습니다.");
 		   }
@@ -415,6 +432,25 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	    
 	    // 이제 Generic 파라미터(class)를 넘길 필요 없이 깔끔하게 호출 가능합니다.
 	    return commonService.getSelectBoxList(dto);
+	}
+	
+	/**
+	 * 기존에 이미 등록되어 있던 파일들의 상태(useYn)를 현재 상품 상태와 동기화
+	 */
+	private void syncExistingFilesStatus(Integer fuelId, String systemId, String useYn) throws Exception {
+	   
+		// getFileIdAndStrFileNm이 리스트를 반환하거나 단일 객체를 반환하는 방식에 맞춰 처리
+	    // 예시: 해당 fuelId와 systemId로 현재 'Y'인 파일들을 가져와서 모두 업데이트
+	    try {
+	        AtchFileDto existingFile = fileService.getFileIdAndStrFileNm(fuelId, systemId);
+	        
+	        if (existingFile != null && existingFile.getFileId() != null) {
+	        	
+	            fileService.updateUseYnByDetailChg(useYn, existingFile.getFileId(), existingFile.getStrFileNm());
+	        }
+	    } catch (Exception e) {
+	        // 파일이 없는 경우 skip
+	    }
 	}
 
 }

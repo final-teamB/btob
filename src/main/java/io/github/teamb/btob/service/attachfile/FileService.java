@@ -29,11 +29,17 @@ public interface FileService {
     void displayImage(String systemId, String fileName, HttpServletResponse response) throws Exception;
     
     // 일반 미사용 처리
-    Integer updateUnuseAtchFile(List<Integer> refIds, Integer userNo) throws Exception;
+    Integer updateUnuseAtchFile(List<Integer> refIds, String userId) throws Exception;
     
     // 임시파일 저장
     AtchFileDto uploadImgTempFile(MultipartFile file) throws Exception;
     
     // 서버 내 특정 임시 경로의 파일을 시스템 저장소로 이동 및 등록
     AtchFileDto registerInternalImgFile(AtchFileDto fileDto) throws Exception;
+    
+    // 상품 세부정보 변경 시 사용여부 동적
+    void updateUseYnByDetailChg(String useYn, Integer fileId, String strFileNm) throws Exception;
+    
+    // 세부정보에서 수정 시 아이디랑 변환파일명
+    AtchFileDto getFileIdAndStrFileNm(Integer refId, String systemId) throws Exception;
 }

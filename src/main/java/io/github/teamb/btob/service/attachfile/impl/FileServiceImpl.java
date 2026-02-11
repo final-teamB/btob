@@ -282,11 +282,11 @@ public class FileServiceImpl implements FileService {
      * 2026. 2. 4.  GD       최초 생성
      */
 	@Override
-	public Integer updateUnuseAtchFile(List<Integer> refIds, Integer userNo) throws Exception {
+	public Integer updateUnuseAtchFile(List<Integer> refIds, String userId) throws Exception {
 		
 		Map<String, Object> params = new HashMap<>();
 	    params.put("refIds", refIds);
-	    params.put("userNo", userNo);
+	    params.put("userId", userId);
 		
 		if ( !(commonService.nullEmptyChkValidate(params)) ) {
     		throw new Exception("잘못된 파라미터 입니다.");
@@ -395,5 +395,54 @@ public class FileServiceImpl implements FileService {
 	    fileMapper.insertFile(resultDto);
 	    
 	    return resultDto;
+	}
+
+
+	/**
+	 * 
+	 * 상품 세부 정보 변경시 사용여부 최종 결정
+	 * @author GD
+	 * @since 2026. 2. 11.
+	 * @param useYn
+	 * @param fileId
+	 * @param strFileNm
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 11.  GD       최초 생성
+	 */
+	@Override
+	public void updateUseYnByDetailChg(String useYn, Integer fileId, String strFileNm) throws Exception {
+		
+		Map<String, Object> useYnparams = new HashMap<>();
+	    useYnparams.put("useYn", useYn);
+	    useYnparams.put("fileId", fileId);
+	    useYnparams.put("strFileNm", strFileNm);
+	    
+		fileMapper.updateUseYnByDetailInfoChg(useYnparams);
+	}
+
+
+	/**
+	 * 
+	 * 상품 세부정보에서 수정 시 아이디랑 변환파일명 따와야함
+	 * @author GD
+	 * @since 2026. 2. 11.
+	 * @param refId
+	 * @param systemId
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 11.  GD       최초 생성
+	 */
+	@Override
+	public AtchFileDto getFileIdAndStrFileNm(Integer refId, String systemId) throws Exception {
+		
+		Map<String, Object> selectparams = new HashMap<>();
+		selectparams.put("refId", refId);
+		selectparams.put("systemId", systemId);
+
+		return fileMapper.selectFileIdStrFileNm(selectparams);
 	}
 }

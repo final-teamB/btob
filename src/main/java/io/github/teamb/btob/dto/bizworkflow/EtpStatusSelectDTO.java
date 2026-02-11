@@ -20,5 +20,5 @@ public class EtpStatusSelectDTO {
 	private String targetTable;		// 업데이트 대상 테이블
 	private String targetPkCol;			// 업데이트 테이블 조건절에 들어갈 PK컬럼명
 	private Integer refId;			// 고유식별번호
-	private Integer apprUserNo;		// 요청자
+	private String apprUserNo;		// 요청자
 }

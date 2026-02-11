@@ -53,9 +53,15 @@
 				LEFT OUTER JOIN COMM_TBL e 
 					ON a.item_stts_cd = e.comm_no 
 					AND e.param_value = 'FUEL_ITEM_STTS'
-				LEFT OUTER JOIN TB_ATCH_FILE_MST f
-					ON a.fuel_id = f.ref_id
-					AND f.system_id = 'PRODUCT_S'
+				LEFT OUTER JOIN (
+				    SELECT *
+				    FROM (
+				        SELECT *, ROW_NUMBER() OVER (PARTITION BY ref_id ORDER BY file_id DESC) as rn
+				        FROM TB_ATCH_FILE_MST
+				        WHERE system_id = 'PRODUCT_S'
+				    ) tmp
+				    WHERE rn = 1
+				) f ON a.fuel_id = f.ref_id
 					
 	</sql>
 	
@@ -108,7 +114,6 @@
 		    <if test="itemSttsNm != null and itemSttsNm != ''">
 		        AND e.comm_name = #{itemSttsNm}
 		    </if>
-		    AND f.use_yn = 'Y'
 		    ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
 			
 			<if test='isExcel == null or isExcel != "Y"'>
@@ -142,7 +147,6 @@
 		    <if test="itemSttsNm != null and itemSttsNm != ''">
 		        AND e.comm_name = #{itemSttsNm}
 		    </if>
-			AND f.use_yn = 'Y'
 	
 	</select>
 	
@@ -186,12 +190,20 @@
 				TB_OIL_MST a
 				LEFT OUTER JOIN TB_OIL_MST_DETAIL b
 					ON a.fuel_id = b.fuel_id
-				LEFT OUTER JOIN TB_ATCH_FILE_MST c
-					ON a.fuel_id = c.ref_id
-					AND c.system_id IN ('PRODUCT_M', 'PRODUCT_S')
+				LEFT OUTER JOIN (
+			        /* [수정 포인트] 최신 파일만 뽑아내는 서브쿼리 */
+			        SELECT *
+			        FROM (
+			            SELECT 
+			                *, 
+			                ROW_NUMBER() OVER (PARTITION BY ref_id, system_id ORDER BY file_id DESC) as rn
+			            FROM TB_ATCH_FILE_MST
+			            WHERE system_id IN ('PRODUCT_M', 'PRODUCT_S')
+			        ) tmp
+			        WHERE rn = 1
+			    ) c ON a.fuel_id = c.ref_id
 			WHERE 1=1
 			AND a.fuel_id = #{fuelId}
-			AND c.use_yn = 'Y'
 	
 	</select>
 	

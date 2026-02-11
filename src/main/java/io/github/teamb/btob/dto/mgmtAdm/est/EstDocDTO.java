@@ -22,9 +22,9 @@ public class EstDocDTO {
     private String estNo;          // 견적번호 (예: EST-2026-001)
     private String companyName;    // 회사명
     private String companyPhone;   // 회사연락처
-    private Integer requestUserId; // 요청자ID
+    private String requestUserId; // 요청자ID
     private String requestUserNm;  // 요청자 이름 (fnc_get_usernm 활용용)
-    private Integer apprUserId;    // 승인자ID
+    private String apprUserId;    // 승인자ID
     private String apprUserNm;     // 승인자 이름 (fnc_get_usernm 활용용)
     private String ctrtNm;         // 계약명
     private String estdtMemo;      // 요청 상세 내용

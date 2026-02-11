@@ -142,12 +142,12 @@ public class AtchFileController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> deleteFile( 
 									    		@RequestParam List<Integer> refIds,
-									    		@PathVariable Integer userNo) {
+									    		@PathVariable String userId) {
     	
         Map<String, Object> result = new HashMap<>();
         try {
         	
-            fileService.updateUnuseAtchFile(refIds, userNo);
+            fileService.updateUnuseAtchFile(refIds, userId);
             result.put("status", "success");
             return ResponseEntity.ok(result);
         } catch (Exception e) {

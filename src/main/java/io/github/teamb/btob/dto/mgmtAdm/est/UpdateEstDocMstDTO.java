@@ -17,7 +17,7 @@ import lombok.Data;
 public class UpdateEstDocMstDTO {
 	
 	private Integer estDocId;		// 견적서 식별자
-	private Integer requestUserId;	// 요청자
+	private String requestUserId;	// 요청자
 	private String ctrtNm;			// 계약명
 	private String estdtMemo;		// 요청 세부내용
 	

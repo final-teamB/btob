@@ -26,7 +26,7 @@ import lombok.Data;
 @Data
 public class EtpStatusUpdateDTO {
 
-    private Integer updId;           	// 수정자
+    private String updId;           	// 수정자
 	private String targetTable;			// 업데이트 테이블
 	private String targetStatusCol;		// 업데이트 테이블 상태코드 컬럼
 	private String targetPkCol;			// 업데이트 테이블 식별자 컬럼
