@@ -57,6 +57,8 @@ public class DeliveryController {
             // 1. 기본 값 세팅 (JS에서 보낸 키값과 매칭)
             deliveryDTO.setDeliveryId(Integer.parseInt(params.get("deliveryId").toString()));
             deliveryDTO.setTrackingNo((String) params.get("trackingNo"));
+            deliveryDTO.setCarrierName((String) params.get("carrierName"));
+            deliveryDTO.setShipToAddr((String) params.get("shipToAddr"));
             
             // 2. Enum 처리 (문자열 dv001 -> Enum DeliveryStatus.dv001 변환)
             String statusStr = (String) params.get("deliveryStatus");
@@ -102,6 +104,6 @@ public class DeliveryController {
         result.put("success", isSuccess);
         result.put("message", isSuccess ? "비활성화 처리되었습니다." : "처리 실패");
         
-        return result;
+        return result; 
     }
 }
