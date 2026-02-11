@@ -32,10 +32,10 @@ public class AtchFileDto {
     private Long fileSize;       // 파일 크기
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime regDtime;        // 등록 일시
-    private Integer regId;		// 생성자
+    private String regId;		// 생성자
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updDtime;		// 수정시간
-    private Integer updId;				// 수정자
+    private String updId;				// 수정자
     private String useYn;
     // Getter, Setter 생략
     

@@ -20,6 +20,5 @@ public class EtpHistInsertDTO {
 	private Integer apprUserNo;			// 승인자
 	private Integer requestUserNo;		// 요청자
 	private String rejtRsn;				// 사유 (반려시)
+	private String userId;
 }
-
-

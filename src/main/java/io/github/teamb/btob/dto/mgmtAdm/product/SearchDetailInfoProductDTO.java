@@ -39,13 +39,22 @@ public class SearchDetailInfoProductDTO {
     private LocalDateTime updDtime; // 수정 일시
     private String updId;           // 수정자 ID
 
+    private String regNm;
+    private String updNm;
+    
     // TB_OIL_MST_DETAIL (상세 정보 조인용 필드)
     private Integer apiGrv;          // API 비중
     private Integer sulfurPCnt;      // 유황 함량
     private Integer flashPnt;        // 인화점
     private Integer viscosity;       // 점도
     private Integer density15c;      // 15도 밀도
+    private String fuelMemo;
     
     // 파일 이미지
     private List<AtchFileDto> fileList;
+    
+    private String systemId;
+    private Integer fileId;
+    private String strFileNm;
+    
 }

@@ -23,7 +23,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
-                .requestMatchers("/", "/main", "/notice", "/notice/**").permitAll()
+                .requestMatchers("/", "/main", "/notice", "/notice/**","/admin/products/**").permitAll()
                 .requestMatchers("/notice/write", "/notice/edit/**", "/notice/update", "/notice/delete/**").hasRole("ADMIN")
                 .requestMatchers("/admin/delivery/**").hasRole("ADMIN")
                 .requestMatchers("/admin/stats/**").hasRole("ADMIN")
@@ -31,8 +31,11 @@ public class SecurityConfig {
                 .requestMatchers("/admin/user/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
+            .headers(headers -> headers
+                    .frameOptions(frame -> frame.sameOrigin())
+             )
             .formLogin(form -> form
-                .loginPage("/login")
+                .loginPage("/login")	
                 .usernameParameter("email")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/main", true)

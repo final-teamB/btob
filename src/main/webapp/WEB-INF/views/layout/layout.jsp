@@ -47,9 +47,9 @@
 	
 	<div class="flex pt-16">
 		<jsp:include page="/WEB-INF/views/layout/adminSidebar.jsp" />
-		<!--<jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />-->
+		<jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
 		
-		<div class="flex flex-col flex-1 lg:ml-64 min-h-screen">
+		<div class="flex flex-col flex-1 ml-64 min-h-screen">
 
             <!-- CONTENT -->
             <main class="p-5 flex-1 bg-gray-50 dark:bg-gray-900">

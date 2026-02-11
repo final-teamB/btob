@@ -18,10 +18,10 @@ import lombok.Data;
 public class SearchEtpHistListDTO {
 	
 	private Integer etpId;				// 식별자( 견적, 주문, 구매, 결제 )
-	private Integer regId;				// 요청자
-	private Integer requestUserNm;		// 요청자 성명
-	private Integer apprUserId;			// 승인자
-	private Integer apprUserNm;			// 승인자 성명
+	private String regId;				// 요청자
+	private String requestUserNm;		// 요청자 성명
+	private String apprUserId;			// 승인자
+	private String apprUserNm;			// 승인자 성명
 	private String etpSttsCd;			// 상태코드
 	private String etpSttsNm;			// 상태코드명
 	private String rejtRsn;				// 반려사유

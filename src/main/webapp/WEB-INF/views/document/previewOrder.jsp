@@ -8,7 +8,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ORDER - Approval Pending</title>
+<title>PURCHASE ORDER</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
@@ -25,15 +25,25 @@
 
     <div class="max-w-screen-2xl mx-auto px-4">
         <div class="bg-white p-12 rounded-xl shadow-lg border border-gray-100 print-shadow-none">
-            
+
             <%-- 상단 헤더: 견적서(Estimate) 규격 1:1 매칭 --%>
             <div class="flex justify-between items-end border-b-4 border-gray-800 pb-8 mb-10">
-                <div>
-                    <h2 class="text-4xl font-black text-gray-900 tracking-tighter uppercase italic">Purchase Order</h2>
-                    <div class="mt-4 space-y-1 text-sm text-gray-500">
-                        <p>주문번호: <span class="font-bold text-gray-800 italic uppercase">Approval Pending</span></p>                   
-                    </div>
-                </div>
+                <div class="mt-4 space-y-1 text-sm text-gray-500">
+				    <p>주문번호: 
+				        <span class="font-bold text-gray-800 italic uppercase">
+				            <c:choose>
+				                <%-- 주문번호가 null이 아니고 비어있지 않은 경우 실제 번호 출력 --%>
+				                <c:when test="${not empty info.orderNo}">
+				                    <c:out value="${info.orderNo}" />
+				                </c:when>
+				                <%-- 주문번호가 없는 경우(최초 생성 전 등) 대기 문구 출력 --%>
+				                <c:otherwise>
+				                    Approval Pending
+				                </c:otherwise>
+				            </c:choose>
+				        </span>
+				    </p>                   
+				</div>
                 <div class="text-right">
                     <h3 class="text-2xl font-bold text-emerald-800">(주)글로벌 유류 트레이딩</h3>
                     <p class="text-gray-600 mt-1 font-medium italic">Customer Service: 02-1234-5678</p>
@@ -49,7 +59,7 @@
                        <div>
 						    <p class="text-xs text-emerald-600 font-bold uppercase tracking-tighter mb-1">Contract Name</p>
 						    <p class="text-xl font-bold text-gray-800 leading-tight">
-							    <c:out value="${info.fuel_nm}" /> 
+							    <c:out value="${info.fuelNm}" /> 
 							    <c:if test="${itemList.size() > 1}">
 							        외 <c:out value="${itemList.size() - 1}" />건 
 							    </c:if>
@@ -59,19 +69,19 @@
                         <div class="pt-4 border-t border-emerald-200/60 grid grid-cols-1 gap-y-2">
                             <div class="flex items-start">
                                 <span class="text-xs font-bold text-gray-400 w-20 shrink-0 mt-0.5">요청업체</span>
-                                <span class="text-sm font-bold text-gray-800">${info.company_name}</span>
+                                <span class="text-sm font-bold text-gray-800">${info.companyName}</span>
                             </div>
                             <div class="flex items-start">
                                 <span class="text-xs font-bold text-gray-400 w-20 shrink-0 mt-0.5">업체주소</span>
-                                <span class="text-sm text-gray-600 leading-snug">${info.addr_kor}</span>
+                                <span class="text-sm text-gray-600 leading-snug">${info.addrKor}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs font-bold text-gray-400 w-20 shrink-0">연락처</span>
-                                <span class="text-sm text-gray-600">${info.user_phone}</span>
+                                <span class="text-sm text-gray-600">${info.phone}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs font-bold text-gray-400 w-20 shrink-0">담당자</span>
-                                <span class="text-sm text-gray-800 font-bold">${info.user_name} <span class="text-xs font-normal text-gray-400 ml-1">(ID: ${info.user_id})</span></span>
+                                <span class="text-sm text-gray-800 font-bold">${info.userName} <span class="text-xs font-normal text-gray-400 ml-1">(ID: ${info.userId})</span></span>
                             </div>
                         </div>
                     </div>
@@ -125,12 +135,12 @@
                         <c:set var="totalSum" value="0" />
                         <c:forEach var="item" items="${itemList}">
                             <tr class="hover:bg-gray-50 transition font-medium">
-                                <td class="py-5 px-4 font-bold text-gray-800">${item.fuel_nm}</td>
-                                <td class="py-5 px-4 text-center text-gray-600 font-mono">${item.total_qty}</td>
-                                <td class="py-5 px-4 text-right text-gray-500 font-mono"><fmt:formatNumber value="${item.base_unit_prc}" pattern="#,###"/></td>
-                                <td class="py-5 px-4 text-right text-emerald-900 font-black bg-emerald-50/20 font-mono italic text-lg"><fmt:formatNumber value="${item.total_price}" pattern="#,###"/></td>
+                                <td class="py-5 px-4 font-bold text-gray-800">${item.fuelNm}</td>
+                                <td class="py-5 px-4 text-center text-gray-600 font-mono">${item.totalQty}</td>
+                                <td class="py-5 px-4 text-right text-gray-500 font-mono"><fmt:formatNumber value="${item.baseUnitPrc}" pattern="#,###"/></td>
+                                <td class="py-5 px-4 text-right text-emerald-900 font-black bg-emerald-50/20 font-mono italic text-lg"><fmt:formatNumber value="${item.totalPrice}" pattern="#,###"/></td>
                             </tr>
-                            <c:set var="totalSum" value="${totalSum + item.total_price}" />
+                            <c:set var="totalSum" value="${totalSum + item.totalPrice}" />
                         </c:forEach>
                     </tbody>
                 </table>
@@ -183,7 +193,7 @@
 	        </div>
 	        
 	        <div class="flex gap-2">
-	            <c:if test="${user_type eq 'MASTER'}">
+	            <c:if test="${userType eq 'MASTER'}">
 	                <c:choose>
 	                    <c:when test="${info.orderStatus eq 'od001'}">
 	                        <button type="button" onclick="fn_processApproval('REJECT')" 
@@ -204,7 +214,7 @@
 	                </c:choose>
 	            </c:if>
 	
-	            <c:if test="${user_type eq 'USER'}">
+	            <c:if test="${userType eq 'USER'}">
 	                <button type="button" onclick="fn_confirmOrder('USER_REQ')"
 	                        class="px-8 py-2 text-sm font-bold text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 shadow-xl transition">
 	                    주문 승인 요청
@@ -234,11 +244,20 @@
 	    const msg = requestLevel === 'USER_REQ' ? "대표님께 승인을 요청하시겠습니까?" : "최종 주문을 요청하시겠습니까?";
 	    if (!confirm(msg)) return;
 	
+		 // 1. cartIds 처리: 문자열로 들어올 경우를 대비해 처리
+	    // 만약 [1,2] 형태면 그대로 들어가고, "1,2" 형태면 배열로 변환합니다.
+	    let rawCartIds = "${cartIds}";
+	    // 2. totalSum 처리: 콤마 제거 후 숫자로 변환
+	    let rawTotalSum = "${totalSum}".replace(/,/g, "");
+
 	    const requestData = {
-	        "cartIds": "${cartIds}",
-	        "totalSum": "${totalSum}",
-	        "requestLevel": requestLevel // USER_REQ 또는 MASTER_REQ
-	    };
+	            // 문자열 "10,5"를 [10, 5] 배열로 변환하는 로직 추가
+	            "cartIds": String(rawCartIds).split(',').map(id => Number(id.trim())),
+	            "totalSum": Number(rawTotalSum),
+	            "requestLevel": requestLevel
+        };
+	    
+	    console.log("전송 데이터:", requestData); // 디버깅용
 	
 	    $.ajax({
 	        url: "${pageContext.request.contextPath}/order/orderSubmit",
@@ -288,8 +307,9 @@
 	        "orderId": "${info.orderId}",
 	        "orderNo": "${info.orderNo}",
 	        "userNo": "${info.userNo}",
+	        "userId": "${info.userId}",
 	        "status": status,
-	        "rejectReason": reason
+	        "rejectReason": reason	
 	    };
 
 	    $.ajax({

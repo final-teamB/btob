@@ -16,23 +16,11 @@ const rawData = [
     {
         orderId: "${p.orderId}",
         orderNo: "${p.orderNo}",
-        quoteReqId: "${p.quoteReqId}",
         docType: "${p.docType}",
-        orderStatus: "${p.orderStatus}",
-        cartIds: "${p.cartIds}",
-        cartCount: "${p.cartCount}",
-        totalQty: "${p.totalQty}",
-        totalPrice: "${p.totalPrice}",
-        fuelNm: "${p.fuelNm}",
-        baseUnitPrc: "${p.baseUnitPrc}",
         userNo: "${p.userNo}",
         userName: "${p.userName}",
         userId: "${p.userId}",
-        userPhone: "${p.phone}",
-        companyName: "${p.companyName}",
-        companyCd: "${p.companyCd}",
-        bizNumber: "${p.bizNumber}",
-        addrKor: "${p.addrKor}",
+        phone: "${p.phone}",
         regDtime: "${p.regDtime}"
     }${!status.last ? ',' : ''}
     </c:forEach>
@@ -53,21 +41,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 header: '구분', 
                 name: 'docType', 
                 align: 'center',
-                width: 140,
                 renderer: { 
                     type: CustomStatusRenderer, 
                     options: { theme: 'docType' }
                 }
             },
-            { 
-                header: '문서번호', 
-                name: 'orderNo', 
-                align: 'left',
-                width: 200,
-                formatter: (val) => `<span class="font-mono font-bold text-gray-700">\${val}</span>`
-            },
+            { header: '문서번호', name: 'orderNo', align: 'left'},
             { header: '요청자', name: 'userName'},
-            { header: '연락처', name: 'userPhone'},
+            { header: '연락처', name: 'phone'},
             { header: '신청일시', name: 'regDtime'},
             { 
                 header: '상세검토',
@@ -83,43 +64,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         ],
         data: rawData
-    });
-
-    /** 4. 상세검토 버튼 클릭 이벤트 (POST 팝업) **/
-    pendingGrid.on('actionClick', (e) => {
-        if(e.action === 'OPEN_DETAIL') {
-            const rowData = e.row;
-            const safeOrderNo = rowData.orderNo.replace(/[^a-zA-Z0-9]/g, "");
-            const name = "DocPreview_" + safeOrderNo;
-            
-            const targetUrl = rowData.docType === 'ESTIMATE' 
-                              ? `\${pageContext.request.contextPath}/document/previewEst` 
-                              : `\${pageContext.request.contextPath}/document/previewOrder`;
-			
-            const width = 1250;
-            const height = 900;
-            const left = (window.screen.width / 2) - (width / 2);
-            const top = (window.screen.height / 2) - (height / 2);
-            const specs = `width=${width}, height=${height}, top=${top}, left=${left}, scrollbars=yes, resizable=yes`;
-            window.open("", name, specs);
-
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.action = targetUrl;
-            form.target = name;
-
-            Object.keys(rowData).forEach(key => {
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = key;
-                input.value = rowData[key];
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-        }
-    });
+    });   
 });
+
+window.handleGridAction = function(rowData, action) {
+    if(action === 'OPEN_DETAIL') {
+        const orderId = rowData.orderId;
+        const ctx = "${pageContext.request.contextPath}";
+       
+        const targetUrl = ctx + "/document/previewOrder?orderId=" + orderId;
+
+
+        // 창 이름을 "_blank"로 주어 별도의 탭에서 열리게 합니다.
+        const win = window.open(targetUrl, "_blank");
+        if (win) win.focus();
+    }
+};
 </script>

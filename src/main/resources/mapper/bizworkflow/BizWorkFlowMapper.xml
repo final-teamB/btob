@@ -24,12 +24,12 @@
 		resultType="String">
 	
 			SELECT
-				${targetPkCol}
+				${targetStatusCol}
 			FROM
 				${targetTable}
 			WHERE 1=1 
 			AND ${targetPkCol} = #{refId}
-			AND reg_id = #{apprUserNo}
+			AND reg_id = #{userId}
 	
 	</select>
 	
@@ -79,7 +79,7 @@
 			SET
 				${targetStatusCol} = #{updateStatus}
 				,upd_dtime = CURRENT_TIMESTAMP
-				-- ,upd_id = #{userNo}
+			    ,upd_id = #{userId}
 			WHERE 1=1
 				AND use_yn = 'Y'
 				AND ${targetPkCol} = #{refId}
@@ -93,16 +93,16 @@
 	
 			INSERT INTO TB_ETP_HIST (
 				 etp_id
-				,appr_user_id --승인자
+				,appr_user_id
 				,etp_stts_cd
 				,rejt_rsn
-				,reg_id	--요청자
+				,reg_id
 			) VALUES (
 				 #{refId}
 				,#{apprUserNo}
 				,#{requestEtpStatus}
-				,#{rejt_rsn}
-				,#{requestUserNo}
+				,#{rejtRsn}
+				,#{userId}
 			)
 	
 	</insert>
@@ -116,7 +116,6 @@
 			SET 
 				appr_user_id = #{userNo} 
 			WHERE est_doc_id = #{estDocId}
-			
 	</update>
 
 </mapper>

@@ -30,10 +30,6 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 	private final UserMapper userMapper;
 
-	// 주문/배송 목록
-	public List<OrderHistoryDTO> selectUserOrderList(OrderHistoryDTO dto, String userType) {
-		return userMapper.selectUserOrderList(dto, userType);
-	}
 	
 	// 사원 회원가입 인증
 	public void processPendingUser(UserPendingActionDTO upa) {
