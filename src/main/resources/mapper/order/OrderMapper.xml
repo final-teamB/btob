@@ -66,7 +66,7 @@
 	        upd_id = #{regId}
 	</insert>
 		
-	<insert id="insertEstDoc" parameterType="io.github.teamb.btob.dto.est.EstDocDTO" 
+	<insert id="insertEstDoc" parameterType="io.github.teamb.btob.dto.est.EstDocListDTO" 
       	 useGeneratedKeys="true" keyProperty="estDocId" keyColumn="est_doc_id">
 		INSERT INTO TB_EST_DOC (
 	        est_no,

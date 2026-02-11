@@ -15,14 +15,16 @@ public interface AdminUserMapper {
 	List<Map<String, Object>> selectAllUsers();
 	
 	// 대표 가입 승인
-	int updateCompanyApproval(String userId);
+	int updateCompanyApproval(@Param("userId") String userId, @Param("updId") String updId);
 	
 	// 계정 상태 변경
-	int updateUserStatus(@Param("userId") String userId, @Param("accStatus") String accStatus);
+	int updateUserStatus(@Param("userId") String userId, 
+						 @Param("accStatus") String accStatus,
+						 @Param("updId") String updId);
 	
 	// 신규 관리자 등록
 	int insertAdminUser(UserDTO userDTO);
 	
 	// 아이디 중복
-	int countByUserId(String userId);
+	int countByUserId(@Param("userId") String userId);
 }

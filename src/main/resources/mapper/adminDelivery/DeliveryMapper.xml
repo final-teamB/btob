@@ -50,6 +50,7 @@
             D.upd_dtime updDtime, 
             D.upd_id updId,
             D.use_yn useYn,
+            	O.order_status orderStatus,
             	O.reg_id regId
         FROM TB_DELIVERY D
         INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id
@@ -69,6 +70,14 @@
         </set>
         WHERE delivery_id = #{deliveryId}
 	</update>
+	
+	<!-- 주문 상태 조회 -->
+	<select id="getOrderStatusByOrderId" parameterType="int" resultType="String">
+		SELECT O.order_status orderStatus
+		FROM TB_ORDER_MST O
+		JOIN TB_DELIVERY D ON O.order_id = D.order_id
+    	WHERE D.delivery_id = #{deliveryId}
+	</select>
 	
 	<!-- 주문 상태 동기화 -->
 	<update id="updateOrderStatus">
@@ -103,7 +112,7 @@
 	    SELECT u.user_id
 	    FROM TB_DELIVERY d
 	    JOIN TB_ORDER_MST o ON d.order_id = o.order_id
-	    JOIN TB_USERS u ON o.user_id = u.user_no
+	    JOIN TB_USERS u ON o.reg_id = u.user_no
 	    WHERE d.delivery_id = #{deliveryId}
 	</select>
 	

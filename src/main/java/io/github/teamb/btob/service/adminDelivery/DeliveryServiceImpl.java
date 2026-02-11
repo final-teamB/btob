@@ -1,6 +1,7 @@
 package io.github.teamb.btob.service.adminDelivery;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Spring 트랜잭션 권장
@@ -40,15 +41,39 @@ public class DeliveryServiceImpl implements DeliveryService {
 		
 		// 이전 데이터 조회
 		DeliveryDTO oldData = deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
+		if (oldData == null) {
+	        throw new IllegalArgumentException("존재하지 않는 배송 정보입니다.");
+	    }
+		
+		// 주문상태에 따른 배송상태 변경 권환
+		String orderStatus = deliveryMapper.getOrderStatusByOrderId(deliveryDTO.getDeliveryId());
+		DeliveryStatus newDeliveryStatus = deliveryDTO.getDeliveryStatus();
+		
+		System.out.println("=== DEBUG ===");
+		System.out.println("orderStatus = [" + orderStatus + "]");
+		System.out.println("newDeliveryStatus = [" + newDeliveryStatus + "]");
+		System.out.println("newDeliveryStatus.name() = [" + 
+		    (newDeliveryStatus != null ? newDeliveryStatus.name() : "null") + "]");
+		System.out.println("================");
+		
+		if (newDeliveryStatus != null && orderStatus != null) {
+		    String statusCode = newDeliveryStatus.name();
+
+		    Map<String, List<String>> rule = Map.of(
+		        "pm002", List.of("dv001","dv002","dv003","dv004","dv005"),
+		        "pm004", List.of("dv006","dv007")
+		    );
+
+		    List<String> allowed = rule.get(orderStatus);
+		    if (allowed != null && !allowed.contains(statusCode)) {
+		        throw new IllegalArgumentException("유효하지 않은 배송 상태 변경입니다.");
+		    }
+		}
+
 		
         // 배송 정보 업데이트 
         deliveryMapper.updateDelivery(deliveryDTO);
-
-        // 주문 테이블 상태 동기화 
-        if (deliveryDTO.getDeliveryStatus() != null) {
-            deliveryMapper.updateOrderStatus(deliveryDTO);
-        }
-
+        
         // 배송 이력 등록 
         DeliveryHistoryDTO history = new DeliveryHistoryDTO();
         history.setDeliveryId(deliveryDTO.getDeliveryId());

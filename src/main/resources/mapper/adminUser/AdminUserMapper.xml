@@ -17,21 +17,30 @@
 	<!-- 대표 가입 승인 -->
 	<update id="updateCompanyApproval">
 		UPDATE TB_USERS
-		SET app_status = 'APPROVED', acc_status = 'ACTIVE'
+		SET app_status = 'APPROVED', acc_status = 'ACTIVE',
+			upd_id = #{updId}, upd_dtime = NOW()
 		WHERE user_id = #{userId} AND user_type = 'MASTER'
 	</update>
 	
 	<!-- 계정 상태 변경 -->
 	<update id="updateUserStatus">
 		UPDATE TB_USERS
-		SET acc_status = #{accStatus}
+		SET acc_status = #{accStatus},
+			upd_id = #{updId},
+			upd_dtime = NOW()
 		WHERE user_id = #{userId}
 	</update>
 	
 	<!-- 신규 관리자 등록 -->
 	<insert id="insertAdminUser">
-		INSERT INTO TB_USERS(user_id, password, user_name, user_type, app_status, acc_status, reg_dtime)
-        VALUES (#{userId}, #{password}, #{userName}, 'ADMIN', 'APPROVED', 'ACTIVE', NOW())
+		INSERT INTO TB_USERS(
+			user_id, password, user_name, user_type, app_status, acc_status, 
+			reg_dtime, reg_id, upd_id
+		)
+        VALUES (
+        	#{userId}, #{password}, #{userName}, 'ADMIN', 'APPROVED', 'ACTIVE', 
+        	NOW(), #{regId}, #{updId}
+        )
 	</insert>
 	
 	<!-- 아이디 중복 -->

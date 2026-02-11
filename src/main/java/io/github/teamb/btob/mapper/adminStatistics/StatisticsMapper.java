@@ -15,7 +15,7 @@ public interface StatisticsMapper {
 	List<StatisticsDTO> selectStatsByType(@Param("statsType") String statsType);
 	List<OrderStatisticsDTO> selectOrderStats();
 	
-	int refreshOrderStats(@Param("userNo") int userNo);
+	int refreshOrderStats(@Param("executedBy") String userId);
 	
     Map<String, Object> getDeliveryKPI();
     Map<String, Object> getDeliveryStatusCounts();

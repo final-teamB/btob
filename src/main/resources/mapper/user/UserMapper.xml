@@ -51,7 +51,7 @@
 		SELECT 
 			user_no
 		FROM TB_USER
-		WHERE user_id = #{userID}
+		WHERE user_id = #{userId}
 	</select>
 	
 	<!-- 아이디로 type찾기 -->

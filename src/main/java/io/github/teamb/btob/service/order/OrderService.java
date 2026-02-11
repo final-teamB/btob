@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
-import io.github.teamb.btob.dto.est.EstDocDTO;
+import io.github.teamb.btob.dto.est.EstDocListDTO;
 import io.github.teamb.btob.dto.order.OrderDTO;
 import io.github.teamb.btob.mapper.cart.CartMapper;
 import io.github.teamb.btob.mapper.order.OrderMapper;
@@ -92,7 +92,7 @@ public class OrderService {
 	    
 	    String estNo = orderMapper.selectFormattedEstNo(systemId, loginUserId);
 	    
-	    EstDocDTO docDto = EstDocDTO.builder()
+	    EstDocListDTO docDto = EstDocListDTO.builder()
 	            .estNo(estNo)
 	            .companyName((String) params.get("companyName"))
 	            .companyPhone((String) params.get("companyPhone"))
