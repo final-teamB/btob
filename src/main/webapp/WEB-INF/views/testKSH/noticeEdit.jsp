@@ -8,7 +8,7 @@
 <div class="mx-4 my-6 space-y-6">
     
     <%-- [2. 타이틀 영역] ID가 0인지 아닌지에 따라 문구 동적 변경 --%>
-    <div class="px-5 py-4 text-center">
+    <div class="px-5 py-4 text-left">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
             <c:choose>
                 <c:when test="${notice.noticeId > 0}">공지사항 수정</c:when>
@@ -24,7 +24,7 @@
     </div>
 
     <%-- [3. 입력 폼 영역] max-w-4xl mx-auto로 중앙 집중 배치 --%>
-    <section class="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+    <section class="mx-auto p-8 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
         <%-- ID 존재 여부에 따라 저장(write) 또는 업데이트(update)로 전송 --%>
         <form action="/notice/${notice.noticeId > 0 ? 'update' : 'write'}" 
               method="post" enctype="multipart/form-data" class="space-y-6">
@@ -35,27 +35,25 @@
             </c:if>
 
             <%-- 제목 입력 --%>
-            <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300">제목 <span class="text-red-500">*</span></label>
-                <div class="md:col-span-3">
-                    <input type="text" name="title" value="${notice.title}" required 
-                           placeholder="공지사항 제목을 입력하세요."
-                           class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all">
-                </div>
-            </div>
+			<div class="grid grid-cols-1 md:grid-cols-6 items-center gap-2"> <label class="text-sm font-bold text-gray-700 dark:text-gray-300 md:col-span-1">제목 <span class="text-red-500">*</span></label>
+			    <div class="md:col-span-5"> <input type="text" name="title" value="${notice.title}" required 
+			               placeholder="공지사항 제목을 입력하세요."
+			               class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all">
+			    </div>
+			</div>
 
-            <%-- 내용 입력 (CKEditor) --%>
-            <div class="grid grid-cols-1 md:grid-cols-4 items-start gap-4 border-t border-gray-50 pt-6 dark:border-gray-700">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">내용 <span class="text-red-500">*</span></label>
-                <div class="md:col-span-3 text-gray-900">
-                    <textarea name="content" id="editor">${notice.content}</textarea>
-                </div>
-            </div>
+			<%-- 내용 입력 (CKEditor) --%>
+			<div class="grid grid-cols-1 md:grid-cols-6 items-start gap-2 border-t border-gray-50 pt-6 dark:border-gray-700">
+			    <label class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2 md:col-span-1">내용 <span class="text-red-500">*</span></label>
+			    <div class="md:col-span-5 text-gray-900">
+			        <textarea name="content" id="editor">${notice.content}</textarea>
+			    </div>
+			</div>
 
             <%-- 첨부파일 영역 (커스텀 버튼 스타일) --%>
-            <div class="grid grid-cols-1 md:grid-cols-4 items-start gap-4 border-t border-gray-50 pt-6 dark:border-gray-700">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">첨부파일</label>
-                <div class="md:col-span-3 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-6 items-start gap-2 border-t border-gray-50 pt-6 dark:border-gray-700">
+			    <label class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2 md:col-span-1">첨부파일</label>
+			    <div class="md:col-span-5 space-y-4">
                     
                     <%-- [수정 모드] 기존 파일 목록 및 삭제 체크박스 --%>
                     <c:if test="${not empty files}">

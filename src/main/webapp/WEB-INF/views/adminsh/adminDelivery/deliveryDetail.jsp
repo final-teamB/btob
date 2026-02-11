@@ -108,9 +108,9 @@
         if (rawAddr) {
             if (rawAddr.indexOf('|') !== -1) {
                 const parts = rawAddr.split('|');
-                $("#postcode").val(parts[0] || '');
-                $("#shipToAddr").val(parts[1] || '');
-                $("#shipToAddrDetail").val(parts[2] || '');
+                $("#shipToAddr").val(parts[0] || '');
+                $("#shipToAddrDetail").val(parts[1] || '');
+                $("#postcode").val(parts[2] || '');
             } else {
                 const postcodeMatch = rawAddr.match(/^\((.*?)\)/);
                 let tempAddr = rawAddr;
@@ -172,7 +172,7 @@
             return;
         }
 
-        const combinedAddr = postcode + "|" + addr + "|" + detail;
+        const combinedAddr = addr + "|" + detail + "|" + postcode;
         
         console.log("보내는 주소 데이터 확인:", combinedAddr);
 
