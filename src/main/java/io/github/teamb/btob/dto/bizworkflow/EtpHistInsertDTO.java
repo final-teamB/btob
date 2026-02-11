@@ -22,5 +22,3 @@ public class EtpHistInsertDTO {
 	private String rejtRsn;				// 사유 (반려시)
 	private String userId;
 }
-
-

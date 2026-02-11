@@ -24,4 +24,3 @@ public class ApprovalDecisionRequestDTO {
 	private String userId;		
 
 }
-

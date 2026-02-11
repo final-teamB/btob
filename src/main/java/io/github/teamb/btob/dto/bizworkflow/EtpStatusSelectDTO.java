@@ -24,4 +24,3 @@ public class EtpStatusSelectDTO {
 	private Integer apprUserNo;		// 요청자
 	private String userId;
 }
-
