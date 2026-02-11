@@ -47,8 +47,11 @@ public class StatisticsBatchConfig {
     @Bean
     public Tasklet updateOrderStatsTasklet() {
         return (contribution, chunkContext) -> {
-            // 기존 Mapper의 refreshOrderStats 호출 (userNo는 시스템 자동갱신용 0 전달)
-            statisticsMapper.refreshOrderStats(0);
+        	String executedBy = (String) chunkContext.getStepContext()
+        											 .getJobParameters()
+        											 .getOrDefault("executedBy", "admin");
+        	
+            statisticsMapper.refreshOrderStats(executedBy);
             return RepeatStatus.FINISHED;
         };
     }

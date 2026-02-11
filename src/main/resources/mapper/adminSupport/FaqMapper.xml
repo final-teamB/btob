@@ -40,7 +40,7 @@
 
     <insert id="insertFaq">
         INSERT INTO TB_FAQ (category, question, answer, reg_id, upd_id)
-        VALUES (#{category}, #{question}, #{answer}, #{regId}, #{regId})
+        VALUES (#{category}, #{question}, #{answer}, #{regId}, #{updId})
     </insert>
 
     <update id="updateFaq">
@@ -56,6 +56,7 @@
     <update id="deleteFaq">
         UPDATE TB_FAQ 
         SET use_yn = 'N', 
+        	upd_id = #{updId},
             upd_dtime = NOW() 
         WHERE faq_id = #{faqId}
     </update>

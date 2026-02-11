@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("admin/delivery")
 @RequiredArgsConstructor
+@PreAuthorize("hashRole('ADMIN')")
 public class DeliveryController {
     
     private final DeliveryService deliveryService;
@@ -43,8 +47,10 @@ public class DeliveryController {
     // 수정
     @PostMapping({"/deliveryUpdate", "/updateDeliveryDetail"})
     @ResponseBody
-    public Map<String, Object> updateDelivery(@RequestBody Map<String, Object> params, Principal principal) {
-        Map<String, Object> result = new HashMap<>();
+    public Map<String, Object> updateDelivery(@RequestBody Map<String, Object> params,
+    										  @AuthenticationPrincipal UserDetails userDetails) {
+        
+    	Map<String, Object> result = new HashMap<>();
         
         try {
             DeliveryDTO deliveryDTO = new DeliveryDTO();
@@ -58,7 +64,7 @@ public class DeliveryController {
                 deliveryDTO.setDeliveryStatus(DeliveryStatus.valueOf(statusStr));
             }
             
-            String adminId = (principal != null) ? principal.getName() : "admin";
+            String adminId = userDetails.getUsername();
             deliveryDTO.setUpdId(adminId);
 
             deliveryService.modifyDelivery(deliveryDTO);

@@ -10,7 +10,7 @@ public interface StatisticsService {
 	
 	List<StatisticsDTO> getStatsByType(String statsType);
 	List<OrderStatisticsDTO> getOrderStats();
-	int refreshOrderStats(int userNo);
+	int refreshOrderStats(String userId);
 	
 	Map<String, Object> getDeliveryKPI();
 	Map<String, Object> getDeliveryStatusCounts();
@@ -23,6 +23,6 @@ public interface StatisticsService {
 	Map<String, Object> getProductFullData();
 	List<Map<String, Object>> getFilteredProductList(String type, String value);
 	
-	void saveAllDailySnapshots(int userNo);
+	void saveAllDailySnapshots(String userId);
 	
 }

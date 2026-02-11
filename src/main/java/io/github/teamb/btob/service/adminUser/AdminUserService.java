@@ -22,23 +22,25 @@ public class AdminUserService {
 	}
 
 	// 대표 가입 승인
-	public boolean approveCompany(String userId) {
+	public boolean approveCompany(String userId, String updId) {
 		
-		return adminUserMapper.updateCompanyApproval(userId) > 0;
+		return adminUserMapper.updateCompanyApproval(userId, updId) > 0;
 	}
 	
 	// 계정 상태 변경
-	public boolean modifyUserStatus(String userId, String accStatus) {
+	public boolean modifyUserStatus(String userId, String accStatus, String updId) {
 		
-		return adminUserMapper.updateUserStatus(userId, accStatus) > 0;
+		return adminUserMapper.updateUserStatus(userId, accStatus, updId) > 0;
 	}
 	
 	// 신규 관리자 등록
-	public boolean registerAdminUser(UserDTO userDTO) {
+	public boolean registerAdminUser(UserDTO userDTO, String adminId) {
 		
 		userDTO.setUserType("ADMIN");
 	    userDTO.setAppStatus("APPROVED"); 
 	    userDTO.setAccStatus("ACTIVE");
+	    userDTO.setRegId(adminId);
+	    userDTO.setUpdId(adminId);
 	    
 		return adminUserMapper.insertAdminUser(userDTO) > 0;
 	}

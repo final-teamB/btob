@@ -25,6 +25,10 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
                 .requestMatchers("/", "/main", "/notice", "/notice/**").permitAll()
                 .requestMatchers("/notice/write", "/notice/edit/**", "/notice/update", "/notice/delete/**").hasRole("ADMIN")
+                .requestMatchers("/admin/delivery/**").hasRole("ADMIN")
+                .requestMatchers("/admin/stats/**").hasRole("ADMIN")
+                .requestMatchers("/support/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/user/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
             .formLogin(form -> form

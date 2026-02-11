@@ -5,36 +5,26 @@
 <c:set var="showAddBtn" value="false" scope="request" />
 
 <style>
-    /* [1] 10개씩 보기 (셀렉트 박스 영역) 완전히 숨기기 */
+    /* 10개씩 보기 완전히 숨기기 */
     .dg-per-page-wrapper, 
     #dg-per-page,
     #dg-container + div .w-32 { 
         display: none !important; 
     }
 
-    /* [2] 하단 페이징 영역 박스 스타일 초기화 */
+    /* 하단 페이징 영역 박스 스타일 초기화 */
     #dg-container + div {
         border-top: none !important;
         padding: 0 !important;
         background-color: transparent !important;
-        justify-content: center !important; /* 페이징 버튼만 가운데로 */
+        justify-content: center !important; 
     }
 
-    /* [3] 상세 내역 타이틀 전용 스타일 */
+    /* 상세 내역 타이틀 전용 스타일 */
     .stats-detail-header {
         border-top: 1px solid #f3f4f6;
         padding: 24px 32px 12px 32px;
         background-color: #ffffff;
-    }
-
-    /* [4] 기존 그리드 외곽선 제거 */
-    .tui-grid-container {
-        border: none !important;
-    }
-    .tui-grid-pagination {
-        border: none !important;
-        background-color: transparent !important;
-        margin-top: 0 !important;
     }
 </style>
 
@@ -106,7 +96,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="${pageContext.request.contextPath}/js/datagrid.js"></script>
 
 <script>
     let deliveryGrid, orderChart, chartRawData = []; 
@@ -125,7 +114,42 @@
                 initStatsGrid(gridData);
             });
         
-        // 데이터 최신화 로직 생략 (기존과 동일)
+        // 데이터 최신화 로직
+        const btnRefresh = document.getElementById('btnRefresh');
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', function() {
+                if (!confirm('최신 데이터로 통계를 갱신하시겠습니까? (수 분이 소요될 수 있습니다)')) return;
+
+                // 버튼 비활성화 (중복 클릭 방지)
+                btnRefresh.disabled = true;
+                btnRefresh.innerText = '갱신 중...';
+
+                // 컨트롤러 @PutMapping("/refresh") 호출
+                fetch('${pageContext.request.contextPath}/admin/stats/refresh', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(res => res.text())
+                .then(result => {
+                    if (result === 'success') {
+                        alert('데이터 최신화 배치가 실행되었습니다. 잠시 후 새로고침 해주세요.');
+                        location.reload(); 
+                    } else {
+                        alert('최신화 중 오류가 발생했습니다.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('서버 통신 오류가 발생했습니다.');
+                })
+                .finally(() => {
+                    btnRefresh.disabled = false;
+                    btnRefresh.innerText = '데이터 최신화';
+                });
+            });
+        }
     });
 
     function initStatsGrid(gridData) {
@@ -144,7 +168,6 @@
         });
     }
 
-    // Chart 생성 및 Update 함수는 기존과 동일하게 유지
     function createOrderChart(stats) {
         const ctx = document.getElementById('orderChart').getContext('2d');
         orderChart = new Chart(ctx, {

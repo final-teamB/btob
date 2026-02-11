@@ -13,6 +13,9 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -32,48 +35,45 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/stats")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@PreAuthorize("hashRole('ADMIN')")
 public class StatisticsController {
     
     private final StatisticsService statisticsService;
     private final JobLauncher jobLauncher;
     private final Job refreshOrderStatsJob;
     
-    /**
-     * 레이아웃 적용을 위한 공통 메서드
-     * @param contentPath JSP 파일 이름 (WEB-INF/views/ 하위 경로)
-     * @param title 웹 브라우저 탭에 표시될 제목
-     */
+    // 레이아웃 적용 공통 메서드
     private String renderLayout(Model model, String contentPath, String title) {
-        model.addAttribute("content", "adminsh/adminStatistics/" + contentPath); // 실제 파일 위치에 맞춰 경로 수정
+        model.addAttribute("content", "adminsh/adminStatistics/" + contentPath); // 실제 jsp 파일명
         model.addAttribute("pageTitle", title);
         return "layout/layout"; 
     }
 
-    // [메인] 종합 대시보드
+    // 종합 대시보드
     @GetMapping("/main")
     public String statisticsMain(Model model) {
         return renderLayout(model, "stats.jsp", "통계 대시보드");
     }
     
-    // [1] 주문 현황 
+    // 주문 현황 
     @GetMapping("/order")
     public String orderStatsPage(Model model) {
         return renderLayout(model, "statsOrder.jsp", "주문 현황 분석");
     }
     
-    // [2] 배송 현황 
+    // 배송 현황 
     @GetMapping("/delivery")
     public String deliveryStatsPage(Model model) {
         return renderLayout(model, "statsDelivery.jsp", "배송 현황 분석");
     }
     
-    // [3] 사용자 분석
+    // 사용자 분석
     @GetMapping("/user")
     public String userStatsPage(Model model) {
         return renderLayout(model, "statsUser.jsp", "사용자 지표 분석");
     }
     
-    // [4] 상품 분석 
+    // 상품 분석 
     @GetMapping("/product")
     public String productStatsPage(Model model) {
         return renderLayout(model, "statsProduct.jsp", "상품 재고 분석");
@@ -81,6 +81,7 @@ public class StatisticsController {
 
     // --- 데이터 API (@ResponseBody) ---
     
+    // 주문 통계 엑셀 다운로드
     @GetMapping("/order/excel")
     public void downloadOrderExcel(HttpServletResponse httpServletResponse) throws Exception {
         List<OrderStatisticsDTO> list = statisticsService.getOrderStats();
@@ -104,6 +105,8 @@ public class StatisticsController {
         workbook.close();
     }
 
+    // 차트 데이터 조회 API
+    // -- 주문, 배송, 사용자, 상품 통계 한 번에 map으로 반환
     @GetMapping("/data")
     @ResponseBody 
     public Map<String, Object> getChartData() {
@@ -168,12 +171,14 @@ public class StatisticsController {
         return statisticsService.getFilteredProductList(type, value);
     }
 
+    // 데이터 스냅샷
     @RequestMapping(value = "/snapshot", method = {RequestMethod.GET, RequestMethod.PUT})
     @ResponseBody
-    public Map<String, Object> takeFullSnapshot() {
+    public Map<String, Object> takeFullSnapshot(@AuthenticationPrincipal UserDetails userDetails) {
         Map<String, Object> response = new HashMap<>();
         try {
-            statisticsService.saveAllDailySnapshots(1); 
+        	String adminId = userDetails.getUsername();
+            statisticsService.saveAllDailySnapshots(adminId); 
             response.put("result", "SUCCESS");
             response.put("message", "데이터 스냅샷 저장 완료");
         } catch (Exception e) {
@@ -186,12 +191,22 @@ public class StatisticsController {
     // 주문 통계 최신화버튼
     @PutMapping("/refresh")
     @ResponseBody
-    public String refreshData() {
-        try {
+    public String refreshData(@AuthenticationPrincipal UserDetails userDetails) {
+    	if (userDetails == null) {
+            System.out.println("❌ 에러: 로그인 정보가 없습니다.");
+            return "error_no_auth";
+        }
+    	
+    	try {
+        	String adminId = userDetails.getUsername();
+        	System.out.println("🚀 배치 실행 요청자: " + adminId);
+        	
             JobParameters params = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
+                    .addString("executedBy", adminId)
                     .toJobParameters();
             jobLauncher.run(refreshOrderStatsJob, params);
+            
             return "success";
         } catch (Exception e) {
             return "error";

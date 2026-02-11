@@ -92,15 +92,6 @@ class DirectSelectRenderer {
         
         let allowedStatus = list;
         
-        // [로직 추가] 사용자 타입(userType)에 따른 선택 옵션 제한 (예시)
-        if (rowData.userType === 'ADMIN') {
-            // 관리자는 '정지'를 시킬 수 없게 제한한다면 이런 식으로 필터링 가능
-            allowedStatus = list.filter(s => s.v !== 'STOP');
-        } else if (rowData.userType === 'MASTER') {
-            // 회사 마스터 계정은 모든 상태 변경 가능
-            allowedStatus = list;
-        }
-        
         allowedStatus.forEach(i => {
             const o = document.createElement('option');
             o.value = i.v; 

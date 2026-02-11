@@ -36,7 +36,7 @@
         INSERT INTO TB_ORDER_STATISTICS (
             stats_type, stats_date, total_order_count, pending_count, 
             paid_count, preparing_count, shipping_count, delivered_count, 
-            total_sales_amount, executed_at
+            total_sales_amount, executed_at, executed_by
         )
         SELECT 
             'DAY', 
@@ -49,7 +49,8 @@
             COUNT(DISTINCT CASE WHEN O.order_status IN ('L_SHIPPING', 'L_WH', 'IN_CUSTOMS', 'C_DONE', 'D_SHIPPING') THEN O.order_id END),
             COUNT(DISTINCT CASE WHEN O.order_status IN ('COMPLETE') THEN O.order_id END),
             IFNULL(SUM(CASE WHEN P.status = 'DONE' THEN P.amount ELSE 0 END), 0),
-            NOW()
+            NOW(),
+            #{executedBy}
         FROM TB_ORDER_MST O
 	    LEFT JOIN TB_PAYMENT_MST P ON O.order_id = P.order_id
 	    WHERE O.use_yn = 'Y'
