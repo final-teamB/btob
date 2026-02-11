@@ -12,13 +12,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum DeliveryStatus {
 	
-	READY("상품준비중"),
-    L_SHIPPING("국제운송중"),
-    L_WH("보세창고입고"),
-    IN_CUSTOMS("통관진행중"),
-    C_DONE("통관완료"),
-    D_SHIPPING("국내배송중"),
-    COMPLETE("배송완료");
+	dv001("상품준비중"),
+	dv002("국제운송중"),
+	dv003("보세창고입고"),
+	dv004("통관진행중"),
+	dv005("통관완료"),
+	dv006("국내배송중"),
+	dv007("배송완료");
 	
 	// 한글 뜻 저장
 	private final String description;

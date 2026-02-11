@@ -1,5 +1,8 @@
 package io.github.teamb.btob.controller.adminUser;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/admin/user")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
 
 	private final AdminUserService adminUserService;
@@ -33,17 +37,23 @@ public class AdminUserController {
 	// 대표 가입 승인 처리
 	@PostMapping("/approveCompany")
 	@ResponseBody
-	public String approveCompany(@RequestParam String userId) {
+	public String approveCompany(@RequestParam String userId,
+								 @AuthenticationPrincipal UserDetails userDetails) {
+		String adminId = userDetails.getUsername();
 		
-		return adminUserService.approveCompany(userId) ? "OK" : "FAIL";
+		return adminUserService.approveCompany(userId, adminId) ? "OK" : "FAIL";
 	}
 	
 	// 계정 상태 변경
 	@PostMapping("/modifyUserStatus")
 	@ResponseBody
-	public String modifyUserStatus(@RequestParam String userId, @RequestParam String accStatus) {
+	public String modifyUserStatus(@RequestParam String userId, 
+								   @RequestParam String accStatus,
+								   @AuthenticationPrincipal UserDetails userDetails) {
 		
-		return adminUserService.modifyUserStatus(userId, accStatus) ? "OK" : "FAIL";
+		String adminId = userDetails.getUsername();
+		
+		return adminUserService.modifyUserStatus(userId, accStatus, adminId) ? "OK" : "FAIL";
 	}
 	
 	// 신규 관리자 등록
@@ -53,11 +63,13 @@ public class AdminUserController {
 		model.addAttribute("content",  "adminsh/adminUser/adminUserForm.jsp");
 		return "layout/layout";
 	}
+	
 	@PostMapping("/registerAdminUser")
 	@ResponseBody
-	public String register(UserDTO userDTO) {
+	public String register(UserDTO userDTO,
+						   @AuthenticationPrincipal UserDetails userDetails) {
 		
-		return adminUserService.registerAdminUser(userDTO) ? "OK" : "FAIL";
+		return adminUserService.registerAdminUser(userDTO, userDetails.getUsername()) ? "OK" : "FAIL";
 	}
 	
 	@GetMapping("/checkDuplicateId")

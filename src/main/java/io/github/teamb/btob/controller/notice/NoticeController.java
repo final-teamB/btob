@@ -1,8 +1,12 @@
 package io.github.teamb.btob.controller.notice;
 
-import io.github.teamb.btob.entity.Notice;
-import io.github.teamb.btob.service.notice.NoticeService;
-import lombok.RequiredArgsConstructor;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -11,15 +15,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.UUID;
+import io.github.teamb.btob.entity.Notice;
+import io.github.teamb.btob.service.notice.NoticeService;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/notice")
@@ -29,24 +35,30 @@ public class NoticeController {
     private final NoticeService noticeService;
     private final String uploadPath = "C:/uploads/"; // 파일 저장 경로
 
+    // 일반 사용자가 보는 목록 
+    @GetMapping("/user/list") 
+    public String userList(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
+        List<Notice> list = noticeService.getNoticeList(keyword);
+        model.addAttribute("noticeList", list); 
+        model.addAttribute("content", "testKSH/noticeUserList.jsp"); // 사용자용 리스트 JSP
+        return "layout/layout";
+    }
+
+    // 일반 사용자가 보는 상세 
+    @GetMapping("/user/detail/{id}")
+    public String userDetail(@PathVariable("id") Integer id, Model model) {
+        Notice notice = noticeService.getNoticeDetail(id);
+        model.addAttribute("notice", notice);
+        model.addAttribute("content", "testKSH/noticeDetail.jsp"); // 사용자용 상세 JSP
+        return "layout/layout";
+    }
+    
     // 목록 조회 (검색 포함)
     @GetMapping
     public String list(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
         List<Notice> list = noticeService.getNoticeList(keyword);
         model.addAttribute("noticeList", list); 
         model.addAttribute("content", "testKSH/noticeList.jsp");
-        return "layout/layout";
-    }
-
-    // 상세 조회
-    @GetMapping("/detail/{id}")
-    public String detail(@PathVariable("id") Integer id, Model model) {
-        Notice notice = noticeService.getNoticeDetail(id);
-        model.addAttribute("notice", notice);
-        
-        // 실제 파일 목록 조회 로직 (DB 연동 시 활성화)
-        //model.addAttribute("files", noticeService.getFileList(id));
-        model.addAttribute("content", "testKSH/noticeDetail.jsp");
         return "layout/layout";
     }
 
@@ -96,8 +108,20 @@ public class NoticeController {
     // 수정 페이지 이동
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable("id") Integer id, Model model) {
-        Notice notice = noticeService.getNoticeDetail(id);
+    	Notice notice;
+        
+        if (id == null || id == 0) {
+            notice = new Notice(); 
+        } else {
+            notice = noticeService.getNoticeDetail(id);
+        }
+
         model.addAttribute("notice", notice);
+        
+        if (model.getAttribute("files") == null) {
+            model.addAttribute("files", new ArrayList<>());
+        }
+
         model.addAttribute("content", "testKSH/noticeEdit.jsp");
         return "layout/layout";
     }

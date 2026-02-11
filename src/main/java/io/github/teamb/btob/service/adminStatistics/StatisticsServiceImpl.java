@@ -30,8 +30,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 	}
 
 	@Override
-	public int refreshOrderStats(int userNo) {
-		int row = statisticsMapper.refreshOrderStats(userNo);
+	public int refreshOrderStats(String userId) {
+		int row = statisticsMapper.refreshOrderStats(userId);
 		return row;
 	}
 	
@@ -52,8 +52,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 	
 	@Override
     @Transactional // 하나라도 에러나면 전체 롤백
-    public void saveAllDailySnapshots(int userNo) {
-        statisticsMapper.refreshOrderStats(userNo);      // 1. 주문
+    public void saveAllDailySnapshots(String userId) {
+        statisticsMapper.refreshOrderStats(userId);      // 1. 주문
         statisticsMapper.insertDailyDeliveryStats();   // 2. 배송 (추가됨)
         statisticsMapper.insertDailyUserStats();       // 3. 사용자
         statisticsMapper.insertDailyOilStats();        // 4. 상품

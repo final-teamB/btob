@@ -1,11 +1,39 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<c:set var="showSearchArea" value="false" scope="request" />
+<c:set var="showAddBtn" value="false" scope="request" />
+
+<style>
+    /* 10개씩 보기 완전히 숨기기 */
+    .dg-per-page-wrapper, 
+    #dg-per-page,
+    #dg-container + div .w-32 { 
+        display: none !important; 
+    }
+
+    /* 하단 페이징 영역 박스 스타일 초기화 */
+    #dg-container + div {
+        border-top: none !important;
+        padding: 0 !important;
+        background-color: transparent !important;
+        justify-content: center !important; 
+    }
+
+    /* 상세 내역 타이틀 전용 스타일 */
+    .stats-detail-header {
+        border-top: 1px solid #f3f4f6;
+        padding: 24px 32px 12px 32px;
+        background-color: #ffffff;
+    }
+</style>
+
 <div class="mx-4 my-6 space-y-6">
+    <%-- [1. 타이틀 영역] --%>
     <div class="px-8 py-4 flex flex-col md:flex-row justify-between items-center">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">주문 통계 분석</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">주문 건수 및 매출 추이를 상세 분석합니다.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">주문 건수 및 매출 추이를 한눈에 분석합니다.</p>
         </div>
         <div class="flex items-center space-x-3 mt-4 md:mt-0">
             <button type="button" id="btnRefresh" class="px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg shadow-md hover:bg-gray-800 transition-all active:scale-95">
@@ -17,49 +45,57 @@
         </div>
     </div>
     
-    <div class="px-5">
-        <%@ include file="statsNav.jsp" %>
-    </div>
+    <%@ include file="statsNav.jsp" %>
 
-    <section class="mx-5 p-10 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700 min-h-[600px] flex flex-col">
-        <div class="flex justify-between items-center mb-10 w-full">
-            <h4 id="chartTitle" class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">
-                최근 주문 건수 추이
-            </h4>
-            <div class="flex space-x-1" id="orderTabGroup">
-                <button type="button" id="btnCount" onclick="updateChart('count', this)" 
-                        class="btn-tab px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg shadow-sm transition-all">
-                    주문 건수
-                </button>
-                <button type="button" id="btnAmount" onclick="updateChart('amount', this)" 
-                        class="btn-tab px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all ml-1">
-                    매출 금액
-                </button>
+    <%-- [2. 차트 + 그리드 통합 섹션] --%>
+    <section class="mx-5 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden">
+        
+        <%-- 차트 영역 --%>
+        <div class="p-8 pb-4">
+            <div class="flex justify-between items-center mb-8 w-full">
+                <h4 id="chartTitle" class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">
+                    최근 주문 건수 추이
+                </h4>
+                <div class="flex space-x-1" id="orderTabGroup">
+                    <button type="button" id="btnCount" onclick="updateChart('count', this)" 
+                            class="btn-tab px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg shadow-sm transition-all">
+                        주문 건수
+                    </button>
+                    <button type="button" id="btnAmount" onclick="updateChart('amount', this)" 
+                            class="btn-tab px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all ml-1">
+                        매출 금액
+                    </button>
+                </div>
+            </div>
+            
+            <div class="w-full flex justify-center items-center">
+                <div class="relative w-full max-w-[800px] h-[350px]">
+                    <canvas id="orderChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <%-- 그리드 영역 --%>
+		<div class="stats-detail-header">
+            <div class="flex items-center space-x-2">
+                <div class="w-1 h-4 bg-gray-900 rounded-full"></div>
+                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-tight">주문 통계 상세 리포트</h3>
             </div>
         </div>
         
-        <div class="flex-1 w-full flex justify-center items-center">
-            <div class="relative w-full max-w-[750px] h-[400px]">
-                <canvas id="orderChart"></canvas>
-            </div>
+        <div class="px-5 pb-6"> 
+            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
         </div>
     </section>
 
+    <%-- 그리드 설정 --%>
     <c:set var="showSearchArea" value="false" scope="request" />
     <c:set var="showPerPage" value="false" scope="request" />
     <c:set var="showAddBtn" value="false" scope="request" />
     <c:set var="showDownloadBtn" value="false" scope="request" />
-    
-    <div class="bg-white rounded-lg shadow-sm border border-gray-100 mt-6 mx-5">
-        <div class="p-5 border-b border-gray-50">
-            <h3 class="text-lg font-bold text-gray-800">주문 통계 상세 데이터 (최근 7건)</h3>
-        </div>
-        <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
-    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="${pageContext.request.contextPath}/js/datagrid.js"></script>
 
 <script>
     let deliveryGrid, orderChart, chartRawData = []; 
@@ -69,36 +105,48 @@
             .then(res => res.json())
             .then(data => {
                 const stats = data.orderStats || [];
+                // 차트: 시간순 정렬
                 chartRawData = [...stats].sort((a, b) => new Date(a.executedAt) - new Date(b.executedAt)).slice(-7);
                 createOrderChart(chartRawData);
                 
+                // 그리드: 최신순 정렬 (7건 고정)
                 const gridData = [...stats].sort((a, b) => new Date(b.executedAt) - new Date(a.executedAt)).slice(0, 7);
                 initStatsGrid(gridData);
             });
         
+        // 데이터 최신화 로직
         const btnRefresh = document.getElementById('btnRefresh');
         if (btnRefresh) {
             btnRefresh.addEventListener('click', function() {
-                if (!confirm("주문 데이터를 최신 상태로 갱신하시겠습니까?")) return;
-                btnRefresh.disabled = true;
-                btnRefresh.innerText = "갱신 중...";
+                if (!confirm('최신 데이터로 통계를 갱신하시겠습니까? (수 분이 소요될 수 있습니다)')) return;
 
-                fetch('${pageContext.request.contextPath}/admin/stats/refresh', { method: 'PUT' })
+                // 버튼 비활성화 (중복 클릭 방지)
+                btnRefresh.disabled = true;
+                btnRefresh.innerText = '갱신 중...';
+
+                // 컨트롤러 @PutMapping("/refresh") 호출
+                fetch('${pageContext.request.contextPath}/admin/stats/refresh', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
                 .then(res => res.text())
                 .then(result => {
                     if (result === 'success') {
-                        alert('데이터가 성공적으로 최신화되었습니다.');
-                        location.reload();
+                        alert('데이터 최신화 배치가 실행되었습니다. 잠시 후 새로고침 해주세요.');
+                        location.reload(); 
                     } else {
-                        alert('데이터 최신화 중 오류가 발생했습니다.');
+                        alert('최신화 중 오류가 발생했습니다.');
                     }
                 })
                 .catch(err => {
+                    console.error('Error:', err);
                     alert('서버 통신 오류가 발생했습니다.');
                 })
                 .finally(() => {
                     btnRefresh.disabled = false;
-                    btnRefresh.innerText = "데이터 최신화";
+                    btnRefresh.innerText = '데이터 최신화';
                 });
             });
         }
@@ -109,37 +157,15 @@
             containerId: 'dg-container',
             data: gridData,
             rowHeaders: [],
+            bodyHeight: 'auto', // 높이를 자동으로 조절하여 차트와 일체감 부여
             columns: [
-                { 
-                    header: '기준일', 
-                    name: 'statsDate', 
-                    align: 'center', 
-                    formatter: ({value}) => value ? value.split('T')[0] : '-' 
-                },
-                { 
-                    header: '최신화 시간', 
-                    name: 'executedAt', 
-                    align: 'center', 
-                    formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 16) : '-' 
-                },
-                { 
-                    header: '총 주문', 
-                    name: 'totalOrderCount', 
-                    align: 'center', 
-                    formatter: ({value}) => `<span class="font-bold text-gray-900">\${(value || 0).toLocaleString()}건</span>` 
-                },
-                { 
-                    header: '총 매출액', 
-                    name: 'totalSalesAmount', 
-                    align: 'center', 
-                    formatter: ({value}) => `<span class="text-blue-600 font-bold">\${(value || 0).toLocaleString()}원</span>` 
-                }
+                { header: '기준일', name: 'statsDate', align: 'center', formatter: ({value}) => value ? value.split('T')[0] : '-' },
+                { header: '최신화 시간', name: 'executedAt', align: 'center', formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 16) : '-' },
+                { header: '총 주문', name: 'totalOrderCount', align: 'center', formatter: ({value}) => `<span class="font-bold text-gray-900">\${(value || 0).toLocaleString()}건</span>` },
+                { header: '총 매출액', name: 'totalSalesAmount', align: 'center', formatter: ({value}) => `<span class="text-blue-600 font-bold">\${(value || 0).toLocaleString()}원</span>` }
             ],
             pageOptions: { useClient: true, perPage: 7 }
         });
-        if (deliveryGrid.grid) {
-            deliveryGrid.grid.hideColumn('_number'); // TUI Grid 내부 번호 컬럼 ID는 '_number'입니다.
-        }
     }
 
     function createOrderChart(stats) {
@@ -162,7 +188,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { padding: 20 } } },
+                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Pretendard' }, padding: 20 } } },
                 scales: {
                     x: { grid: { display: false } },
                     y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString() + '건' } }
@@ -173,7 +199,6 @@
 
     function updateChart(mode, btn) {
         if (!orderChart) return;
-        
         document.querySelectorAll('.btn-tab').forEach(tab => {
             tab.className = "btn-tab px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all ml-1";
         });

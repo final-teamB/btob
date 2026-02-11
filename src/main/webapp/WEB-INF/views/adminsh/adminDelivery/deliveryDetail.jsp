@@ -127,6 +127,27 @@
                 }
             }
         }
+        
+        const orderStatus = "${deliveryDTO.orderStatus}"; 
+        const $deliverySelect = $("#deliveryStatus");   
+        
+        if (orderStatus === 'pm002') {
+            // pm002(결제완료)일 때: dv001~dv005만 허용 (dv006, dv007 비활성화)
+            $deliverySelect.find("option").each(function() {
+                const val = $(this).val();
+                if (val === 'dv006' || val === 'dv007') {
+                    $(this).prop('disabled', true).css('color', '#ccc');
+                }
+            });
+        } else if (orderStatus === 'pm004') {
+            // pm004(배송시작/출고)일 때: dv005~dv007만 허용 (dv001~dv004 비활성화)
+            $deliverySelect.find("option").each(function() {
+                const val = $(this).val();
+                if (['dv001', 'dv002', 'dv003', 'dv004', 'dv005'].includes(val)) {
+                    $(this).prop('disabled', true).css('color', '#ccc');
+                }
+            });
+        }
     });
 
     function execDaumPostcode() {
@@ -141,7 +162,20 @@
     }
 
     function fn_update() {
-        const combinedAddr = $("#postcode").val() + "|" + $("#shipToAddr").val() + "|" + $("#shipToAddrDetail").val();
+        const postcode = $("#postcode").val();
+        const addr = $("#shipToAddr").val();
+        const detail = $("#shipToAddrDetail").val();
+
+        // 데이터 검증
+        if(!postcode || !addr) {
+            alert("주소를 검색하여 입력해주세요.");
+            return;
+        }
+
+        const combinedAddr = postcode + "|" + addr + "|" + detail;
+        
+        console.log("보내는 주소 데이터 확인:", combinedAddr);
+
         const param = {
             deliveryId: $("#deliveryId").val(),
             deliveryStatus: $("#deliveryStatus").val(),
@@ -149,7 +183,9 @@
             carrierName: $("#carrierName").val(),
             shipToAddr: combinedAddr
         };
+
         if(!confirm("수정하시겠습니까?")) return;
+
         $.ajax({
             url: "/admin/delivery/updateDeliveryDetail",
             type: "POST",
@@ -158,6 +194,10 @@
             success: function(res) {
                 alert(res.message);
                 if(res.success) location.reload();
+            },
+            error: function(xhr) {
+                console.error("에러 발생:", xhr.responseText);
+                alert("저장 중 오류가 발생했습니다.");
             }
         });
     }
