@@ -1,6 +1,7 @@
 package io.github.teamb.btob.mapper.cart;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 
@@ -20,8 +21,14 @@ public interface CartMapper {
 
 	void deleteCartItem(int cartId, String userId);
 
-	void clearCart(String userId);
+	void clearCart(String userId, String ordeNo);
 
 	String getCartStatusByUser(String userId);
+
+	List<CartItemDTO> selectCartItemListByIds(List<String> idList);
+
+	void updateCartOrderInfo(Map<String, Object> cartParams);
+	
+	void updateCartStatusOrdered(Map<String, Object> cartParams);
 	
 }

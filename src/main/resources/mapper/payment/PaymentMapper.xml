@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.payment.PaymentMapper">
+	
+	<!-- payment_no 생성 -->
+		<select id="selectFormattedPaymentNo" resultType="string">
+	    SELECT 
+	        CONCAT(#{systemId}, '-', T1.company_cd, '-', T1.curr_date, '-', T1.next_seq) AS paymentNo
+	    FROM (
+	        SELECT 
+	            IFNULL((SELECT company_cd FROM TB_USERS WHERE user_id = #{loginUserId}), 'NONE') AS company_cd,
+	            DATE_FORMAT(NOW(), '%Y%m%d') AS curr_date,
+	            LPAD(
+	                IFNULL(
+	                    (SELECT MAX(CAST(SUBSTRING_INDEX(payment_no, '-', -1) AS UNSIGNED))
+	                     FROM TB_PAYMENT_MST
+	                     WHERE pay_date = CURDATE() 
+	                       AND payment_no LIKE CONCAT(#{systemId}, '-%')
+	                    ), 0) + 1, 3, '0'
+	            ) AS next_seq
+	    ) T1
+	</select>
+	
+	<!-- 결제창에 정보가져오기 -->
+	<resultMap id="paymentViewMap" type="io.github.teamb.btob.dto.payment.PaymentViewDTO">
+	    <id property="orderId" column="order_id" />
+		<result property="orderNo" column="order_no" />
+	    <result property="totalPrice" column="totalPrice_main" />
+        <result property="totalQty" column="total_qty" />
+        <result property="targetTotalAmount" column="target_total_amount" />
+		        
+        <result property="userName" column="user_name" />
+	    <result property="companyName" column="company_name" />
+	    <result property="bizNumber" column="biz_number" />
+	    <result property="phone" column="phone" />
+	    <result property="masterId" column="master_id" />
+	    <result property="masterName" column="master_name" />
+	    <result property="companyPhone" column="company_phone" />
+	    <result property="zipCode" column="zip_code" />
+	    <result property="addrKor" column="addr_kor" />
+	  	    	
+	    <collection property="itemList" ofType="io.github.teamb.btob.dto.payment.PaymentViewDTO$PaymentItemDTO">
+		<result property="fuelNm" column="fuel_nm" />
+        <result property="totalQty" column="item_qty" />
+        <result property="totalPrice" column="item_price" /> 
+        <result property="baseUnitPrc" column="base_unit_prc" />
+        <result property="targetProductPrc" column="target_product_prc" />
+        <result property="targetProductAmt" column="target_product_amt" />
+	    </collection>
+	</resultMap>
+	
+	<select id="getPaymentViewInfo" resultMap="paymentViewMap">
+	    SELECT
+	        m.order_id,
+	        m.order_no,
+	        o.fuel_nm,	
+	        SUM(COALESCE(e.target_total_amount, c.total_price)) OVER() AS totalPrice_main,  
+		    c.total_qty,       
+		    c.total_price AS item_price,        
+		    c.total_qty AS item_qty,           
+	        o.base_unit_prc,  
+	        e.target_total_amount,
+	        eci.target_product_prc, 
+	        eci.target_product_amt, 
+	        cp.company_name,
+	        cp.biz_number,
+	        cp.master_id,
+	        master_u.user_name AS master_name,
+	        cp.company_phone,
+	        cp.addr_kor,
+	        cp.addr_eng,
+	        cp.zip_code,
+	        cp.customs_num,
+			u.user_no,
+			u.user_id,	        
+	        u.user_name,
+	        u.phone
+	    FROM TB_ORDER_MST m
+	        INNER JOIN TB_CART c ON m.order_no = c.order_no
+	        INNER JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
+	        INNER JOIN TB_USERS u ON m.user_no = u.user_no
+	        INNER JOIN TB_COMPANIES cp ON u.company_cd = cp.company_cd
+	        LEFT OUTER JOIN TB_USERS master_u ON cp.master_id = master_u.user_id
+	        LEFT OUTER JOIN TB_EST_DOC e ON m.quote_req_id = e.est_doc_id
+	        LEFT OUTER JOIN TB_EST_CART_ITEM eci ON e.est_cart_id = eci.est_cart_id AND o.fuel_id = eci.product_id
+	    WHERE m.order_no = #{orderNo}
+	      AND m.order_status = 'pr002'
+	      AND m.use_yn = 'Y'
+	</select>
+		
+	<insert id="insertPaymentMst" 
+        parameterType="io.github.teamb.btob.dto.payment.PaymentRequestDTO"
+        useGeneratedKeys="true" 
+        keyProperty="paymentId" 
+        keyColumn="payment_id">
+    INSERT INTO TB_PAYMENT_MST (
+        payment_no,
+        order_id,
+        pay_step,
+        payment_key,
+        method,
+        amount,
+        status,
+        reg_id,
+        reg_dtime
+    ) VALUES (
+        #{paymentNo},
+        #{dbOrderId},
+        'FIRST',
+        #{paymentKey},
+        #{method},
+        #{amount},
+        #{status},
+        #{regId},
+        NOW()
+    )
+</insert>
+</mapper>

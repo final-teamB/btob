@@ -207,15 +207,61 @@
                     <button type="button" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm">임시저장</button>
                 </div>
                 <div class="flex gap-2">
+<<<<<<< HEAD
                     <button type="button" class="px-5 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition shadow-sm">반려하기</button>
                     <button type="button" class="px-5 py-2 text-sm font-bold text-emerald-600 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm">승인하기</button>
                     <button type="button" class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl shadow-blue-200 transition ring-2 ring-blue-500 ring-offset-2">견적 요청하기</button>
+=======
+                     <%-- 관리자(ADMIN) 전용 버튼 --%>
+		        <c:if test="${user_type eq 'ADMIN'}">
+		            <button type="button" class="px-5 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition shadow-sm">
+		                반려하기
+		            </button>
+		            <button type="button" class="px-5 py-2 text-sm font-bold text-emerald-600 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm">
+		                승인하기
+		            </button>
+		        </c:if>
+		        <c:if test="${user_type eq 'USER'}">
+                    <button type="button"
+                   			onclick="fn_confirmOrder()" 
+                    		class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl shadow-blue-200 transition ring-2 ring-blue-500 ring-offset-2">견적 요청하기</button>
+                </c:if>   
+>>>>>>> origin/main
                 </div>
             </div>
         </div>
         
         <p class="mt-8 text-center text-xs text-gray-400 no-print tracking-widest uppercase font-medium">Electronic document produced by ${dto.companyName} CRM system</p>
     </div>
+<<<<<<< HEAD
 
+=======
+<script>
+	function fn_confirmOrder() {
+	  	
+	    const requestData = {
+	        "cartIds": "${cartIds}",
+	        "totalSum": "${totalSum}",
+	    };
+	
+	    $.ajax({
+	        url: "${pageContext.request.contextPath}/order/estSubmit",
+	        type: "POST",
+	        contentType: "application/json",
+	        data: JSON.stringify(requestData),
+	        success: function(res) {
+	            alert("요청이 완료되었습니다.");
+	            if (window.opener && !window.opener.closed) {
+	                window.opener.location.reload(); 
+	            }
+	            window.close();
+	        }, 
+	        error: function(err) {
+	            alert(err.responseJSON ? err.responseJSON.message : "처리 중 오류가 발생했습니다.");
+	        }
+	    });
+	}
+</script>
+>>>>>>> origin/main
 </body>
 </html>

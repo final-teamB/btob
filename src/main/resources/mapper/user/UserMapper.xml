@@ -1,7 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.user.UserMapper">
+		
+		
 	
+	<!-- 아이디로 PK찾기 -->
+	<select id="getUserNoById">
+		SELECT 
+			user_no
+		FROM TB_USERS
+		WHERE user_id = #{userId}
+	</select>
+	
+	<!-- 아이디로 type찾기 -->
+	<select id="getUserTypeById">
+		SELECT
+		   user_type 
+	    FROM TB_USERS 
+	    WHERE user_id = #{userId}
+	</select>
+	
+	<!-- 회원가입 인증 -->
 	<update id="processPendingUser">
 		UPDATE TB_USERS
 		SET app_status = #{appStatus}			

@@ -19,6 +19,13 @@ public interface DeliveryMapper {
 	
 	// 배송 테이블 수정 (목록 수정 및 상세 수정 공통 사용)
     int updateDelivery(DeliveryDTO deliveryDTO);
+    
+    /*
+       주문 상태 조회
+       주문 상태가 pm002 -> dv001~5 / pm004 -> dv006~7
+    */
+    String getOrderStatusByOrderId(int order_id);
+    
 	
 	// 주문 상태 동기화 (주문 테이블)
 	int updateOrderStatus(DeliveryDTO deliveryDTO);
@@ -28,4 +35,7 @@ public interface DeliveryMapper {
 	
 	// 배송 이력 등록
 	int insertDeliveryHistory(DeliveryHistoryDTO deliveryHistoryDTO);
+	
+	// 알림 수신자 user_id(email) 조회
+	String selectReceiverUserId(int deliveryId); 
 }

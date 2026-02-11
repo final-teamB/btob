@@ -34,8 +34,8 @@ public class FaqService {
     	return faqMapper.updateFaq(faqDTO) > 0; 
     }
     
-    public boolean removeFaq(int faqId) { 
+    public boolean removeFaq(int faqId, String updId) { 
     	
-    	return faqMapper.deleteFaq(faqId) > 0; 
+    	return faqMapper.deleteFaq(faqId, updId) > 0; 
     }
 }

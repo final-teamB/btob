@@ -12,7 +12,7 @@ public interface DeliveryService {
 
 	// 배송 정보 상세보기
 	DeliveryDTO getDeliveryDetail(int deliveryId);
-
+	
 	// 통합 수정 (수정, 주문 상태 동기화, 배송이력 등록)
 	void modifyDelivery(DeliveryDTO deliveryDTO);
 

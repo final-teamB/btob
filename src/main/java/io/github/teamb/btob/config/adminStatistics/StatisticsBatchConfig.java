@@ -9,19 +9,27 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import io.github.teamb.btob.mapper.adminStatistics.StatisticsMapper;
-import lombok.RequiredArgsConstructor;
 
 @Configuration
-@RequiredArgsConstructor
 public class StatisticsBatchConfig {
 
 	private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final StatisticsMapper statisticsMapper;
 
+    public StatisticsBatchConfig(
+            JobRepository jobRepository, 
+            PlatformTransactionManager transactionManager, 
+            @Lazy StatisticsMapper statisticsMapper) { 
+        this.jobRepository = jobRepository;
+        this.transactionManager = transactionManager;
+        this.statisticsMapper = statisticsMapper;
+    }
+    
     @Bean
     public Job refreshOrderStatsJob() {
         return new JobBuilder("refreshOrderStatsJob", jobRepository)
@@ -39,8 +47,11 @@ public class StatisticsBatchConfig {
     @Bean
     public Tasklet updateOrderStatsTasklet() {
         return (contribution, chunkContext) -> {
-            // 기존 Mapper의 refreshOrderStats 호출 (userNo는 시스템 자동갱신용 0 전달)
-            statisticsMapper.refreshOrderStats(0);
+        	String executedBy = (String) chunkContext.getStepContext()
+        											 .getJobParameters()
+        											 .getOrDefault("executedBy", "admin");
+        	
+            statisticsMapper.refreshOrderStats(executedBy);
             return RepeatStatus.FINISHED;
         };
     }

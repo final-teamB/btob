@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import io.github.teamb.btob.dto.order.OrderHistoryDTO;
 import io.github.teamb.btob.dto.user.UserDTO;
 import io.github.teamb.btob.dto.user.UserListDTO;
 import io.github.teamb.btob.dto.user.UserPendingActionDTO;
@@ -35,9 +36,15 @@ public interface UserMapper {
 	// 중복 체크
 	int checkUserId(String userId);
 	
+	// 회사코드체크
 	int checkCompanyCd(String companyCd);
 
-
-
+	// 아이디로 type 찾기
+	String getUserTypeById(String userId);
+	
+	// 아이디로 PK찾기
+	Integer getUserNoById(String userId);
+	
+	
 
 }

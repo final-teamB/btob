@@ -21,6 +21,11 @@ public class CompanyDTO {
     private String companyName;   // company_name
     private String bizNumber;     // biz_number
     private String masterName;    // master_name
+    private String companyPhone;
+    private String addrKor;
+    private String addrEng;
+    private String zipCode;
+    private String customsNum;
     private LocalDateTime regDtime; // reg_dtime
     private String regId;         // reg_id
     private LocalDateTime updDtime; // upd_dtime

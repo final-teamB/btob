@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.order.OrderMapper">
+	
+	<resultMap id="FullOrderMap" type="io.github.teamb.btob.dto.order.OrderVoDTO">
+	    <id property="orderId" column="order_id"/> 
+	    
+	    <result property="orderNo" column="order_no"/>
+	    <result property="orderStatus" column="order_status"/>
+	    <result property="statusNm" column="etp_stts_nm"/>
+	    <result property="regDtime" column="reg_dtime"/>
+	    <result property="userName" column="user_name"/>
+	    <result property="phone" column="phone"/>
+	    <result property="companyName" column="company_name"/>
+	    <result property="zipCode" column="zip_code"/>
+	    <result property="addrKor" column="addr_kor"/>
+	
+	    <association property="firstPay" javaType="io.github.teamb.btob.dto.payment.PaymentVo">
+	        <result property="amount" column="first_amount"/>
+	        <result property="status" column="first_status"/>
+	    </association>
+	
+	    <association property="secondPay" javaType="io.github.teamb.btob.dto.payment.PaymentVo">
+	        <result property="amount" column="second_amount"/>
+	        <result property="status" column="second_status"/>
+	    </association>
+	
+	    <collection property="itemList" ofType="io.github.teamb.btob.dto.order.OrderItemVo">
+	        <result property="fuelName" column="fuel_nm"/>
+	        <result property="totalQty" column="total_qty"/>
+	        <result property="baseUnitPrc" column="base_unit_prc"/>
+	        <result property="totalPrice" column="total_price"/>
+	        <result property="targetTotalAmount" column="target_total_amount"/>
+	    </collection>
+	</resultMap>
+	
+	<select id="getOrderDetailWithAll" resultMap="FullOrderMap">
+	    SELECT 
+	        m.order_id, m.order_no, m.order_status, s.etp_stts_nm, m.reg_dtime,
+	        u.user_name, u.phone, com.company_name, com.zip_code, com.addr_kor,
+	        o.fuel_nm, c.total_qty, o.base_unit_prc, c.total_price, e.target_total_amount,
+	        p1.amount AS first_amount, p1.status AS first_status,
+        	p2.amount AS second_amount, p2.status AS second_status 
+	    FROM TB_ORDER_MST m
+	    INNER JOIN TB_USERS u ON m.user_no = u.user_no
+	    INNER JOIN TB_COMPANIES com ON u.company_cd = com.company_cd
+	    LEFT JOIN TB_ETP_STTS_CD s ON m.order_status = s.etp_stts_cd
+	    LEFT JOIN TB_CART c ON m.order_no = c.order_no
+	    LEFT JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
+	    LEFT JOIN TB_EST_DOC e ON m.quote_req_id = e.est_doc_id
+	    LEFT JOIN TB_PAYMENT_MST p1 ON m.order_id = p1.order_id AND p1.pay_step = 'FIRST'
+        LEFT JOIN TB_PAYMENT_MST p2 ON m.order_id = p2.order_id AND p2.pay_step = 'SECOND'
+	    WHERE m.order_id = #{orderId}
+	</select>
+
+	<select id="selectUserOrderList" resultType="io.github.teamb.btob.dto.order.OrderHistoryDTO">
+	    SELECT 
+	        o.order_id, o.order_no, o.reg_id,
+	        CASE 
+	            WHEN COUNT(c.cart_id) > 1 
+	            THEN CONCAT(MAX(m.fuel_nm), ' 외 ', COUNT(c.cart_id) - 1, '건')
+	            ELSE MAX(m.fuel_nm)
+	        END AS productName,
+	        o.order_status,
+	        s1.etp_stts_nm AS statusNm, 
+	        p.amount, o.reg_dtime,
+	        d.delivery_status, 
+	        s2.etp_stts_nm AS deliveryStatusNm
+	    FROM TB_ORDER_MST o
+	    LEFT JOIN TB_CART c ON o.order_no = c.order_no 
+	    LEFT JOIN TB_OIL_MST m ON c.fuel_id = m.fuel_id  LEFT JOIN TB_ETP_STTS_CD s1 ON o.order_status = s1.etp_stts_cd
+	    LEFT JOIN TB_DELIVERY d ON o.order_id = d.order_id
+	    LEFT JOIN TB_ETP_STTS_CD s2 ON d.delivery_status = s2.etp_stts_cd
+	    LEFT JOIN TB_PAYMENT_MST p ON o.order_id = p.order_id 
+	    <where>
+	        <if test="userType != 'MASTER'">
+	            AND o.reg_id = #{dto.regId}
+	        </if>
+	        AND o.use_yn = 'Y'
+	        <if test="dto.orderStatus != null and dto.orderStatus != ''">
+	            AND o.order_status = #{dto.orderStatus}
+	        </if>
+	        <if test="dto.keyword != null and dto.keyword != ''">
+	            AND (o.order_no LIKE CONCAT('%', #{dto.keyword}, '%') 
+	                 OR o.reg_id LIKE CONCAT('%', #{dto.keyword}, '%'))
+	        </if>
+	    </where>
+	    GROUP BY o.order_id, o.order_no, o.reg_id, o.order_status, s1.etp_stts_nm, p.amount, o.reg_dtime, d.delivery_status, s2.etp_stts_nm
+	    ORDER BY o.order_no DESC
+	</select>
+	
+	<select id="selectFormattedEstNo" resultType="string">
+	    SELECT 
+	        CONCAT(
+	            #{systemId}, '-', 
+	            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-', 
+	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',
+	            LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(est_no, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0')
+	        )
+	    FROM TB_EST_DOC
+	    WHERE est_date = CURDATE()  AND est_no LIKE CONCAT(
+	          #{systemId}, '-', 
+	          (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-%'
+	      )
+	</select>
+	
+	<select id="selectFormattedOrderNo" resultType="string">
+	    SELECT 
+	        CONCAT(
+	            #{prefix}, '-', 
+	            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-', 
+	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',
+	            LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(order_no, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0')
+	        )
+	    FROM TB_ORDER_MST
+	    WHERE order_date = CURDATE()
+	      AND order_no LIKE CONCAT(
+	            #{prefix}, '-', 	
+	            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-%'
+	        )
+	</select>
+	
+	<select id="getOrderIdByOrderNo" parameterType="string" resultType="int">
+	    SELECT order_id FROM TB_ORDER_MST WHERE order_no = #{orderNo}
+	</select>
+	
+	<insert id="upsertOrderMaster" parameterType="io.github.teamb.btob.dto.order.OrderDTO" 
+      	 useGeneratedKeys="true" keyProperty="orderId" keyColumn="order_id">
+	    INSERT INTO TB_ORDER_MST (order_no, user_no, order_status, reg_dtime, reg_id, use_yn) 
+	    VALUES (#{orderNo}, #{userNo}, #{orderStatus}, NOW(), #{regId}, 'Y')
+	    ON DUPLICATE KEY UPDATE order_status = #{orderStatus}, upd_dtime = NOW(), upd_id = #{regId}
+	</insert>
+		
+	<insert id="insertEstDoc" parameterType="io.github.teamb.btob.dto.est.EstDocListDTO" 
+      	 useGeneratedKeys="true" keyProperty="estDocId" keyColumn="est_doc_id">
+		INSERT INTO TB_EST_DOC (est_no, company_name, company_phone, request_user_id, ctrt_nm, base_total_amount, target_total_amount, estdt_memo, reg_id, reg_dtime) 
+	    VALUES (#{estNo}, #{companyName}, #{companyPhone}, #{requestUserId}, #{ctrtNm}, #{baseTotalAmount}, #{targetTotalAmount}, #{estdtMemo}, #{regId}, NOW())
+	</insert>
+	
+</mapper>

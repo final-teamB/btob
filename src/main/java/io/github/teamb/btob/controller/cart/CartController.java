@@ -1,10 +1,10 @@
 package io.github.teamb.btob.controller.cart;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,37 +13,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.cart.CartItemDTO;
 import io.github.teamb.btob.dto.cart.CartItemInsertDTO;
 import io.github.teamb.btob.service.cart.CartService;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/cart")
+@RequiredArgsConstructor
 public class CartController {
 	private final CartService cartService;
-
-	public CartController(CartService cartService) {
-		this.cartService = cartService;
-	}
+	private final LoginUserProvider loginUserProvider;
 	
 	@GetMapping("/cart")
-	public String cart(Model model
-	                  ) { // 로그인 유저 정보
-		 // @AuthenticationPrincipal CustomUserDetails user
-	    String userId = ""; 
-		/* user.getUserId(); // CustomUserDetails에 정의된 ID 가져오기 */
-	    String cartStatus = cartService.getCartStatusByUser(userId);
-
-	    // REJECTED,ORDERED이면 장바구니 비우기
-	    if("REJECTED".equals(cartStatus) || "ORDERED".equals(cartStatus)) {
-	        cartService.clearCart(userId);
-	    }
-
-	    List<CartItemDTO> cartList = cartService.getCartItemList();
+	public String cart(Model model,
+	                  @RequestParam(required = false) String orderNo) { // 로그인 유저 정보
+		
+		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+	  
+	    List<CartItemDTO> cartList = cartService.getCartItemList(orderNo);
 
 	    model.addAttribute("cartList", cartList);
-	    model.addAttribute("cartStatus", cartStatus);
 	    model.addAttribute("pageTitle", "거래 바구니");
+	    model.addAttribute("userType", userType);
 	    model.addAttribute("content", "/cart/cart.jsp");
 
 	    return "layout/layout";
@@ -88,16 +81,36 @@ public class CartController {
 	}
 		
 
-	@PostMapping("/order")
-	public String order() {
-				
-		return "redirect:/cart/cart";
+	@PostMapping("/estimateReq") 
+	public String previewPage(@RequestParam String cartIds, Model model) {
+		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+	    List<String> idList = Arrays.asList(cartIds.split(","));
+	    List<CartItemDTO> itemList = cartService.selectCartItemListByIds(idList);
+	    
+	    if (!itemList.isEmpty()) {
+	        model.addAttribute("itemList", itemList);
+	        model.addAttribute("cartIds", cartIds);
+	        model.addAttribute("userType", userType);
+	        model.addAttribute("info", itemList.get(0));
+	    }
+	    
+	    return "document/previewEst";
 	}
-	
-	@PostMapping("/estimate")
-	public String estimate() {
-		
-		return "redirect:/cart/cart";
+
+	@PostMapping("/orderReq")
+	public String previewOrder(@RequestParam String cartIds, Model model) {
+		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+	    List<String> idList = Arrays.asList(cartIds.split(","));
+	    List<CartItemDTO> itemList = cartService.selectCartItemListByIds(idList);
+	    
+	    if (!itemList.isEmpty()) {
+	        model.addAttribute("itemList", itemList);
+	        model.addAttribute("cartIds", cartIds);
+	        model.addAttribute("userType", userType);
+	        model.addAttribute("info", itemList.get(0));
+	    }
+	    
+	    return "document/previewOrder"; 
 	}
-	
+			
 }

@@ -64,12 +64,12 @@
 </c:if>
 
     <%-- 5. 데이터 그리드 섹션 --%>
-    <section class="bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <section class="">
         <%-- 그리드 본체 --%>
         <div id="dg-container" class="w-full"></div>
 
         <%-- 6. 하단 페이징 영역: 템플릿이 들어갈 그릇 --%>
-        <div class="px-5 py-10 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="px-5 py-10 flex flex-col md:flex-row justify-between items-center gap-4">
             <%-- 페이지당 개수 --%>
             <div class="w-32">
                 <c:if test="${showPerPage}">

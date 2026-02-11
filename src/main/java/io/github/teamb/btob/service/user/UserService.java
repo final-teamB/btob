@@ -13,22 +13,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.common.ExcelUploadResult;
+import io.github.teamb.btob.dto.order.OrderHistoryDTO;
 import io.github.teamb.btob.dto.user.UserDTO;
 import io.github.teamb.btob.dto.user.UserListDTO;
 import io.github.teamb.btob.dto.user.UserPendingActionDTO;
 import io.github.teamb.btob.dto.user.UserPendingDTO;
 import io.github.teamb.btob.dto.user.UserStatusDTO;
 import io.github.teamb.btob.mapper.user.UserMapper;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
 	private final UserMapper userMapper;
 
-	public UserService(UserMapper userMapper) {
-		this.userMapper = userMapper;
-	}
 	
 	// 사원 회원가입 인증
 	public void processPendingUser(UserPendingActionDTO upa) {
@@ -153,5 +154,6 @@ public class UserService {
             default -> null;
         };
     }
+
 	
 }

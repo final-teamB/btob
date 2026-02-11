@@ -57,6 +57,17 @@
 	    box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1) !important;
 	    background-image: none !important; /* 입력 중엔 아이콘 숨김 */
 	}
+	
+	/* 그리드 바디의 데이터 셀에 마우스 올리면 포인터로 변경 (상세 이동 가능 암시) */
+	.tui-grid-body-area .tui-grid-cell {
+	    cursor: pointer;
+	}
+	
+	/* 하지만 직접 수정하는 영역(Input, Select)과 관리 버튼 위에서는 기본 커서 유지 */
+	.tui-grid-body-area .tui-grid-cell .direct-edit-el,
+	.tui-grid-body-area .tui-grid-cell .custom-action-btn {
+	    cursor: auto;
+	}
 </style>
 
 <div class="mx-4 my-6 space-y-6">
@@ -74,14 +85,17 @@
 </div>
 
 <script>
-/* 1. 커스텀 렌더러 정의 */
+/* 1. 커스텀 렌더러 정의 - ID 부여 방식 */
 class DirectInputRenderer {
     constructor(props) {
         const el = document.createElement('input');
-        el.type = 'text'; el.className = 'direct-edit-el';
+        el.type = 'text'; 
+        el.className = 'direct-edit-el';
+        // 중요: 각 행마다 고유한 ID를 부여 (ex: input_tracking_0)
+        el.id = 'input_tracking_' + props.rowKey; 
         el.value = props.value || '';
+        
         ['mousedown','click','mouseup'].forEach(e => el.addEventListener(e, ev => ev.stopPropagation()));
-        el.addEventListener('input', () => props.grid.setValue(props.rowKey, props.columnInfo.name, el.value, false));
         this.el = el;
     }
     getElement() { return this.el; }
@@ -91,38 +105,53 @@ class DirectSelectRenderer {
     constructor(props) {
         const el = document.createElement('select');
         el.className = 'direct-edit-el';
+        el.id = 'select_status_' + props.rowKey; 
         el.addEventListener('mousedown', e => e.stopPropagation());
+        
+        const rowData = props.grid.getRow(props.rowKey);
         const list = [
-            {v:'READY', t:'상품준비중'}, {v:'L_SHIPPING', t:'국내배송중'}, {v:'L_WH', t:'국내창고입고'},
-            {v:'ABROAD', t:'국제운송중'}, {v:'IN_CUSTOMS', t:'통관진행중'}, {v:'C_DONE', t:'통관완료'},
-            {v:'D_SHIPPING', t:'배송중'}, {v:'COMPLETE', t:'배송완료'}
+            {v:'dv001', t:'상품준비중'}, {v:'dv002', t:'국제운송중'}, {v:'dv003', t:'보세창고입고'},
+            {v:'dv004', t:'통관진행중'}, {v:'dv005', t:'통관완료'},
+            {v:'dv006', t:'국내배송중'}, {v:'dv007', t:'배송완료'}
         ];
-        list.forEach(i => {
+        
+        let allowedStatus = list;
+        
+        // 주문 상태별 선택 옵션 제한 로직
+        if (rowData.orderStatus === 'pm004') {
+            // 1차결제완료(pm004) -> 국내배송중, 배송완료만
+            allowedStatus = list.filter(s => s.v === 'dv006' || s.v === 'dv007');
+        } else if (rowData.orderStatus === 'pm002') {
+            // 2차결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
+            allowedStatus = list.filter(s => ['dv001', 'dv002', 'dv003', 'dv004', 'dv005'].includes(s.v));
+        }
+        
+        allowedStatus.forEach(i => {
             const o = document.createElement('option');
-            o.value = i.v; o.textContent = i.t;
+            o.value = i.v; 
+            o.textContent = i.t;
             if (i.v === props.value) o.selected = true;
             el.appendChild(o);
         });
-        el.addEventListener('change', () => props.grid.setValue(props.rowKey, props.columnInfo.name, el.value, false));
         this.el = el;
     }
     getElement() { return this.el; }
 }
-
 /* 2. 데이터 바인딩 */
 let deliveryGrid;
-const gridData = [
-    <c:forEach var="item" items="${deliveryList}" varStatus="st">
-    {
-        deliveryId: "${item.deliveryId}",
-        regDtime: "${item.regDtime}", 
-        orderId: "${item.orderId}",
-        statusDisplay: '<strong>${item.statusName}</strong><br><small>(${item.deliveryStatus})</small>',
-        deliveryStatus: "${item.deliveryStatus}",
-        trackingNo: "${item.trackingNo}"
-    }${!st.last ? ',' : ''}
-    </c:forEach>
-];
+const gridData = [];
+
+<c:forEach var="item" items="${deliveryList}">
+gridData.push({
+    deliveryId: "${item.deliveryId}",
+    regDtime: "${item.regDtime}",
+    orderId: "${item.orderId}",
+    orderStatus: "${item.orderStatus}",
+    statusDisplay: '<strong>${item.statusName}</strong><br><small>(${item.deliveryStatus})</small>',
+    deliveryStatus: "${item.deliveryStatus}",
+    trackingNo: "${item.trackingNo}"
+});
+</c:forEach>
 
 document.addEventListener('DOMContentLoaded', () => {
     // [A] 상단 필터 설정
@@ -135,9 +164,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filterWrapper.querySelector('label').textContent = '배송상태';
         
         const enumList = [
-            {v:'READY', t:'상품준비중'}, {v:'L_SHIPPING', t:'국내배송중'}, {v:'L_WH', t:'국내창고입고'},
-            {v:'ABROAD', t:'국제운송중'}, {v:'IN_CUSTOMS', t:'통관진행중'}, {v:'C_DONE', t:'통관완료'},
-            {v:'D_SHIPPING', t:'배송중'}, {v:'COMPLETE', t:'배송완료'}
+        	{v:'dv001', t:'상품준비중'}, {v:'dv002', t:'국제운송중'}, {v:'dv003', t:'보세창고입고'},
+            {v:'dv004', t:'통관진행중'}, {v:'dv005', t:'통관완료'},
+            {v:'dv006', t:'국내배송중'}, {v:'dv007', t:'배송완료'}
         ];
         filterSelect.innerHTML = '<option value="">전체 상태</option>';
         enumList.forEach(s => {
@@ -150,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dg-search-input').parentElement.insertAdjacentHTML('beforebegin', dateHtml);
     }
 
-    // [B] 그리드 초기화 (중요: 정렬 옵션 및 페이징 포함)
+    // [B] 그리드 초기화 (정렬 옵션 및 페이징)
     deliveryGrid = new DataGrid({
         containerId: 'dg-container',
         searchId: 'dg-search-input',
@@ -160,6 +189,21 @@ document.addEventListener('DOMContentLoaded', () => {
         columns: [
             { header:'주문번호', name:'orderId', width:130, align:'center' },
             { header:'주문일시', name:'regDtime', width:160, align:'center' },
+            {
+                header: '주문상태',
+                name: 'orderStatus',
+                width: 120,
+                align: 'center',
+                formatter: ({ value }) => {
+                    const map = {
+                        pm001: '1차결제요청<br><span style="font-size: 11px; color: #666;">(pm001)</span>',
+                        pm002: '1차결제완료<br><span style="font-size: 11px; color: #666;">(pm002)</span>',
+                        pm003: '2차결제요청<br><span style="font-size: 11px; color: #666;">(pm003)</span>',
+                        pm004: '2차결제완료<br><span style="font-size: 11px; color: #666;">(pm004)</span>'
+                    };
+                    return map[value] || value;
+                }
+            },
             { header:'현재 상태', name:'statusDisplay', width:150, align:'center' },
             { header:'배송상태(수정)', name:'deliveryStatus', width:150, align:'center', renderer:{ type: DirectSelectRenderer } },
             { header:'운송장번호', name:'trackingNo', align:'left', renderer:{ type: DirectInputRenderer } },
@@ -187,47 +231,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         deliveryGrid.grid.resetData(filtered);
     });
+    
+ // [D] 행 클릭 시 상세 페이지 이동
+    deliveryGrid.grid.on('click', (ev) => {
+        // 클릭된 대상이 '관리(save)' 버튼이나 'input/select'인 경우는 제외하고 행 이동
+        if (ev.columnName !== 'manage' && ev.columnName !== 'deliveryStatus' && ev.columnName !== 'trackingNo') {
+            const rowData = deliveryGrid.grid.getRow(ev.rowKey);
+            if (rowData && rowData.deliveryId) {
+                location.href = '/admin/delivery/detail/' + rowData.deliveryId;
+            }
+        }
+    });
 });
 
-/* [E] 저장 처리 - 형님, 이 코드가 최종 정답입니다! */
+/* 저장 처리 (ID 참조 방식) */
 window.handleGridAction = function(rowData) {
     const rowKey = rowData.rowKey;
-    
-    // 1. 그리드에서 현재 선택된 값들을 가져옵니다.
-    const currentCode = deliveryGrid.grid.getValue(rowKey, 'deliveryStatus'); 
-    const trackingNo = deliveryGrid.grid.getValue(rowKey, 'trackingNo');
-    const deliveryId = deliveryGrid.grid.getValue(rowKey, 'deliveryId');
+    const deliveryId = rowData.deliveryId;
 
-    // [중요] 형님의 DeliveryStatus.java Enum 설정과 1:1 매칭 완료
-    const statusMap = {
-        'READY': '상품준비중',
-        'L_SHIPPING': '국내배송중',
-        'L_WH': '국내창고입고',
-        'ABROAD': '국제운송중',
-        'IN_CUSTOMS': '통관진행중',
-        'C_DONE': '통관완료',
-        'D_SHIPPING': '배송중',
-        'COMPLETE': '배송완료'
-    };
+    const statusEl = document.getElementById('select_status_' + rowKey);
+    const trackingEl = document.getElementById('input_tracking_' + rowKey);
 
-    if (!deliveryId) return;
-    
-    // 유효성 체크
-    if (currentCode !== 'READY' && !trackingNo) {
-        if(!confirm('운송장 번호가 없습니다. 이대로 저장할까요?')) return;
-    }
+    if (!statusEl || !trackingEl) return;
+
+    const currentCode = statusEl.value;
+    const currentText = statusEl.options[statusEl.selectedIndex].text;
+    const trackingNo = trackingEl.value;
 
     const saveBtn = document.querySelector(`[data-row-key="${rowKey}"] .custom-action-btn`);
-    if(saveBtn) { 
-        saveBtn.innerText = '처리중'; 
-        saveBtn.disabled = true; 
-    }
+    if(saveBtn) saveBtn.disabled = true;
 
     fetch('/admin/delivery/deliveryUpdate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            deliveryId: deliveryId,
+            deliveryId: parseInt(deliveryId),
             deliveryStatus: currentCode,
             trackingNo: trackingNo
         })
@@ -236,15 +274,18 @@ window.handleGridAction = function(rowData) {
     .then(res => {
         if (res.success) {
             alert('저장되었습니다.');
+            
+            // 1. 원본 데이터(gridData)에서 해당 행을 찾아 값을 업데이트합니다.
+            const targetRow = gridData.find(item => item.deliveryId == deliveryId);
+            if (targetRow) {
+                targetRow.deliveryStatus = currentCode;
+                targetRow.trackingNo = trackingNo;
+                targetRow.statusDisplay = '<strong>' + currentText + '</strong><br><small>(' + currentCode + ')</small>';
+            }
 
-            // 2. statusMap에서 한글 이름을 가져옵니다. 없으면 코드라도 띄웁니다.
-            const statusKor = statusMap[currentCode] || currentCode;
-            
-            // 3. [핵심] 현재 상태(statusDisplay) 컬럼을 새로고침 없이 강제 업데이트
-            // 형님 JSP의 <strong>${item.statusName}</strong> 구조를 그대로 재현합니다.
-            const newStatusHtml = '<strong>' + statusKor + '</strong><br><small>(' + currentCode + ')</small>';
-            
-            deliveryGrid.grid.setValue(rowKey, 'statusDisplay', newStatusHtml);
+            // 2. 그리드에 변경된 데이터를 다시 밀어 넣습니다. 
+            // 이렇게 하면 새로고침 없이 해당 행만 자연스럽게 바뀝니다.
+            deliveryGrid.grid.resetData(gridData); 
             
         } else {
             alert('실패: ' + res.message);
@@ -255,10 +296,7 @@ window.handleGridAction = function(rowData) {
         alert('통신 오류가 발생했습니다.');
     })
     .finally(() => {
-        if(saveBtn) { 
-            saveBtn.innerText = '저장'; 
-            saveBtn.disabled = false; 
-        }
+        if(saveBtn) saveBtn.disabled = false;
     });
 };
 </script>

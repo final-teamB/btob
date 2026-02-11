@@ -1,5 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="mapper.trade.TradeApprovalMapper">
+<mapper namespace="io.github.teamb.btob.mapper.trade.TradeApprovalMapper">
+	
+	<select id="getTradePendingList" resultType="io.github.teamb.btob.dto.trade.TradePendingDTO">
+		SELECT 
+        O.order_id,
+        O.quote_req_id,
+        CASE WHEN O.quote_req_id IS NOT NULL AND O.quote_req_id > 0 
+             THEN 'ESTIMATE' 
+             ELSE 'PURCHASE ORDER'
+        END AS docType,
+        O.order_no,
+        O.order_status,
+        GROUP_CONCAT(C.cart_id) AS cartIds,
+        COUNT(C.cart_id) AS cartCount,
+    	SUM(C.total_qty) AS totalQty,
+        SUM(C.total_price) AS totalPrice,
+        ANY_VALUE(F.fuel_nm) AS fuelNm,
+        ANY_VALUE(F.base_unit_prc) AS baseUnitPrc,
+        U.user_no,
+        U.user_id,
+        U.user_name,
+        U.phone,
+        CO.company_name,
+        CO.company_cd,
+        CO.biz_number,
+        CO.addr_kor,
+        O.reg_dtime
+    FROM TB_ORDER_MST O
+    INNER JOIN TB_CART C ON O.order_no = C.order_no
+    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+    INNER JOIN TB_COMPANIES CO ON U.company_cd = CO.company_cd
+    INNER JOIN TB_OIL_MST F ON C.fuel_id = F.fuel_id
+    <where>
+        AND CO.company_cd = (
+        SELECT company_cd 
+        FROM TB_USERS 
+        WHERE user_no = #{userNo}
+    	)
+        AND O.order_status = 'od001'
+        /* 검색 필터: 견적/주문 구분 */
+        <if test="tradeType == 'EST'">
+            AND O.quote_req_id IS NOT NULL AND O.quote_req_id > 0
+        </if>
+        <if test="tradeType == 'ORD'">
+            AND (O.quote_req_id IS NULL OR O.quote_req_id = 0)
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (O.order_no LIKE CONCAT('%', #{keyword}, '%') 
+            	OR U.user_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </where>
+    GROUP BY 
+		O.order_no, 
+    O.order_id, 
+    O.quote_req_id, 
+    O.order_status, 
+    U.user_no, 
+    U.user_id, 
+    U.user_name, 
+    U.phone, 
+    CO.company_name, 
+    CO.company_cd, 
+    CO.biz_number, 
+    CO.addr_kor, 
+    O.reg_dtime
+    ORDER BY O.reg_dtime DESC
+</select>
 
 </mapper>

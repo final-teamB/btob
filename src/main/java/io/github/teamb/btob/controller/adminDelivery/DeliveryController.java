@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("admin/delivery")
 @RequiredArgsConstructor
+@PreAuthorize("hashRole('ADMIN')")
 public class DeliveryController {
     
     private final DeliveryService deliveryService;
@@ -36,7 +40,6 @@ public class DeliveryController {
         model.addAttribute("search", deliveryDTO);
         model.addAttribute("statusList", DeliveryStatus.values());
         
-        model.addAttribute("pageTitle", "배송 관리 목록");
         model.addAttribute("content", "adminsh/adminDelivery/deliveryList.jsp"); // 실제 파일 경로
         return "layout/layout";
     }
@@ -44,21 +47,39 @@ public class DeliveryController {
     // 수정
     @PostMapping({"/deliveryUpdate", "/updateDeliveryDetail"})
     @ResponseBody
-    public Map<String, Object> updateDelivery(@RequestBody DeliveryDTO deliveryDTO, Principal principal) {
+    public Map<String, Object> updateDelivery(@RequestBody Map<String, Object> params,
+    										  @AuthenticationPrincipal UserDetails userDetails) {
         
     	Map<String, Object> result = new HashMap<>();
-        String adminId = (principal != null) ? principal.getName() : "admin";
-        deliveryDTO.setUpdId(adminId);
         
         try {
+            DeliveryDTO deliveryDTO = new DeliveryDTO();
+            // 1. 기본 값 세팅 (JS에서 보낸 키값과 매칭)
+            deliveryDTO.setDeliveryId(Integer.parseInt(params.get("deliveryId").toString()));
+            deliveryDTO.setTrackingNo((String) params.get("trackingNo"));
+            deliveryDTO.setCarrierName((String) params.get("carrierName"));
+            deliveryDTO.setShipToAddr((String) params.get("shipToAddr"));
+            
+            // 2. Enum 처리 (문자열 dv001 -> Enum DeliveryStatus.dv001 변환)
+            String statusStr = (String) params.get("deliveryStatus");
+            if (statusStr != null && !statusStr.isEmpty()) {
+                deliveryDTO.setDeliveryStatus(DeliveryStatus.valueOf(statusStr));
+            }
+            
+            String adminId = userDetails.getUsername();
+            deliveryDTO.setUpdId(adminId);
+
             deliveryService.modifyDelivery(deliveryDTO);
             
             result.put("success", true);
             result.put("message", "정상적으로 수정되었습니다.");
-            result.put("data", deliveryDTO);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             result.put("success", false);
-            result.put("message", "수정 중 오류 발생: " + e.getMessage());
+            result.put("message", "변경 불가: " + e.getMessage()); // 규칙 위반 시 메시지 출력
+        } catch (Exception e) {
+            e.printStackTrace(); // 콘솔에서 에러 로그 확인용
+            result.put("success", false);
+            result.put("message", "시스템 오류: " + e.getMessage());
         }
         return result;
     }
@@ -69,7 +90,8 @@ public class DeliveryController {
         model.addAttribute("deliveryDTO", deliveryService.getDeliveryDetail(deliveryId));
         model.addAttribute("statusList", DeliveryStatus.values());
         
-        return "adminsh/adminDelivery/deliveryDetail";
+        model.addAttribute("content", "adminsh/adminDelivery/deliveryDetail.jsp"); // 실제 파일 경로
+        return "layout/layout";
     }
 
     @PostMapping("/deleteDelivery")
@@ -82,6 +104,6 @@ public class DeliveryController {
         result.put("success", isSuccess);
         result.put("message", isSuccess ? "비활성화 처리되었습니다." : "처리 실패");
         
-        return result;
+        return result; 
     }
 }

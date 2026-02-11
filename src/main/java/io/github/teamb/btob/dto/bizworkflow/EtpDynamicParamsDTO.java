@@ -19,4 +19,5 @@ public class EtpDynamicParamsDTO {
 	private String targetTable;				// 업데이트 대상 테이블
 	private String targetStatusCol;			// 업데이트 대상 상태 컬럼
 	private String targetPkCol;				// 업데이트 대상 테이블 식별자 컬럼
+
 }

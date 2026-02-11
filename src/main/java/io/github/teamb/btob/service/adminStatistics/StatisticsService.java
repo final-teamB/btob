@@ -10,15 +10,19 @@ public interface StatisticsService {
 	
 	List<StatisticsDTO> getStatsByType(String statsType);
 	List<OrderStatisticsDTO> getOrderStats();
-	int refreshOrderStats(int userNo);
+	int refreshOrderStats(String userId);
 	
 	Map<String, Object> getDeliveryKPI();
 	Map<String, Object> getDeliveryStatusCounts();
 	List<Map<String, Object>> getDeliveryRegionStats();
-	List<Map<String, Object>> getDeliveryTrend();
+	List<Map<String, Object>> getRecentDeliveryList(String type, String value);
 
 	Map<String, Object> getUserFullData();
-	Map<String, Object> getProductFullData();
+	List<Map<String, Object>> getFilteredUserList(String type, String value);
 	
-	void saveAllDailySnapshots(int userNo);
+	Map<String, Object> getProductFullData();
+	List<Map<String, Object>> getFilteredProductList(String type, String value);
+	
+	void saveAllDailySnapshots(String userId);
+	
 }

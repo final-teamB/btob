@@ -19,6 +19,8 @@ public class EtpStatusSelectDTO {
 	// 동적쿼리시 사용할 DTO
 	private String targetTable;		// 업데이트 대상 테이블
 	private String targetPkCol;			// 업데이트 테이블 조건절에 들어갈 PK컬럼명
+	private String targetStatusCol;
 	private Integer refId;			// 고유식별번호
-	private String apprUserNo;		// 요청자
+	private Integer apprUserNo;		// 요청자
+	private String userId;
 }

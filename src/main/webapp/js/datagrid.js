@@ -9,6 +9,19 @@
  */
 
 const GRID_STATUS_THEMES = {
+    'deliveryStatus' : { bgColor: 'bg-indigo-100', textColor: 'text-indigo-700', label: '-'},
+	
+	'orderStatusNm': {
+	    '1차결제완료': { bgColor: 'bg-blue-200', textColor: 'text-blue-800', label: '1차 결제완료' },
+		'2차결제요청': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: '2차 결제요청' },
+	    '2차결제완료': { bgColor: 'bg-green-200', textColor: 'text-green-800', label: '2차 결제완료'}
+	},
+	
+	'docType': {
+	        'ESTIMATE': { bgColor: 'bg-blue-200', textColor: 'text-blue-700', label: '견적서' },
+	        'PURCHASE ORDER': { bgColor: 'bg-emerald-200', textColor: 'text-emerald-700', label: '발주서' }
+    },
+	
     'accStatus': {
         'ACTIVE': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: 'Active' },
         'STOP': { bgColor: 'bg-red-200', textColor: 'text-red-900', label: 'Stop' },
@@ -46,7 +59,7 @@ class CustomStatusRenderer {
         this.el.innerHTML = `
             <span class="relative inline-block px-3 py-1 font-bold leading-tight ${config.textColor} text-xs">
                 <span class="absolute inset-0 ${config.bgColor} rounded-full opacity-50"></span>
-                <span class="relative">${config.label}</span>
+                <span class="relative">${config.label || realValue}</span>
             </span>
         `;
     }
@@ -54,6 +67,8 @@ class CustomStatusRenderer {
 
 // [2] 액션 버튼 렌더러
 class CustomActionRenderer {
+	
+	
     constructor(props) {
         this.el = document.createElement('div');
         this.el.className = 'flex justify-center gap-3'; // 버튼 사이 간격(gap) 추가
@@ -63,6 +78,7 @@ class CustomActionRenderer {
     
     render(props) {
         const { grid, rowKey, columnInfo } = props;
+		const rowData = grid.getRow(rowKey);
         this.el.innerHTML = ''; // 기존 버튼 초기화
 
         const options = columnInfo.renderer.options || {};
@@ -71,13 +87,23 @@ class CustomActionRenderer {
         const buttonConfigs = options.buttons || [{ text: options.btnText || '수정', action: 'edit' }];
 
         buttonConfigs.forEach(btnCfg => {
-            const btn = document.createElement('button');
-			const textColor = btnCfg.color || 'text-gray-600 hover:text-gray-900';
-			            
+			if (btnCfg.visibleIf) {
+			            const { field, value } = btnCfg.visibleIf;
+			            // 해당 필드의 값이 설정한 값과 다르면 버튼을 생성하지 않음
+			            if (rowData[field] !== value) {
+			                return; 
+			            }
+			        }
+			
+        const btn = document.createElement('button');
+		btn.type = 'button';
+         const textColor = btnCfg.color || 'text-gray-600 hover:text-gray-900';
+                     
             btn.className = `text-sm font-bold underline underline-offset-4 transition ${textColor}`;
             btn.innerText = btnCfg.text;
             
             btn.onclick = (e) => {
+				e.preventDefault();
                 e.stopPropagation(); // 행 선택 이벤트 전파 방지
                 const actualData = grid.getRow(rowKey);
                 if (typeof window.handleGridAction === 'function') {
@@ -175,7 +201,6 @@ class DataGrid {
             this.updateGrid();
         }
     }
-	
 	initFilters(filterConfigs) {
 	    const wrapper = document.getElementById('dg-common-filter-wrapper');
 	    const container = wrapper?.querySelector('.flex');
@@ -192,14 +217,21 @@ class DataGrid {
 
 	        select.id = `filter-${config.field}`;
 	        select.className = 'dg-filter rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm outline-none min-w-[120px]';
-
 	        select.innerHTML = `<option value="">${config.title} 전체</option>`;
-	        const options = [...new Set(this.allData.map(i => i[config.field]))]
-	            .filter(Boolean)
-	            .sort();
-	        options.forEach(opt => select.add(new Option(opt, opt)));
 
-	        // 🔥 여기
+	        // [수정 포인트] config에 options가 정의되어 있다면 해당 매핑 정보를 사용
+	        if (config.options && config.options.length > 0) {
+	            config.options.forEach(opt => {
+	                select.add(new Option(opt.text, opt.value));
+	            });
+	        } else {
+	            // 기존 방식: 데이터에서 유니크한 값을 뽑아서 생성
+	            const options = [...new Set(this.allData.map(i => i[config.field]))]
+	                .filter(Boolean)
+	                .sort();
+	            options.forEach(opt => select.add(new Option(opt, opt)));
+	        }
+
 	        select.addEventListener('change', () => {
 	            this.executeFiltering(true);
 	        });
@@ -208,12 +240,12 @@ class DataGrid {
 	    wrapper.classList.remove('hidden');
 	    wrapper.classList.add('flex');
 	}
-	
-	bindEvents() {
-	    const c = this.config;
-	    const searchInput = document.getElementById(c.searchId);
-	    const perPageSelect = document.getElementById(c.perPageId);
-	    const btnSearch = document.getElementById(c.btnSearchId);
+   
+   bindEvents() {
+       const c = this.config;
+       const searchInput = document.getElementById(c.searchId);
+       const perPageSelect = document.getElementById(c.perPageId);
+       const btnSearch = document.getElementById(c.btnSearchId);
 
 	    // [핵심 수정] 모든 필터(.dg-filter)를 찾아서 이벤트를 연결합니다.
 	    const allFilters = document.querySelectorAll('.dg-filter');
