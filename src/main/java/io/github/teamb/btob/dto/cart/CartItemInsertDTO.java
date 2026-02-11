@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class CartItemInsertDTO {
     private int cartId;          // PK (시퀀스/auto)
-    private int userId;          // 장바구니 소유자
+    private String userId;          // 장바구니 소유자
     private int fuelId;          // 상품 ID (OIL_MST FK)
 
     private int totalQty;        // 총 수량

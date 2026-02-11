@@ -17,9 +17,8 @@
             productName: "${order.productName}",
             orderStatus: "${order.orderStatus}", 
             statusNm: "${order.statusNm}",       
-            amount: "${order.amount}",
             regDtime: "${order.regDtime}",
-            deliveryStatusNm: "${order.deliveryStatusNm}"
+            deliveryStatusNm: "${not empty order.deliveryStatusNm ? order.deliveryStatusNm : '-'}"
         }${!status.last ? ',' : ''}
         </c:forEach>
     ];
@@ -30,10 +29,7 @@
             searchId: 'dg-search-input',
             perPageId: 'dg-per-page',
             btnSearchId: 'dg-btn-search',
-            // [개인화 설정] 2026-02-02 저장된 정보 반영
-            showSearchArea: true,
-            showPerPage: true,
-                      
+     
             columns: [
                 { header: '주문번호', name: 'orderNo'},
                 { header: '상품명', name: 'productName'},
@@ -76,7 +72,7 @@
                             ]
                         }
                     }
-                } // 닫는 괄호 추가됨
+                } 
             ],
             data: rawData
         });
@@ -95,24 +91,76 @@
         ]);
     });
     
-    // 상세보기 및 결제 액션 핸들러
-    window.handleGridAction = function(data, action) {
-        if (action === 'detail') {
-            location.href = "/order/detail/" + data.orderId;
-        } else if (action === 'payment') {
-            if(confirm('2차 결제를 진행하시겠습니까?')) {
-                // 결제 모달 호출 등의 로직
-                console.log('Payment for:', data.orderId);
-            }
-        }
-    };
+    	window.handleGridAction = function(data, action) {
+    	    if (action === 'detail') {
+    	        // [모달 방식] 상세 페이지를 레이어 모달로 띄움 (함수는 아래 정의)
+    	        openOrderDetailModal(data.orderId);
+    	    } 
+    	    else if (action === 'payment') {
+    	        // [팝업 방식] 결제 프로세스만 새 창으로 띄움
+    	        if(confirm('2차 결제를 진행하시겠습니까?')) {
+    	            openPaymentPopup(data.orderNo);
+    	        }
+    	    }
+    	};
 
-    window.fetchData = function() {
-        const keyword = document.getElementById('dg-search-input').value;
-        const orderStatus = document.getElementById('filter-orderStatus')?.value || '';
-        let url = window.location.pathname + "?keyword=" + encodeURIComponent(keyword);
-        if (orderStatus) url += "&orderStatus=" + encodeURIComponent(orderStatus);
-        location.href = url;
-    };
+    	// 결제 전 전용 팝업 함수
+    	function openPaymentPopup(orderNo) {
+    		if (!orderNo) {
+    	        alert("주문 번호가 올바르지 않습니다.");
+    	        return;
+    	    }
+    		
+    	    const url = "${pageContext.request.contextPath}/payment/paySecond?orderNo=" + orderNo;
+    	    const name = "paymentPopup";
+    	    const specs = "width=540,height=700,top=100,left=100,scrollbars=yes";
+    	 
+    	    window.open(url, name, specs);
+    	}
+
+    	// 모달 오픈 함수 (간단 예시)
+    	function openOrderDetailModal(orderId) {
+		    const modal = document.getElementById('orderDetailModal');
+		    const iframe = document.getElementById('detailIframe');
+		    const url = "${pageContext.request.contextPath}/order/detail?orderId=" + orderId;
+		
+		    // 1. iframe에 URL 설정
+		    iframe.src = url;
+		
+		    // 2. 모달 띄우기 (showModal은 뒷배경 클릭 방지 및 최상위 레이어 보장)
+		    modal.showModal();
+		    
+			 // 배경 클릭 시 닫기
+	        modal.addEventListener('click', function(e) {
+	            if (e.target === modal) closeOrderDetailModal();
+	        }, { once: true });
+		}
+		
+		function closeOrderDetailModal() {
+		    const modal = document.getElementById('orderDetailModal');
+		    const iframe = document.getElementById('detailIframe');
+		    
+		    modal.close();
+		    iframe.src = ""; // 창 닫을 때 내용 초기화 (메모리 관리)
+		}
+
+	    window.fetchData = function() {
+	        const keyword = document.getElementById('dg-search-input').value;
+	        const orderStatus = document.getElementById('filter-orderStatus')?.value || '';
+	        let url = window.location.pathname + "?keyword=" + encodeURIComponent(keyword);
+	        if (orderStatus) url += "&orderStatus=" + encodeURIComponent(orderStatus);
+	        location.href = url;
+	    };
 </script>
+<dialog id="orderDetailModal" class="rounded-lg shadow-xl w-full max-w-4xl p-0 backdrop:bg-gray-900/50">
+    <div class="flex flex-col h-[85vh]"> 
+        <div class="flex items-center justify-between p-4 border-b bg-white">
+            <h3 class="text-xl font-bold text-gray-800">주문 상세 내역</h3>
+            <button onclick="closeOrderDetailModal()" class="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+        </div>
+        <div class="flex-1 bg-gray-50 overflow-hidden">
+            <iframe id="detailIframe" src="" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+</dialog>
 </div>

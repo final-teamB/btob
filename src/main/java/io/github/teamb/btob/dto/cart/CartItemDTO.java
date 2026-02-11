@@ -34,9 +34,14 @@ public class CartItemDTO {
     private int baseUnitPrc;
     
     // ORDER
+    private int orderId;
     private String orderStatus;
     
+    // 공통
+    private String etpSttsNm;
+    
     // USERS
+    private int userNo;
     private String userName;
     private String phone;
     
@@ -44,5 +49,6 @@ public class CartItemDTO {
     private String companyCd;
     private String companyName;
     private String bizNumber;
-    private String masterName;
+    private String masterId;
+    private String addrKor;
 }

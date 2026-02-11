@@ -115,19 +115,5 @@ public class UserManagementController {
         return "redirect:/users/list";
     }
     
-    @GetMapping("/orderHistory")
-    public String orderHistory(OrderHistoryDTO dto, Model model) {
-    	String userId = loginUserProvider.getLoginUserId();
-    	String userType = loginUserProvider.getUserType(userId);
-    	dto.setRegId(userId);
-    	
-    	List<OrderHistoryDTO> orderList = userService.selectUserOrderList(dto, userType);
-    	
-      	model.addAttribute("orderList", orderList);
-    	model.addAttribute("pageTitle", "주문/배송 내역");  
-    	model.addAttribute("userType", userType);
-        model.addAttribute("content", "users/orderHistory.jsp"); 
-        return "layout/layout"; 
-    }
 	
 }

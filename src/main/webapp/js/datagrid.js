@@ -9,7 +9,7 @@
  */
 
 const GRID_STATUS_THEMES = {
-	'deliveryStatus' : { bgColor: 'bg-gray-100', textColor: 'text-gray-600' },
+    'deliveryStatus' : { bgColor: 'bg-indigo-100', textColor: 'text-indigo-700', label: '-'},
 	
 	'orderStatusNm': {
 	    '1차결제완료': { bgColor: 'bg-blue-200', textColor: 'text-blue-800', label: '1차 결제완료' },
@@ -69,6 +69,8 @@ class CustomStatusRenderer {
 
 // [2] 액션 버튼 렌더러
 class CustomActionRenderer {
+	
+	
     constructor(props) {
         this.el = document.createElement('div');
         this.el.className = 'flex justify-center gap-3'; // 버튼 사이 간격(gap) 추가
@@ -95,13 +97,15 @@ class CustomActionRenderer {
 			            }
 			        }
 			
-            const btn = document.createElement('button');
+        const btn = document.createElement('button');
+		btn.type = 'button';
          const textColor = btnCfg.color || 'text-gray-600 hover:text-gray-900';
                      
             btn.className = `text-sm font-bold underline underline-offset-4 transition ${textColor}`;
             btn.innerText = btnCfg.text;
             
             btn.onclick = (e) => {
+				e.preventDefault();
                 e.stopPropagation(); // 행 선택 이벤트 전파 방지
                 const actualData = grid.getRow(rowKey);
                 if (typeof window.handleGridAction === 'function') {
@@ -189,38 +193,45 @@ class DataGrid {
         }
     }
    
-   initFilters(filterConfigs) {
-       const wrapper = document.getElementById('dg-common-filter-wrapper');
-       const container = wrapper?.querySelector('.flex');
-       if (!wrapper || !container) return;
+	initFilters(filterConfigs) {
+	    const wrapper = document.getElementById('dg-common-filter-wrapper');
+	    const container = wrapper?.querySelector('.flex');
+	    if (!wrapper || !container) return;
 
-       filterConfigs.forEach((config, index) => {
-           let select;
-           if (index === 0) {
-               select = document.getElementById('dg-common-filter');
-           } else {
-               select = document.createElement('select');
-               container.appendChild(select);
-           }
+	    filterConfigs.forEach((config, index) => {
+	        let select;
+	        if (index === 0) {
+	            select = document.getElementById('dg-common-filter');
+	        } else {
+	            select = document.createElement('select');
+	            container.appendChild(select);
+	        }
 
-           select.id = `filter-${config.field}`;
-           select.className = 'dg-filter rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm outline-none min-w-[120px]';
+	        select.id = `filter-${config.field}`;
+	        select.className = 'dg-filter rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm outline-none min-w-[120px]';
+	        select.innerHTML = `<option value="">${config.title} 전체</option>`;
 
-           select.innerHTML = `<option value="">${config.title} 전체</option>`;
-           const options = [...new Set(this.allData.map(i => i[config.field]))]
-               .filter(Boolean)
-               .sort();
-           options.forEach(opt => select.add(new Option(opt, opt)));
+	        // [수정 포인트] config에 options가 정의되어 있다면 해당 매핑 정보를 사용
+	        if (config.options && config.options.length > 0) {
+	            config.options.forEach(opt => {
+	                select.add(new Option(opt.text, opt.value));
+	            });
+	        } else {
+	            // 기존 방식: 데이터에서 유니크한 값을 뽑아서 생성
+	            const options = [...new Set(this.allData.map(i => i[config.field]))]
+	                .filter(Boolean)
+	                .sort();
+	            options.forEach(opt => select.add(new Option(opt, opt)));
+	        }
 
-           // 🔥 여기
-           select.addEventListener('change', () => {
-               this.executeFiltering(true);
-           });
-       });
+	        select.addEventListener('change', () => {
+	            this.executeFiltering(true);
+	        });
+	    });
 
-       wrapper.classList.remove('hidden');
-       wrapper.classList.add('flex');
-   }
+	    wrapper.classList.remove('hidden');
+	    wrapper.classList.add('flex');
+	}
    
    bindEvents() {
        const c = this.config;

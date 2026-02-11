@@ -46,6 +46,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		String approvalStatus = approvalDecisionRequestDTO.getApprovalStatus();	// 승인,반려 타입
 		String requestEtpStatus = approvalDecisionRequestDTO.getRequestEtpStatus(); // 변경요청 상태코드 
 		Integer apprUserNo = approvalDecisionRequestDTO.getApprUserNo();	// 요청자
+		String userId = approvalDecisionRequestDTO.getUserId();
 		
 		if ( !("APPROVED".equals(approvalStatus)) && 
 			     !("REJECTED".equals(approvalStatus)) && 
@@ -55,7 +56,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		
 		// 파라미터 검증은 해당 메서드 안에서 처리됨
 		// 현재 상태코드
-		String currentEtpStatus = this.selectCurrentEtpStatusValidate(systemId, refId, apprUserNo);
+		String currentEtpStatus = this.selectCurrentEtpStatusValidate(systemId, refId, userId);
 		
 		// 승인처리 시 다음 상태코드
 		String nextEtpStatus = "";
@@ -72,7 +73,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 	        
 	        if (requestEtpStatus.equals(nextEtpStatus)) {
 	            // 결과값을 finalResult에 할당
-	            finalResult = processUpdateAndLog(edDto, requestEtpStatus, currentEtpStatus, refId, approvalDecisionRequestDTO);
+	            finalResult = processUpdateAndLog(edDto, requestEtpStatus, currentEtpStatus, refId, userId, approvalDecisionRequestDTO);
 	        } else {
 	            throw new Exception("상태 변경이 불가능한 단계이거나 데이터가 존재하지 않습니다.");
 	        }
@@ -82,14 +83,14 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 	        if (rejtEtpStatus == null) throw new Exception("현재 단계에서는 반려 처리를 할 수 없습니다.");
 	        
 	        if (requestEtpStatus.equals(rejtEtpStatus)) {
-	            finalResult = processUpdateAndLog(edDto, requestEtpStatus, currentEtpStatus, refId, approvalDecisionRequestDTO);
+	            finalResult = processUpdateAndLog(edDto, requestEtpStatus, currentEtpStatus, refId, userId, approvalDecisionRequestDTO);
 	        } else {
 	            throw new Exception("상태 변경이 불가능한 단계입니다.");
 	        }
 
 	    } else if (approvalStatus.equals("COMPLETE")) {
 	        // 단순 확정 로직
-	        finalResult = processUpdateAndLog(edDto, requestEtpStatus, currentEtpStatus, refId, approvalDecisionRequestDTO);
+	        finalResult = processUpdateAndLog(edDto, requestEtpStatus, currentEtpStatus, refId, userId, approvalDecisionRequestDTO);
 	    }
 
 	    // 최종적으로 int 값을 반환 (이 부분이 빠져서 에러가 났던 것입니다)
@@ -110,12 +111,13 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 	 * @throws Exception 
 	 */
 	@Override
-	public String selectCurrentEtpStatusValidate(String systemId, Integer refId, Integer apprUserNo) throws Exception {
+	public String selectCurrentEtpStatusValidate(String systemId, Integer refId, String userId) throws Exception {
 		
 		Map<String, Object> params = new HashMap<>();
 		params.put("refId", refId);
 		params.put("systemId", systemId);
-		params.put("apprUserNo", apprUserNo);
+		params.put("userId", userId);
+		params.put("loginUserId", userId);
 		
 		// 파라미터 검증
 		if ( !(commonService.nullEmptyChkValidate(params)) ) {
@@ -133,8 +135,10 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		EtpStatusSelectDTO etpStatusSelectDTO = new EtpStatusSelectDTO();
 		etpStatusSelectDTO.setTargetTable(targetTable);
 		etpStatusSelectDTO.setTargetPkCol(targetPkCol);
+		etpStatusSelectDTO.setTargetStatusCol(eDto.getTargetStatusCol());
 		etpStatusSelectDTO.setRefId(refId);
-		etpStatusSelectDTO.setApprUserNo(apprUserNo);
+		//etpStatusSelectDTO.setApprUserNo(apprUserNo);
+		etpStatusSelectDTO.setUserId(userId);
 
 		String currentEtpStatus = bizWorkflowMapper.selectCurrentStatusByRefId(etpStatusSelectDTO);
 		
@@ -188,7 +192,8 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 	private EtpStatusUpdateDTO getEtpStatusUpdate(EtpDynamicParamsDTO edDto,
 													String requestEtpStatus,
 													String currentEtpStatus,
-													Integer refId) {
+													Integer refId,
+													String userId) {
 		
 		String targetTable = edDto.getTargetTable();					// 업데이트 대상 테이블
 		String targetStatusCol = edDto.getTargetStatusCol();			// 업데이트 테이블 상태코드컬럼
@@ -202,6 +207,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		etpStatusUpdateDTO.setUpdateStatus(requestEtpStatus);
 		etpStatusUpdateDTO.setCurrentEtpStatus(currentEtpStatus);
 		etpStatusUpdateDTO.setRefId(refId);
+		etpStatusUpdateDTO.setUserId(userId);
 		
 		return etpStatusUpdateDTO;
 	}
@@ -226,6 +232,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 			    : "";
 		Integer apprUserNo = approvalDecisionRequestDTO.getApprUserNo();
 		Integer requestUserNo = approvalDecisionRequestDTO.getRequestUserNo();
+		String userId = approvalDecisionRequestDTO.getUserId();
 		
 		EtpHistInsertDTO histInsertDTO = new EtpHistInsertDTO();
 		histInsertDTO.setRefId(refId);
@@ -233,6 +240,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		histInsertDTO.setRequestEtpStatus(requestEtpStatus);
 		histInsertDTO.setRejtRsn(rejtRsn);
 		histInsertDTO.setRequestUserNo(requestUserNo);
+		histInsertDTO.setUserId(userId);
 		
 		return histInsertDTO;
 	}
@@ -241,11 +249,11 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 	 * 상태 업데이트 및 이력 저장을 수행하는 공통 로직
 	 */
 	private int processUpdateAndLog(EtpDynamicParamsDTO edDto, String updateStatus, String currentStatus, 
-	                                 Integer refId, ApprovalDecisionRequestDTO requestDTO) throws Exception {
+	                                 Integer refId, String userId, ApprovalDecisionRequestDTO requestDTO) throws Exception {
 	    
 	    // 1. 상태 업데이트 (TB_ORDER_MST 또는 TB_PAYMENT_MST)
 	    int updateResult = bizWorkflowMapper.updateEtpStatus(
-	        this.getEtpStatusUpdate(edDto, updateStatus, currentStatus, refId)
+	        this.getEtpStatusUpdate(edDto, updateStatus, currentStatus, refId, userId)
 	    );
 	    
 	    if (updateResult <= 0) {

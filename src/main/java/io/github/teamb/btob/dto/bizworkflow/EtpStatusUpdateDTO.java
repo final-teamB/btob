@@ -33,5 +33,6 @@ public class EtpStatusUpdateDTO {
 	private String currentEtpStatus;	// 현재 상태코드
 	private String updateStatus;
 	private Integer refId;				// 프론트단에서 가져온 고유식별번호
+	private String userId;
 }
 

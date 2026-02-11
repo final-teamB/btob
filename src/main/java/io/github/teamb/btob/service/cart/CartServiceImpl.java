@@ -48,17 +48,18 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	public void addToCart(CartItemInsertDTO dto) { 
+		dto.setUserId(loginUserProvider.getLoginUserId());
 		// 안전장치
 	    if (dto.getTotalQty() < 1) {
 	        throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
 	    }
-		
+			
 		// 1. 이미 담긴 상품인지 확인
         CartItemInsertDTO existItem = cartMapper.selectExistingCartItem(dto); // userId + fuelId + PENDING
 
         if (existItem == null) {
             // 신규 담기
-            dto.setTotalPrice(dto.getTotalQty() * dto.getBaseUnitPrc());
+        	dto.setTotalPrice(dto.getTotalQty() * dto.getBaseUnitPrc());
             dto.setCartStatus("PENDING");
             cartMapper.insertCartItem(dto);
         } else {
@@ -67,7 +68,7 @@ public class CartServiceImpl implements CartService {
             existItem.setTotalQty(newQty);
             int newPrice = newQty * dto.getBaseUnitPrc();
             existItem.setTotalPrice(newPrice);
-            
+                    
             cartMapper.updateCartItem(existItem);
         }
 		
