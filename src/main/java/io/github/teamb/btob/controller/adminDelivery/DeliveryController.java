@@ -104,6 +104,6 @@ public class DeliveryController {
         result.put("success", isSuccess);
         result.put("message", isSuccess ? "비활성화 처리되었습니다." : "처리 실패");
         
-        return result;
+        return result; 
     }
 }
