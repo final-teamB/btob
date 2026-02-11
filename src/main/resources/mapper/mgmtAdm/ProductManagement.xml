@@ -121,7 +121,7 @@
 	
 	<!-- 조회 건수 -->
 	<select id="selectProductSearchConditionListCntAdm" 
-		parameterType="String"
+		parameterType="java.util.Map"
 		resultType="int">
 		
 			SELECT 
@@ -133,6 +133,15 @@
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 			    <include refid="searchCondi" />
 			</if>
+			<if test="fuelCatNm != null and fuelCatNm != ''">
+		        AND b.comm_name = #{fuelCatNm}
+		    </if>
+		    <if test="originCntryNm != null and originCntryNm != ''">
+		        AND c.comm_name = #{originCntryNm}
+		    </if>
+		    <if test="itemSttsNm != null and itemSttsNm != ''">
+		        AND e.comm_name = #{itemSttsNm}
+		    </if>
 			AND f.use_yn = 'Y'
 	
 	</select>

@@ -25,7 +25,13 @@
     <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">주문 히스토리 이력 관리</h2>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">주문 히스토리 이력 관리</h2>
+                    <%-- [추가] 조회 건수 표시 영역 --%>
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                        전체 <span id="total-count-display">0</span>건
+                    </span>
+                </div>
                 <p class="text-sm text-gray-500 mt-1">주문 상태 변경 및 승인/반려 내역을 관리합니다.</p>
             </div>
             <div class="flex items-center gap-2">
@@ -55,6 +61,19 @@
     var myGrid;
 
     document.addEventListener('DOMContentLoaded', function() {
+    	// [추가] 실시간 검색어 입력에 따른 건수 업데이트 (디바운싱)
+        var searchInput = document.getElementById('dg-search-input');
+        if (searchInput) {
+            var debounceTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    console.log("히스토리 실시간 입력 감지: 건수 갱신 중...");
+                    window.fetchData(); 
+                }, 200);
+            });
+        }
+        
         window.fetchData();
     });
 
@@ -86,6 +105,11 @@
                 return res.json(); 
             })
             .then(function(data) {
+            	// [추가] 상단 조회 건수 반영 (서비스에서 반환된 totalCnt 사용)
+                var totalCountEl = document.getElementById('total-count-display');
+                if (totalCountEl) {
+                    totalCountEl.innerText = (data.totalCnt || 0).toLocaleString();
+                }
                 // [중요] 두 번째 파라미터로 currentPerPage를 넘겨 그리드 UI를 유지합니다.
                 initGrid(data.list || [], currentPerPage);
             })
@@ -147,6 +171,7 @@
                 { header: '요청자', name: 'requestUserNm', width: 120, align: 'center' },
                 { header: '요청일자', name: 'regDtime', width: 180, align: 'center' },
                 { header: '승인자', name: 'apprUserNm', width: 120, align: 'center' },
+                { header: '승인일자', name: 'apprDtime', width: 170, align: 'center' },
                 { header: '반려사유', name: 'rejtRsn', width: 300, align: 'left' }
             ]
         });

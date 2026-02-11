@@ -31,9 +31,14 @@
     <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">상품 관리</h2>
-                <p class="text-sm text-gray-500 mt-1">등록된 유류 상품의 상세 정보를 조회하고 관리할 수 있습니다.</p>
-            </div>
+			    <div class="flex items-center gap-3">
+			        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">상품 관리</h2>
+			        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+			            전체 <span id="total-count-display">0</span>건
+			        </span>
+			    </div>
+			    <p class="text-sm text-gray-500 mt-1">등록된 유류 상품의 상세 정보를 조회하고 관리할 수 있습니다.</p>
+			</div>
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button" 
                 onclick="ProductExcelHandler.downloadBatchTemplate()" 
@@ -132,6 +137,34 @@
                 .catch(e => console.error("에디터 업로드 실패:", e));
             };
         });
+        
+     	// [추가] 필터 셀렉트 박스 값 변경 감지 (이벤트 위임)
+        const filterWrapper = document.getElementById('dg-common-filter-wrapper');
+        if (filterWrapper) {
+            filterWrapper.addEventListener('change', function(e) {
+                // 필터 select 박스가 변경되면 서버에 전체 건수를 다시 물어봅니다.
+                if (e.target.tagName === 'SELECT') {
+                    console.log("필터 변경 감지: 건수 동기화 호출");
+                    window.fetchData();
+                }
+            });
+        }
+        
+     	// [추가] 실시간 검색어 입력에 따른 건수 업데이트 (디바운싱)
+        const searchInput = document.getElementById('dg-search-input');
+        if (searchInput) {
+            let debounceTimer;
+            searchInput.addEventListener('input', function() {
+                // 타이핑 중이면 이전 타이머를 취소합니다.
+                clearTimeout(debounceTimer);
+                
+                // 300ms(0.3초) 동안 추가 입력이 없으면 서버에 데이터를 요청합니다.
+                debounceTimer = setTimeout(() => {
+                    console.log("실시간 입력 감지: 건수 갱신 중...");
+                    window.fetchData(); 
+                }, 200);
+            });
+        }
 
         window.fetchData();
     });
@@ -190,13 +223,34 @@
         const searchInput = document.getElementById('dg-search-input');
         const searchCondition = searchInput && searchInput.value ? encodeURIComponent(searchInput.value) : '';
 
+     	// [수정 포인트] 그리드 내의 동적 필터 셀렉트 박스 값 수집
+        // datagrid.js에서 생성한 필터 select 요소들을 id로 직접 참조합니다.
+        const fuelCatNm = document.getElementById('filter-fuelCatNm')?.value || '';
+        const originCntryNm = document.getElementById('filter-originCntryNm')?.value || '';
+        const itemSttsNm = document.getElementById('filter-itemSttsNm')?.value || '';
+        
         // [수정] 현재 사용자가 선택한 페이지당 건수를 미리 확보
         const perPageEl = document.getElementById('dg-per-page');
         const currentPerPage = perPageEl ? parseInt(perPageEl.value) : 10;
+        
+     	// URL에 필터 조건 파라미터 추가
+        let url = cp + '/admin/products/api/list?limit=5000'
+                + '&searchCondition=' + searchCondition
+                + '&fuelCatNm=' + encodeURIComponent(fuelCatNm)
+                + '&originCntryNm=' + encodeURIComponent(originCntryNm)
+                + '&itemSttsNm=' + encodeURIComponent(itemSttsNm);
 
-        fetch(cp + '/admin/products/api/list?limit=5000&searchCondition=' + searchCondition)
+        fetch(url)
             .then(res => res.json())
             .then(data => {
+            	
+            	// [추가 포인트] 조회 건수 화면에 반영
+                const totalCountEl = document.getElementById('total-count-display');
+                if (totalCountEl) {
+                    // 데이터가 없을 경우를 대비해 0 혹은 data.totalCnt 대입
+                    totalCountEl.innerText = (data.totalCnt || 0).toLocaleString();
+                }
+            	
                 const gridData = (data.list || []).map(item => ({
                     ...item,
                     useYn: item.useYn === 'Y' ? 'ACTIVE' : 'STOP'

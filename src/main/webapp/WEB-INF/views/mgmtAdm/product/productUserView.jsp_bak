@@ -58,7 +58,13 @@
     <%-- 상단 헤더 및 검색 --%>
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
-            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
+                <%-- [추가] 실시간 건수 표시 배지 --%>
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                    총 <span id="user-total-count">0</span>건
+                </span>
+            </div>
             <p class="text-gray-500 mt-2">다양한 유류 상품을 확인해 보세요.</p>
         </div>
         
@@ -87,6 +93,8 @@
         </div>
 </div>
 
+<jsp:include page="productUserViewDetail.jsp" />
+
 <script>
     var currentPage = 0;
     var pageSize = 12; 
@@ -94,6 +102,31 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         loadUserProducts(0);
+        
+     	// [추가] 1. 검색창 실시간 디바운싱 검색
+        var searchInput = document.getElementById('user-search-input');
+        if (searchInput) {
+            var debounceTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    console.log("사용자 상품 실시간 검색 실행...");
+                    loadUserProducts(0);
+                }, 200); // 0.3초 대기
+            });
+        }
+
+        // [추가] 2. 사이드바 필터 체크박스 실시간 감지
+        // aside 태그(사이드바) 내의 체크박스가 변경될 때마다 자동 로드
+        var sidebar = document.querySelector('aside');
+        if (sidebar) {
+            sidebar.addEventListener('change', function(e) {
+                if (e.target.type === 'checkbox') {
+                    console.log("사이드바 필터 변경 감지...");
+                    loadUserProducts(0);
+                }
+            });
+        }
         
         // 엔터키 검색 이벤트
         document.getElementById('user-search-input').addEventListener('keypress', function(e) {
@@ -132,6 +165,13 @@
         fetch(url)
             .then(res => res.json())
             .then(data => {
+            	
+            	// [추가] 조회 건수 실시간 반영
+                var totalCountEl = document.getElementById('user-total-count');
+                if (totalCountEl) {
+                    totalCountEl.innerText = (data.totalCnt || 0).toLocaleString();
+                }
+                
                 renderProductGrid(data.list || []);
                 renderPagination(data.totalCnt || 0);
             })
@@ -155,52 +195,70 @@
         loadUserProducts(0);
     }
 
-    /**
-     * 그리드 렌더링 (기존 로직 유지)
-     */
-    function renderProductGrid(list) {
-        var grid = document.getElementById('product-grid');
-        var noData = document.getElementById('no-data');
-        grid.innerHTML = '';
+     /**
+      * 그리드 렌더링 (상태별 색상 완벽 적용 버전)
+      */
+      /**
+       * 그리드 렌더링 (한글 명칭 매칭 버전)
+       */
+      function renderProductGrid(list) {
+          var grid = document.getElementById('product-grid');
+          var noData = document.getElementById('no-data');
+          grid.innerHTML = '';
 
-        if (list.length === 0) {
-            noData.classList.remove('hidden');
-            return;
-        }
-        noData.classList.add('hidden');
+          if (list.length === 0) {
+              noData.classList.remove('hidden');
+              return;
+          }
+          noData.classList.add('hidden');
 
-        list.forEach(item => {
-            var imgPath = item.imgUrl || contextPath + '/images/no-image.png';
-            var regDate = item.regDtime ? item.regDtime.substring(0, 10) : '';
+          // 한글 명칭을 키(Key)로 사용하는 색상 매핑 객체
+          const statusColorMap = {
+              '판매중': 'bg-green-100 text-green-700',
+              '품절': 'bg-red-100 text-red-600',
+              '판매만료': 'bg-gray-100 text-gray-600',
+              '단종': 'bg-orange-100 text-orange-700'
+          };
 
-            var html = `
-                <div class="product-card bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
-                     onclick="goProductDetail(\${item.fuelId})">
-                    <div class="img-wrapper">
-                        <img src="\${imgPath}" alt="\${item.fuelNm}" onerror="this.src='\${contextPath}/images/no-image.png'">
-                        <span class="status-badge \${item.itemSttsNm === '품절' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                            \${item.itemSttsNm}
-                        </span>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-xs text-blue-600 font-bold uppercase">\${item.fuelCatNm}</p>
-                            <span class="text-[10px] text-gray-400 font-medium">\${regDate}</span>
-                        </div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate mb-2">\${item.fuelNm}</h3>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-sm text-gray-500 font-medium">\${item.originCntryNm}</span>
-                            <span class="text-xl font-black text-gray-900 dark:text-white">
-                                ₩\${Number(item.baseUnitPrc || 0).toLocaleString()} 
-                                <small class="text-xs font-normal text-gray-400">/\${item.volUnitNm}</small>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            grid.insertAdjacentHTML('beforeend', html);
-        });
-    }
+          list.forEach(item => {
+              // 이미지 경로 처리
+              var imgPath = item.imgUrl || contextPath + '/images/no-image.png';
+              // 날짜 포맷팅 (YYYY-MM-DD)
+              var regDate = item.regDtime ? item.regDtime.substring(0, 10) : '';
+              
+              // [수정 포인트] itemSttsNm(한글)을 사용하여 색상 클래스 결정
+              // 만약 매핑된 색상이 없으면 기본 회색 처리
+              var sttsText = item.itemSttsNm || '상태미정';
+              var sttsClass = statusColorMap[sttsText] || 'bg-gray-100 text-gray-600';
+
+              var html = `
+                  <div class="product-card bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm"
+                       onclick="openProductDetail(\${item.fuelId})">
+                      <div class="img-wrapper">
+                          <img src="\${imgPath}" alt="\${item.fuelNm}" onerror="this.src='\${contextPath}/images/no-image.png'">
+                          <span class="status-badge \${sttsClass}">
+                              \${sttsText}
+                          </span>
+                      </div>
+                      <div class="p-5">
+                          <div class="flex justify-between items-start mb-1">
+                              <p class="text-xs text-blue-600 font-bold uppercase">\${item.fuelCatNm}</p>
+                              <span class="text-[10px] text-gray-400 font-medium">\${regDate}</span>
+                          </div>
+                          <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate mb-2">\${item.fuelNm}</h3>
+                          <div class="flex justify-between items-center mt-4">
+                              <span class="text-sm text-gray-500 font-medium">\${item.originCntryNm}</span>
+                              <span class="text-xl font-black text-gray-900 dark:text-white">
+                                  ₩\${Number(item.baseUnitPrc || 0).toLocaleString()} 
+                                  <small class="text-xs font-normal text-gray-400">/\${item.volUnitNm}</small>
+                              </span>
+                          </div>
+                      </div>
+                  </div>
+              `;
+              grid.insertAdjacentHTML('beforeend', html);
+          });
+      }
 
     /**
      * 페이징 렌더링 (기존 로직 유지)
@@ -227,7 +285,7 @@
     }
 
     function goProductDetail(fuelId) {
-        // 상세 페이지 이동 로직
-        location.href = contextPath + '/usr/productView/detail/' + fuelId;
+    	// 페이지 이동 대신 모달 오픈 함수 호출 (productUserViewDetail.jsp에 정의한 함수)
+        openProductDetail(fuelId);
     }
 </script>

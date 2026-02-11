@@ -21,7 +21,7 @@ public interface ProductMgmtAdmMapper {
 	List<SearchConditionProductDTO> selectProductSearchConditionListAdm(Map<String, Object> searchParams);
 	
 	// 상품 조회 건수
-	Integer selectProductSearchConditionListCntAdm(String searchCondition);
+	Integer selectProductSearchConditionListCntAdm(Map<String, Object> searchParams);
 	
 	// 상품 상세조회
 	SearchDetailInfoProductDTO selectProductDetailInfoByIdAdm(Integer fuelId);

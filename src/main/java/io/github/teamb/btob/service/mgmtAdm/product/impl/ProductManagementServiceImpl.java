@@ -79,8 +79,8 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		
 		// 1. 전체 건수 조회 (검색 조건 유지)
 	    // searchParams에서 검색 키워드만 뽑아서 전달
-	    String searchCondition = (String) searchParams.get("searchCondition");
-	    Integer totalCnt = productMgmtAdmMapper.selectProductSearchConditionListCntAdm(searchCondition);
+	    //String searchCondition = (String) searchParams.get("searchCondition");
+	    Integer totalCnt = productMgmtAdmMapper.selectProductSearchConditionListCntAdm(searchParams);
 
 	    // 2. 목록 조회 (Paging 처리가 포함된 Params 전달)
 	    List<SearchConditionProductDTO> productList = Collections.emptyList();

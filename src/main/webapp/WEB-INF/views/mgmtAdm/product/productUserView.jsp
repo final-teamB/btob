@@ -58,7 +58,13 @@
     <%-- 상단 헤더 및 검색 --%>
     <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
-            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
+                <%-- [추가] 실시간 건수 표시 배지 --%>
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                    총 <span id="user-total-count">0</span>건
+                </span>
+            </div>
             <p class="text-gray-500 mt-2">다양한 유류 상품을 확인해 보세요.</p>
         </div>
         
@@ -97,6 +103,31 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadUserProducts(0);
         
+     	// [추가] 1. 검색창 실시간 디바운싱 검색
+        var searchInput = document.getElementById('user-search-input');
+        if (searchInput) {
+            var debounceTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    console.log("사용자 상품 실시간 검색 실행...");
+                    loadUserProducts(0);
+                }, 200); // 0.3초 대기
+            });
+        }
+
+        // [추가] 2. 사이드바 필터 체크박스 실시간 감지
+        // aside 태그(사이드바) 내의 체크박스가 변경될 때마다 자동 로드
+        var sidebar = document.querySelector('aside');
+        if (sidebar) {
+            sidebar.addEventListener('change', function(e) {
+                if (e.target.type === 'checkbox') {
+                    console.log("사이드바 필터 변경 감지...");
+                    loadUserProducts(0);
+                }
+            });
+        }
+        
         // 엔터키 검색 이벤트
         document.getElementById('user-search-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') loadUserProducts(0);
@@ -134,6 +165,13 @@
         fetch(url)
             .then(res => res.json())
             .then(data => {
+            	
+            	// [추가] 조회 건수 실시간 반영
+                var totalCountEl = document.getElementById('user-total-count');
+                if (totalCountEl) {
+                    totalCountEl.innerText = (data.totalCnt || 0).toLocaleString();
+                }
+                
                 renderProductGrid(data.list || []);
                 renderPagination(data.totalCnt || 0);
             })
