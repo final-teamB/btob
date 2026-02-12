@@ -67,8 +67,8 @@ public class OrderService {
         approvalDTO.setRefId(generatedOrderId);
         approvalDTO.setApprovalStatus("COMPLETE");
         approvalDTO.setRequestEtpStatus(nextStatus);
-        approvalDTO.setApprUserNo(loginUserNo);
-        approvalDTO.setRequestUserNo(loginUserNo);
+        approvalDTO.setApprUserNo(loginUserId);
+        approvalDTO.setRequestUserNo(loginUserId);
         approvalDTO.setUserId(loginUserId);
 
         bizWorkflowService.modifyEtpStatusAndLogHist(approvalDTO);
@@ -119,8 +119,8 @@ public class OrderService {
         approvalDTO.setRefId(generatedOrderId);
         approvalDTO.setApprovalStatus("COMPLETE");
         approvalDTO.setRequestEtpStatus(nextStatus);
-        approvalDTO.setApprUserNo(loginUserNo);
-        approvalDTO.setRequestUserNo(loginUserNo);
+        approvalDTO.setApprUserNo(loginUserId);
+        approvalDTO.setRequestUserNo(loginUserId);
         approvalDTO.setUserId(loginUserId);
 
         bizWorkflowService.modifyEtpStatusAndLogHist(approvalDTO);
@@ -152,8 +152,8 @@ public class OrderService {
         approvalDTO.setRefId(generatedOrderId);
         approvalDTO.setApprovalStatus(approvalStatus);
         approvalDTO.setRequestEtpStatus(requestEtpStatus);
-        approvalDTO.setApprUserNo(loginUserNo);
-        approvalDTO.setRequestUserNo(loginUserNo);
+        approvalDTO.setApprUserNo(loginUserId);
+        approvalDTO.setRequestUserNo(loginUserId);
         approvalDTO.setUserId(loginUserId);
 
         bizWorkflowService.modifyEtpStatusAndLogHist(approvalDTO);

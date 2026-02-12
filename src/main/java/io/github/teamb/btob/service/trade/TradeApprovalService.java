@@ -54,14 +54,15 @@ public class TradeApprovalService {
 	    requestDto.setRejtRsn(rejectReason);
 	    
 	    // 사용자 정보 세팅
-	    requestDto.setApprUserNo(loginUserNo); // 승인권자 번호
+	    requestDto.setApprUserNo(loginUserId); // 승인권자 번호
 	    requestDto.setUserId((String) params.get("userId"));
 	    
 	    // 원 요청자 번호 (JSP/그리드에서 userNo로 넘겨준 값)
-	    Object requestUserNoObj = params.get("userNo");
-	    if (requestUserNoObj != null) {
-	        requestDto.setRequestUserNo(Integer.parseInt(requestUserNoObj.toString()));
-	    }
+	    // Object requestUserNoObj = params.get("userNo");
+	    //if (requestUserNoObj != null) {
+	        //requestDto.setRequestUserNo(Integer.parseInt(requestUserNoObj.toString()));
+	    	requestDto.setRequestUserNo(loginUserId);
+	    //}
 
 	    // 3. 공통 워크플로우 서비스 호출 (자동으로 TB_ORDER_MST 업데이트 + 이력 생성)
 	    bizWorkflowServiceImpl.modifyEtpStatusAndLogHist(requestDto);

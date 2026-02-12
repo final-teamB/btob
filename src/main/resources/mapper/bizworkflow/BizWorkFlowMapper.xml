@@ -94,12 +94,14 @@
 			INSERT INTO TB_ETP_HIST (
 				 etp_id
 				,appr_user_id
+				,request_user_id
 				,etp_stts_cd
 				,rejt_rsn
 				,reg_id
 			) VALUES (
 				 #{refId}
 				,#{apprUserNo}
+				,#{requestUserNo}
 				,#{requestEtpStatus}
 				,#{rejtRsn}
 				,#{userId}

@@ -108,8 +108,8 @@ public class PaymentService {
 	            payApproval.setRefId(generatedPaymentId); 
 	            payApproval.setApprovalStatus("COMPLETE");
 	            payApproval.setRequestEtpStatus(nextStatus);
-	            payApproval.setApprUserNo(loginUserNo);
-	            payApproval.setRequestUserNo(loginUserNo);
+	            payApproval.setApprUserNo(loginUserId);
+	            payApproval.setRequestUserNo(loginUserId);
 	            payApproval.setUserId(loginUserId);
 	            bizWorkflowService.modifyEtpStatusAndLogHist(payApproval); // ⭐️ DB 저장 2
 
@@ -118,8 +118,8 @@ public class PaymentService {
 	            orderApproval.setRefId(payment.getDbOrderId());
 	            orderApproval.setApprovalStatus("COMPLETE");
 	            orderApproval.setRequestEtpStatus(nextStatus);
-	            orderApproval.setApprUserNo(loginUserNo);
-	            orderApproval.setRequestUserNo(loginUserNo);
+	            orderApproval.setApprUserNo(loginUserId);
+	            orderApproval.setRequestUserNo(loginUserId);
 	            orderApproval.setUserId(loginUserId);
 	            bizWorkflowService.modifyEtpStatusAndLogHist(orderApproval); // ⭐️ DB 저장 3
 
