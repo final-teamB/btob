@@ -106,11 +106,11 @@
     $(document).ready(function() {
         const rawAddr = "${deliveryDTO.shipToAddr}";
         if (rawAddr) {
-            if (rawAddr.indexOf('|') !== -1) {
-                const parts = rawAddr.split('|');
-                $("#shipToAddr").val(parts[0] || '');
-                $("#shipToAddrDetail").val(parts[1] || '');
-                $("#postcode").val(parts[2] || '');
+        	const parts = rawAddr.split('|');
+            if (parts.length >= 2) {
+                $("#shipToAddr").val(parts[0] || '');       
+                $("#shipToAddrDetail").val(parts[1] || ''); 
+                $("#postcode").val(parts[2] || '');   
             } else {
                 const postcodeMatch = rawAddr.match(/^\((.*?)\)/);
                 let tempAddr = rawAddr;
@@ -118,13 +118,7 @@
                     $("#postcode").val(postcodeMatch[1]);
                     tempAddr = rawAddr.replace(/^\(.*?\)\s*/, '');
                 }
-                const addrParts = tempAddr.trim().split(/\s{2,}/);
-                if (addrParts.length >= 2) {
-                    $("#shipToAddr").val(addrParts[0]);
-                    $("#shipToAddrDetail").val(addrParts.slice(1).join(' '));
-                } else {
-                    $("#shipToAddr").val(tempAddr);
-                }
+                $("#shipToAddr").val(tempAddr);
             }
         }
         
@@ -164,18 +158,15 @@
     function fn_update() {
         const postcode = $("#postcode").val();
         const addr = $("#shipToAddr").val();
-        const detail = $("#shipToAddrDetail").val();
+        const detail = $("#shipToAddrDetail").val() || "";
 
-        // 데이터 검증
         if(!postcode || !addr) {
             alert("주소를 검색하여 입력해주세요.");
             return;
         }
 
-        const combinedAddr = addr + "|" + detail + "|" + postcode;
+        const combinedAddr = addr + "|" + detail + "|" +postcode;
         
-        console.log("보내는 주소 데이터 확인:", combinedAddr);
-
         const param = {
             deliveryId: $("#deliveryId").val(),
             deliveryStatus: $("#deliveryStatus").val(),
@@ -196,7 +187,6 @@
                 if(res.success) location.reload();
             },
             error: function(xhr) {
-                console.error("에러 발생:", xhr.responseText);
                 alert("저장 중 오류가 발생했습니다.");
             }
         });

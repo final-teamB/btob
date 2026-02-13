@@ -91,6 +91,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         if(newStatus  != null && (oldData == null || oldData.getDeliveryStatus() != newStatus)) {
         	String receiverUserId =
         		    deliveryMapper.selectReceiverUserId(deliveryDTO.getDeliveryId());
+        	System.out.println("### 알림 대상자(주문자): " + receiverUserId);
         	
         	if(receiverUserId != null && !receiverUserId.isEmpty()) {
         		String msg = String.format("주문하신 상품이 [%s] 상태로 변경되었습니다.", newStatus.getDescription());

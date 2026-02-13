@@ -204,7 +204,7 @@
 	        } else if (type === 'ORDER') {
 	            moveUrl = ctx + "" + targetId;
 	        } else if (type === 'NOTICE') {
-	            moveUrl = ctx + "" + targetId;
+	            moveUrl = ctx + "/notice/user/detail/" + targetId;
 	        } else if (type === 'APPROVAL') {
 	            moveUrl = ctx + "" + targetId;
 	        }
@@ -222,9 +222,9 @@
         });
     }
 
-    // 초기 실행 및 60초 간격 폴링
+    // 초기 실행 및 30초 간격 폴링
     document.addEventListener('DOMContentLoaded', fetchMyNotifications);
-    setInterval(fetchMyNotifications, 60000);
+    setInterval(fetchMyNotifications, 30000);
     
     // 모바일 사이드바 토글 이벤트
     document.getElementById('toggleSidebarMobile').addEventListener('click', function() {
