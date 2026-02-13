@@ -358,4 +358,57 @@
 				
 	</select>
 	
+	<!-- 제품 수량 체크 -->
+	<select id="selectProductCurrVolById"
+		parameterType="int"
+		resultType="int">
+		
+			SELECT 
+				curr_stock_vol 
+			FROM 
+				TB_OIL_MST
+			WHERE fuel_id = #{fuelId} 
+		
+	</select>
+	
+	<!-- 제품 구매 시 수량 감소 -->
+	<update id="decrProductCurrVol"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO">
+		
+			UPDATE
+				TB_OIL_MST
+			SET
+				curr_stock_vol = curr_stock_vol - #{orderQty}
+			WHERE
+				fuel_id = #{fuelId}
+	
+	</update>
+	
+	<!-- 제품 반려 시 수량 증가 -->
+	<update id="incrProductCurrVol"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO">
+		
+			UPDATE
+				TB_OIL_MST
+			SET
+				curr_stock_vol = curr_stock_vol + #{orderQty}
+			WHERE
+				fuel_id = #{fuelId}
+			
+	</update>
+	
+	<!-- 반품 시 진행코드 검증 -->
+	<select id="chkOrderStatusCd"
+		parameterType="String"
+		resultType="int">
+
+			SELECT 
+				COUNT(etp_stts_cd) 
+			FROM TB_ETP_STTS_CD
+			WHERE 1=1
+			AND seq = '99'
+			AND order_status = #{orderStatus}
+		
+	</select>
+	
 </mapper>

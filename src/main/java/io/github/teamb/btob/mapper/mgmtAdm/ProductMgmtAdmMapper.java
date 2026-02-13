@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductDetailInfoDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
@@ -46,4 +47,16 @@ public interface ProductMgmtAdmMapper {
 	
 	// 상품 유류코드 자동생성 식별번호 확인
 	Integer selectAutoObjId(InsertProductDTO insertProductDTO);
+	
+	// 제품 수량 체크
+	Integer selectProductCurrVolById(Integer fuelId);
+	
+	// 제품 구매 시 수량 감소 (카트에 담을때부터 수량이 감소되게함)
+	Integer decrProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO);
+	
+	// 제품 반려 시 수량 증가 (카트아이템에 있는 정보 다 가져와서 업데이트처리해야함)
+	Integer incrProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO);
+	
+	// 반품시 진행코드 검증
+	Integer chkOrderStatusCd(String orderStatus);
 }

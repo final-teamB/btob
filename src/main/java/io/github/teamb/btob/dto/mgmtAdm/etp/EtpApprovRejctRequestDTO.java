@@ -15,8 +15,10 @@ import lombok.Data;
 public class EtpApprovRejctRequestDTO {
 
 	private String systemId;	// 시스템아이디
-	private String userId;		// 사용자 아이디
+	private String userId;		// 사용자 아이디(요청자)
+	private String userType;	// 사용자 직급
 	private String approvalStatus; // 승인,반려 타입 , APPROVED, REJECTED, COMPLETE
 	private String rejtRsn;		// 반려 사유
-	private Integer orderId;		// 견적요청이든 주문이든 무조건 주문식별자는 생긴다
+	private Integer orderId;	// 주문식별자
+	private Integer estId;		// 견적식별자
 }

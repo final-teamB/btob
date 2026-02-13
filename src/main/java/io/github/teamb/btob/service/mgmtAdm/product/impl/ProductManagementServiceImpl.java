@@ -22,6 +22,7 @@ import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO;
 import io.github.teamb.btob.mapper.mgmtAdm.ProductMgmtAdmMapper;
 import io.github.teamb.btob.service.attachfile.FileService;
 import io.github.teamb.btob.service.common.CommonService;
@@ -453,4 +454,54 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	    }
 	}
 
+
+	/**
+	 * 
+	 * 요청(견적요청,주문요청) , 반품 시 재고량 수정 
+	 * @author GD
+	 * @since 2026. 2. 13.
+	 * @param updateProductCurrVolDTO ( fuelId, orderQty, type 필수 // 반품시는 orderStatus 필요 )
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 13.  GD       최초 생성
+	 */
+	@Override
+	public void modifyProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO) throws Exception{
+		
+		Integer fuelId = updateProductCurrVolDTO.getFuelId();
+		Integer orderQty = updateProductCurrVolDTO.getOrderQty();
+		String type = updateProductCurrVolDTO.getRequestType();	// UP, DOWN
+		
+		if ( type.equals("UP")) {
+			
+			Integer currvol = productMgmtAdmMapper.selectProductCurrVolById(fuelId);
+			
+			if((currvol - orderQty) <= 0) {
+				throw new Exception("주문 수량이 재고량보다 많습니다.");
+			}
+			
+			int result = productMgmtAdmMapper.decrProductCurrVol(updateProductCurrVolDTO);
+			
+			if ( result <= 0 ) {
+				throw new Exception("재고 업데이트시 오류가 발생했습니다.");
+			}
+		} else if ( type.equals("DOWN") ) {
+			
+			Integer statusChk = productMgmtAdmMapper.chkOrderStatusCd(updateProductCurrVolDTO.getOrderStatus());
+			
+			if ( statusChk > 0) {
+				
+				int result = productMgmtAdmMapper.incrProductCurrVol(updateProductCurrVolDTO);
+				
+				if ( result <= 0 ) {
+					throw new Exception("재고 업데이트시 오류가 발생했습니다.");
+				}
+			} else {
+				throw new Exception("올바르지 않은 요청 상태입니다.");
+			}
+		} else {
+			throw new Exception("올바르지 않은 요청 상태입니다.");
+		}
+	}
 }

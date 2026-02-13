@@ -20,7 +20,7 @@ public class SearchEtpListDTO {
 	private String systemId;	// 시스템ID
 	private Integer orderId;	// 주문식별자
 	private String orderNo;		// 주문번호
-	private Integer quoteReqId;	// 견적식별자
+	private Integer estId;		// 견적식별자
 	private String estNo;		// 견적번호 
 	private String ctrtNm;		// 견적서 계약명
 	private Integer paymentId;	// 결제식별자

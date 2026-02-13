@@ -144,11 +144,8 @@ public class EtpMgmtAdmController {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            // 현재 로그인한 관리자의 정보를 세팅 (세션이나 스프링 시큐리티에서 가져와야 함)
-            // 서비스 로직에서 admin@gmail.com을 하드코딩하고 계시므로, DTO에도 일단 세팅해줍니다.
-            etpApprovRejctRequestDTO.setUserId("admin@gmail.com"); 
 
-            // 서비스 호출 (상태 변경 + 히스토리 등록 + 필요시 더블스탭)
+            // 서비스 호출 (상태 변경 + 히스토리 등록 + 필요시 빅스탭 + 필요시 자이언트스탭까지)
             Integer finalResult = etpManagementService.handleApprovalRejctButton(etpApprovRejctRequestDTO);
             
             if (finalResult > 0) {

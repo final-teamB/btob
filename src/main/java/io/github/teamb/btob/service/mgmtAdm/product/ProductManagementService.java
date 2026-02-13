@@ -12,6 +12,7 @@ import io.github.teamb.btob.dto.mgmtAdm.product.ProductRegisterRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.ProductUnUseRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.dto.mgmtAdm.product.SearchDetailInfoProductDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO;
 
 public interface ProductManagementService {
 	
@@ -37,4 +38,7 @@ public interface ProductManagementService {
 	
 	// 셀렉박스 == 유류종류, 원산지 국가, 단위, 재고상태
 	Map<String, List<SelectBoxVO>> registerProductSelectBoxList();
+	
+	// 주문 로직 시 제품 수량 변경
+	void modifyProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO) throws Exception;
 }

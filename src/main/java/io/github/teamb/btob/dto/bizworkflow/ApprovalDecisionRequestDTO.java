@@ -22,5 +22,6 @@ public class ApprovalDecisionRequestDTO {
 	private String requestUserNo;		// 요청자
 	private String rejtRsn;				// 사유 (반려시)
 	private String userId;		
-
+	
+	private Integer orderId;				// 고정으로 필요한 식별자
 }

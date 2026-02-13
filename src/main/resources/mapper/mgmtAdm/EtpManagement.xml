@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.EtpHistMgmtAdmMapper">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.EtpMgmtAdmMapper">
 
 	<sql id="tbjoin">
 	
@@ -11,7 +11,7 @@
 		INNER JOIN TB_ETP_STTS_CD d
 		ON a.order_status = d.etp_stts_cd
 		LEFT OUTER JOIN TB_EST_DOC e
-		ON a.quote_req_id = e.est_doc_id
+		ON a.est_id = e.est_doc_id
 		LEFT OUTER JOIN TB_PAYMENT_MST f
 		ON a.order_id = f.order_id
 		LEFT OUTER JOIN TB_ETP_STTS_CD g
@@ -25,11 +25,11 @@
 	
 		AND ( 
 			        a.order_no LIKE CONCAT('%', #{searchCondition}, '%')
-			        OR ,e.est_no LIKE CONCAT('%', #{searchCondition}, '%')
-					OR ,f.payment_no LIKE CONCAT ('%', #{searchCondition}, '%')
-					OR ,e.ctrt_nm LIKE CONCAT ('%', #{searchCondition}, '%')
-					OR ,b.user_name LIKE CONCAT ('%', #{searchCondition}, '%')
-					OR ,c.company_name LIKE CONCAT ('%', #{searchCondition}, '%')
+			        OR e.est_no LIKE CONCAT('%', #{searchCondition}, '%')
+					OR f.payment_no LIKE CONCAT ('%', #{searchCondition}, '%')
+					OR e.ctrt_nm LIKE CONCAT ('%', #{searchCondition}, '%')
+					OR b.user_name LIKE CONCAT ('%', #{searchCondition}, '%')
+					OR c.company_name LIKE CONCAT ('%', #{searchCondition}, '%')
 				)
 				
 	</sql>
@@ -37,13 +37,14 @@
 	<!-- 견적/주문/구매/결제 검색 조회 -->
 	<select id="selectEtpSearchConditioinListAdm"
 		parameterType="java.util.Map"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
+		resultType="io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO">
 		
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				,d.system_id
 				,a.order_id
 				,a.order_no
-				,a.quote_req_id
+				,a.est_id
 				,e.est_no
 				,e.ctrt_nm
 				,f.payment_id
@@ -51,6 +52,7 @@
 				,a.order_status
 				,d.etp_stts_nm
 				,a.user_no
+				,b.user_id
 				,c.company_name
 				,b.user_type
 				,b.user_name
@@ -60,11 +62,11 @@
 				,a.order_date
 				-- 버튼용 강제 Y/N 컬럼
 			   	,CASE 
-			        WHEN gg.etp_stts_cd IS NOT NULL THEN 'Y'
+			        WHEN g.etp_stts_cd IS NOT NULL THEN 'Y'
 			        ELSE 'N'
 			    	END AS approveBtn
 			   	,CASE 
-			        WHEN gg.etp_stts_cd IS NOT NULL THEN 'Y'
+			        WHEN g.etp_stts_cd IS NOT NULL THEN 'Y'
 			        ELSE 'N'
 			    	END AS rejectBtn
 			FROM TB_ORDER_MST a
@@ -73,11 +75,11 @@
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
 			</if>
-			<if test="etpSttsNm != null and etpSttsNm != ''">
-		        AND d.etp_stts_nm = #{etpSttsNm}
+			<if test="etpSttsCd != null and etpSttsCd != ''">
+		        AND a.order_status = #{etpSttsCd}
 		    </if>
 		    <if test="ordYear != null and ordYear != ''">
-		        AND a.order_date = #{ordYear}
+		        AND YEAR(a.order_date)= #{ordYear}
 		    </if>
 			ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
 			<if test='isExcel == null or isExcel != "Y"'>
@@ -93,24 +95,24 @@
 		resultType="int">
 	
 			SELECT 
-				COUNT(a.etp_id) 
+				COUNT(a.order_id) 
 			FROM TB_ORDER_MST a
 				<include refid="tbjoin" />
 				WHERE 1=1
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
 			</if>
-			<if test="etpSttsNm != null and etpSttsNm != ''">
-		        AND d.etp_stts_nm = #{etpSttsNm}
+			<if test="etpSttsCd != null and etpSttsCd != ''">
+		        AND a.order_status = #{etpSttsCd}
 		    </if>
 		    <if test="ordYear != null and ordYear != ''">
-		        AND a.order_date = #{ordYear}
+		       AND YEAR(a.order_date)= #{ordYear}
 		    </if>
 	
 	</select>
 	
 	<!-- 관리자가 처리 할 수 있는 상태변경 권한 (승인,반려) -->
-	<select id="ApprovRejctChgAuthByAdm"
+	<select id="approvRejctChgAuthByAdm"
 		resultType="io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO">
 	
 			SELECT 
