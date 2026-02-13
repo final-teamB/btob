@@ -131,7 +131,7 @@ public class NoticeController {
     public String update(Notice notice, @AuthenticationPrincipal UserDetails userDetails) {
         notice.setUpdId(userDetails.getUsername());
         noticeService.updateNotice(notice);
-        return "redirect:/notice/detail/" + notice.getNoticeId();
+        return "redirect:/notice/edit/" + notice.getNoticeId();
     }
 
     // 삭제 실행
