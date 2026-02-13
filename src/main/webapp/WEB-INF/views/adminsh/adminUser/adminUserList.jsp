@@ -23,6 +23,16 @@
     }
     .text-ellipsis { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; }
 
+
+
+/* 필터 내 select 박스 스타일 조정 */
+#dg-common-filter-wrapper select {
+    width: 100% !important;
+    height: 40px !important; /* 높이도 검색창과 통일 */
+    padding-right: 30px !important; /* 화살표 공간 */
+    cursor: pointer;
+}
+
 </style>
 
 <div class="my-6 space-y-6">
@@ -76,45 +86,70 @@ const tabFilteredData = rawData.filter(u => {
 /* [2] 커스텀 셀 렌더러 */
 class DirectSelectRenderer {
     constructor(props) {
-        const el = document.createElement('select');
-        el.className = 'direct-edit-el';
-        // 이 부분이 있어야 handleGridAction에서 찾을 수 있습니다.
-        el.id = 'select_status_' + props.rowKey; 
-        el.addEventListener('mousedown', e => e.stopPropagation());
-        
-        const rowData = props.grid.getRow(props.rowKey);
-        // 기본 계정 상태 리스트
+        this.el = document.createElement('select');
+        this.el.className = 'direct-edit-el';
+        this.el.id = 'select_status_' + props.rowKey;
+        this.el.addEventListener('mousedown', e => e.stopPropagation());
+
         const list = [
             {v:'ACTIVE', t:'ACTIVE'}, 
             {v:'SLEEP', t:'SLEEP'}, 
             {v:'STOP', t:'STOP'}
         ];
-        
-        let allowedStatus = list;
-        
-        allowedStatus.forEach(i => {
+
+        list.forEach(i => {
             const o = document.createElement('option');
-            o.value = i.v; 
+            o.value = i.v;
             o.textContent = i.t;
-            if (i.v === props.value) o.selected = true;
-            el.appendChild(o);
+            this.el.appendChild(o);
         });
 
-        // 값이 바뀌면 그리드 데이터에 즉시 반영 (저장 버튼 누르기 전 상태 유지용)
-        el.addEventListener('change', () => {
-            props.grid.setValue(props.rowKey, props.columnInfo.name, el.value, false);
+        this.el.addEventListener('change', () => {
+            props.grid.setValue(props.rowKey, props.columnInfo.name, this.el.value, false);
         });
 
-        this.el = el;
+        // ★ 최초 값 세팅
+        this.render(props);
     }
-    getElement() { return this.el; }
+
+    getElement() {
+        return this.el;
+    }
+
+    render(props) {
+        // ★ 여기서 값 갱신
+        this.el.value = props.value || '';
+    }
 }
+
 
 /* [3] DOM 로드 후 그리드 초기화 및 조회 기능 연결 */
 document.addEventListener('DOMContentLoaded', () => {
-    // 필터 영역이 보이지 않도록 확실히 숨김 (요청사항 반영)
-    const filterWrapper = document.getElementById('dg-common-filter-wrapper');
-    if (filterWrapper) filterWrapper.classList.add('hidden');
+
+	const searchInput = document.getElementById('dg-search-input');
+    if (searchInput) {
+        const searchGroupHtml = `
+            <div class="search-group">
+                <div class="search-input-wrapper">
+                    <select id="dg-search-category" class="rounded-lg border border-gray-300 py-2 px-3 text-sm h-[40px] bg-white outline-none focus:border-blue-500">
+                        <option value="all">전체</option>
+                        <option value="userName">이름</option>
+                        <option value="userId">아이디</option>
+                        <option value="companyName">소속(회사)</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        
+        searchInput.insertAdjacentHTML('beforebegin', searchGroupHtml);
+        
+        // 기존 input을 search-input-wrapper 안으로 이동시켜 한 줄 유지
+        const wrapper = document.querySelector('.search-input-wrapper');
+        wrapper.appendChild(searchInput); 
+        
+        searchInput.style.width = '250px';
+        searchInput.style.height = '40px';
+    }
 
     const fmt = ({value}) => `<span class="text-ellipsis" title="\${value}">\${value}</span>`;
     let columns = [{ header: '구분', name: 'userType', align: 'center', width: 70 }];
@@ -156,28 +191,90 @@ document.addEventListener('DOMContentLoaded', () => {
         gridOptions: { scrollX: false, bodyHeight: 'auto' },
         data: tabFilteredData,
         columns: columns,
-        pageOptions: { useClient: true, perPage: 15 }
+        pageOptions: { useClient: true, perPage: 10 }
     });
-
-    // [중요] 조회 버튼 클릭 시 키워드 필터링만 수행 (FAQ 방식)
-    document.getElementById('dg-btn-search').addEventListener('click', () => {
-        const keyword = document.getElementById('dg-search-input').value.toLowerCase();
-
-        const filtered = tabFilteredData.filter(item => {
-            return !keyword || 
-                   item.userName.toLowerCase().includes(keyword) || 
-                   item.userId.toLowerCase().includes(keyword) ||
-                   item.companyName.toLowerCase().includes(keyword);
-        });
-        window.userGrid.grid.resetData(filtered);
-    });
-
-    // 엔터키 지원
-    document.getElementById('dg-search-input').addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('dg-btn-search').click();
+    
+    const filterOptions = [
+        { 
+            field: 'accStatus', 
+            title: '계정상태', 
+            options: [
+                { text: 'ACTIVE', value: 'ACTIVE' },
+                { text: 'SLEEP', value: 'SLEEP' },
+                { text: 'STOP', value: 'STOP' }
+            ] 
         }
+    ];
+
+    if (viewType !== 'COMPANY' && viewType !== 'ADMIN') {
+        filterOptions.push({
+            field: 'appStatus',
+            title: '승인상태',
+            options: [
+                { text: 'APPROVED', value: 'APPROVED' },
+                { text: 'PENDING', value: 'PENDING' }
+            ]
+        });
+    }
+
+    window.userGrid.initFilters(filterOptions);
+
+    // 실시간 필터링 
+    const performFilter = () => {
+
+    const category = document.getElementById('dg-search-category').value;
+    const keyword = document.getElementById('dg-search-input').value.toLowerCase();
+    const accFilter = document.getElementById('filter-accStatus')?.value;
+    const appFilter = document.getElementById('filter-appStatus')?.value;
+
+    let filtered = [...tabFilteredData];  // ★ 이거 추가
+
+    // 계정 상태
+    if (accFilter) {
+        filtered = filtered.filter(row => row.accStatus === accFilter);
+    }
+
+    // 승인 상태
+    if (appFilter) {
+        filtered = filtered.filter(row => row.appStatus === appFilter);
+    }
+
+    // 검색어
+    if (keyword) {
+        if (category === 'all') {
+            filtered = filtered.filter(row =>
+                row.userName?.toLowerCase().includes(keyword) ||
+                row.userId?.toLowerCase().includes(keyword) ||
+                row.companyName?.toLowerCase().includes(keyword)
+            );
+        } else {
+            filtered = filtered.filter(row =>
+                row[category]?.toLowerCase().includes(keyword)
+            );
+        }
+    }
+
+    window.userGrid.grid.resetData(filtered);
+};
+
+    
+    // 1. 검색어 입력 시 (키보드 칠 때마다)
+    document.getElementById('dg-search-input').addEventListener('input', performFilter);
+    
+    // 2. 검색 카테고리 변경 시
+    document.getElementById('dg-search-category').addEventListener('change', performFilter);
+    
+    // 3. 계정상태/승인상태 필터 변경 시 
+    const filterAcc = document.getElementById('filter-accStatus');
+    const filterApp = document.getElementById('filter-appStatus');
+    
+    if (filterAcc) filterAcc.addEventListener('change', performFilter);
+    if (filterApp) filterApp.addEventListener('change', performFilter);
+
+    // 조회 버튼 클릭 시에도 동일하게 작동
+    document.getElementById('dg-btn-search').addEventListener('click', (e) => {
+        e.preventDefault();
+        performFilter();
     });
 });
 
@@ -186,39 +283,51 @@ window.handleGridAction = function(rowData) {
     const rowKey = rowData.rowKey;
     const userId = rowData.userId; 
 
+    // 렌더러에서 생성한 select 엘리먼트 참조
     const statusEl = document.getElementById('select_status_' + rowKey);
 
     if (!statusEl) return;
 
-    const currentCode = statusEl.value;
-    const currentText = statusEl.options[statusEl.selectedIndex].text;
+    const currentCode = statusEl.value; // 선택된 상태 값 (ACTIVE, SLEEP, STOP)
 
+    // 중복 클릭 방지용 버튼 비활성화
     const saveBtn = document.querySelector(`[data-row-key="${rowKey}"] .custom-action-btn`);
     if(saveBtn) saveBtn.disabled = true;
 
+    // 서버로 상태 변경 요청 전송
     fetch('/admin/user/modifyUserStatus', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // 서버가 @RequestParam을 쓰면 이 방식이 안전
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             userId: userId,
             accStatus: currentCode
         })
     })
-    .then(res => {
-        return res.text(); 
-    })
+    .then(res => res.text())
     .then(res => {
         if (res === "OK") {
             alert('성공적으로 저장되었습니다.');
             
+            // 1. 원본 데이터 배열(tabFilteredData)의 값 업데이트
             const targetRow = tabFilteredData.find(item => item.userId == userId);
             if (targetRow) {
                 targetRow.accStatus = currentCode;
             }
-            window.userGrid.grid.setRow(rowKey, { ...window.userGrid.grid.getRow(rowKey), accStatus: newStatus });
+            
+            // 2. 그리드 내부 행 데이터 실제 값 업데이트 (UI 동기화)
+            window.userGrid.grid.setValue(rowKey, 'accStatus', currentCode);
+            
         } else {
             alert('실패: ' + res);
         }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('통신 중 오류가 발생했습니다.');
+    })
+    .finally(() => {
+        // 처리 완료 후 버튼 다시 활성화
+        if(saveBtn) saveBtn.disabled = false;
     });
 };
 

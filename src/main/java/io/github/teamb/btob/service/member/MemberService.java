@@ -55,8 +55,8 @@ public class MemberService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
-                .authorities("ROLE_USER", "ROLE_ADMIN", "ROLE_MASTER")
-                //.roles(user.getUserType().name())
+                //.authorities("ROLE_USER", "ROLE_ADMIN", "ROLE_MASTER")
+                .roles(user.getUserType().name())
                 .build();
     }
 
