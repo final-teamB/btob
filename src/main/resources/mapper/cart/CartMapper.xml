@@ -15,30 +15,30 @@
 	        c.cart_status,
 	        c.reg_dtime,
 	        c.order_no,
+	        c.target_product_prc,
+	        c.target_product_amt,
 	        o.fuel_nm,
 	        o.base_unit_prc,
 	        m.order_id,
 	        m.order_status,
-	        s.etp_stts_nm,
+	        ed.est_no,
+	        ed.ctrt_Nm,
+	        ed.estdt_memo,
+	        ed.target_total_amount,
+	        ed.base_total_amount,
 	        u.user_no,
 	        u.user_name,
 	        u.phone, 
 	        cp.company_cd,
 	        cp.company_name,
-	        cp.biz_number,
-	        cp.master_id,
 	        cp.company_phone,
-            cp.addr_kor,
-            cp.addr_eng,
-            cp.zip_code,
-            cp.customs_num,
-	        cp.addr_kor 
+            cp.addr_kor
         FROM TB_CART c
-        JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
-        LEFT JOIN TB_ORDER_MST m ON c.order_no = m.order_no
-        LEFT JOIN TB_ETP_STTS_CD s ON m.order_status = s.etp_stts_cd  
-        LEFT JOIN TB_USERS u ON c.user_id = u.user_id
-        LEFT JOIN TB_COMPANIES cp ON u.company_cd = cp.company_cd
+	        JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
+	        LEFT JOIN TB_ORDER_MST m ON c.order_no = m.order_no
+	        LEFT JOIN TB_EST_DOC ed ON m.est_id = ed.est_doc_id  
+	        LEFT JOIN TB_USERS u ON c.user_id = u.user_id
+	        LEFT JOIN TB_COMPANIES cp ON u.company_cd = cp.company_cd
 	    WHERE c.cart_id IN 
 	    <foreach item="id" collection="idList" open="(" separator="," close=")">
 	        #{id}
@@ -63,17 +63,7 @@
             m.order_id,
             m.order_status,
             s.etp_stts_nm,
-            u.user_name,
-            u.phone,
-            cp.company_cd,
-            cp.company_name,
-            cp.biz_number,
-            cp.master_id,
-            cp.company_phone,
-            cp.addr_kor,
-            cp.addr_eng,
-            cp.zip_code,
-            cp.customs_num
+            u.user_name
         FROM TB_CART c
 	        JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
 	        LEFT JOIN TB_ORDER_MST m ON c.order_no = m.order_no
@@ -158,14 +148,52 @@
     </update>
     
     <!-- 장바구니 상태 변경 -->
-    <update id="updateCartOrderInfo">
+   <update id="updateCartOrderInfo">
+	    UPDATE TB_CART
+	    SET order_no = #{orderNo},
+	    	cart_status = #{cartStatus},
+	    	upd_id = #{userId},
+	    	upd_dtime = NOW()
+	    WHERE user_id = #{userId}
+	      AND cart_id IN 
+	      <foreach collection="idList" item="id" open="(" separator="," close=")">
+	          #{id}
+	      </foreach>
+	</update>
+	
+	<!-- 결제 시 상태변경 -->
+	<update id="updateCartPayment">
 	    UPDATE TB_CART
 	    SET 
-	        cart_status = #{status},
-	        use_yn = #{useYn},
-	        upd_id = #{userId}, 
-	        upd_dtime = NOW()
-	    WHERE order_no = #{orderNo} AND user_id = #{userId}
+       		 cart_status = #{status},
+        	 use_yn = #{useYn}, 
+         	 upd_id = #{userId},
+             upd_dtime = NOW()
+	    WHERE order_no = #{orderNo}
+	      AND user_id = #{userId}
+	</update>
+	
+	<update id="updateCartEstInfo" parameterType="map">
+	    UPDATE TB_CART
+	       SET 
+	          order_no = #{orderNo},
+	          cart_status = #{cartStatus},
+	          upd_id = #{userId},
+	          upd_dtime = NOW(),
+	          target_product_prc = CASE 
+	              <foreach collection="itemList" item="item">
+	                  WHEN cart_id = #{item.cartId} THEN #{item.targetProductPrc}
+	              </foreach>
+	          END,
+	          target_product_amt = CASE 
+	              <foreach collection="itemList" item="item">
+	                  WHEN cart_id = #{item.cartId} THEN #{item.targetProductAmt}
+	              </foreach>
+	          END
+	    WHERE cart_id IN 
+	    <foreach collection="itemList" item="item" open="(" separator="," close=")">
+	        #{item.cartId}
+	    </foreach>
 	</update>
 	
 	<!-- 장바구니 상태 ORDERED 변경 -->

@@ -6,7 +6,7 @@
 		SELECT 
 	        O.order_id,
 	        O.order_no,
-	        O.quote_req_id,
+	        O.est_id,
 	        O.order_status,
 	        O.reg_dtime,
 	        C.cart_id,

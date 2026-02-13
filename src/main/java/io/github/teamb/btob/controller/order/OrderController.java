@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
+import io.github.teamb.btob.dto.est.EstReqDTO;
 import io.github.teamb.btob.dto.order.OrderHistoryDTO;
 import io.github.teamb.btob.dto.order.OrderVoDTO;
-import io.github.teamb.btob.dto.payment.PaymentVo;
 import io.github.teamb.btob.service.order.OrderService;
 import lombok.RequiredArgsConstructor;
 
@@ -30,8 +30,8 @@ public class OrderController {
 	
 	// 1. 상세 페이지 조회 (모달용)
     @GetMapping("/detail")
-    public String getOrderDetail(@RequestParam("orderId") int orderId, Model model) {
-    	OrderVoDTO order = orderService.getFullOrderDetail(orderId);
+    public String getOrderDetail(@RequestParam("orderNo") String orderNo, Model model) {
+    	OrderVoDTO order = orderService.getFullOrderDetail(orderNo);
 
         model.addAttribute("order", order);
         return "order/detail";
@@ -64,9 +64,9 @@ public class OrderController {
 	}
 	
 	@PostMapping("/estSubmit")
-	public ResponseEntity<?> estSubmit(@RequestBody Map<String, Object> params) {
+	public ResponseEntity<?> estSubmit(@RequestBody EstReqDTO dto) {
 		try {
-			orderService.processEstRequest(params);
+			orderService.processEstRequest(dto);
 			return ResponseEntity.ok().body(Map.of("result", "success"));
 		} catch (Exception e) {
 			e.printStackTrace();

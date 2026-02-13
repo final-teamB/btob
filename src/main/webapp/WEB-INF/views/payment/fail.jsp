@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,10 +31,12 @@
     </div>
 
     <div class="space-y-3">
-        <button onclick="location.href='${pageContext.request.contextPath}/payment/payment?orderNo=${orderNo}'" 
-		        class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg hover:bg-black transition">
-		    다시 결제 시도하기
-		</button>
+        <c:set var="retryUrl" value="${param.payStep eq 'SECOND' ? '/payment/paySecond' : '/payment/payment'}" />
+
+	    <a href="${pageContext.request.contextPath}${retryUrl}?orderNo=${param.orderNo}" 
+	       class="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-bold text-center">
+	       다시 결제 시도
+	    </a>
         <button onclick="location.href='${pageContext.request.contextPath}/main'" 
                 class="w-full bg-white border border-gray-200 text-gray-600 py-3 rounded-lg hover:bg-gray-50 transition">
             홈으로 이동

@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
 import io.github.teamb.btob.dto.trade.TradePendingDTO;
-import io.github.teamb.btob.mapper.order.OrderMapper;
 import io.github.teamb.btob.mapper.trade.TradeApprovalMapper;
 import io.github.teamb.btob.service.BizWorkflow.impl.BizWorkflowServiceImpl;
+import io.github.teamb.btob.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,9 +19,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TradeApprovalService {
 	private final TradeApprovalMapper tradeApprovalmapper;
-	private final OrderMapper orderMapper;
 	private final BizWorkflowServiceImpl bizWorkflowServiceImpl;
 	private final LoginUserProvider loginUserProvider;
+	private final NotificationService notificationService;
 
 		
 	public List<TradePendingDTO> getTradePendingList(TradePendingDTO dto) {
@@ -33,6 +33,7 @@ public class TradeApprovalService {
 	    // 1. 세션 정보 가져오기
 	    Integer loginUserNo = loginUserProvider.getLoginUserNo();
 	    String loginUserId = loginUserProvider.getLoginUserId(); 
+	    String receiverId = (String) params.get("userId");
 	    if (loginUserId == null || loginUserNo == null) throw new Exception("세션이 만료되었습니다.");
 	   
 	    // 2. BizWorkflow 호출을 위한 DTO 세팅
@@ -54,17 +55,30 @@ public class TradeApprovalService {
 	    requestDto.setRejtRsn(rejectReason);
 	    
 	    // 사용자 정보 세팅
-	    requestDto.setApprUserNo(loginUserNo); // 승인권자 번호
+	    requestDto.setApprUserNo(loginUserId); // 승인권자 번호
 	    requestDto.setUserId((String) params.get("userId"));
 	    
 	    // 원 요청자 번호 (JSP/그리드에서 userNo로 넘겨준 값)
-	    Object requestUserNoObj = params.get("userNo");
-	    if (requestUserNoObj != null) {
-	        requestDto.setRequestUserNo(Integer.parseInt(requestUserNoObj.toString()));
-	    }
+	    //Object requestUserNoObj = params.get("userNo");
+	    //if (requestUserNoObj != null) {
+	    requestDto.setRequestUserNo(receiverId);
+	    //}
 
 	    // 3. 공통 워크플로우 서비스 호출 (자동으로 TB_ORDER_MST 업데이트 + 이력 생성)
 	    bizWorkflowServiceImpl.modifyEtpStatusAndLogHist(requestDto);
+	    
+	 // 4. 알림 발송
+	    if (receiverId != null) {
+	        String message = "od002".equals(status) ? "주문이 승인되었습니다." : "주문이 반려되었습니다.";
+	        
+	        notificationService.send(
+	            receiverId, 
+	            "APPROVAL", 
+	            Integer.parseInt(params.get("orderId").toString()), 
+	            message, 
+	            loginUserId
+	        );
+	    }
 	}
 	
 	

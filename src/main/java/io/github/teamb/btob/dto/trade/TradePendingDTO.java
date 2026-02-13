@@ -23,7 +23,9 @@ public class TradePendingDTO {
     private String phone;           // 전화번호
     private Integer orderId;            // order_id
     private String orderNo;         // order_no
-    private int quoteReqId;         // quote_req_id
+    private int estId;         // estId
+    private String estNo;
+    private String ctrtNm;
     private String orderStatus;     // 주문상태
     private String cartStatus;    
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -37,6 +39,11 @@ public class TradePendingDTO {
     private int cartId;
     private int totalQty;
     private int totalPrice;
+    private int targetProductPrc;
+    private int targetProductAmt;
+    private String estdtMemo;
+    private int baseTotalAmount;
+    private int targetTotalAmount;
     
     // OIL
     private String fuelNm;
@@ -45,6 +52,7 @@ public class TradePendingDTO {
     // COMPANIES
     private String companyCd;
     private String companyName;
+    private String companyPhone;
     private String addrKor;
     private String bizNumber;
     private String masterName;
@@ -53,6 +61,8 @@ public class TradePendingDTO {
     private List<Integer> cartIds;
     private int cartCount;
 
+    private List<TradePendingDTO> itemList;
+    
     // 검색,필터
     private String keyword;
     private String tradeType;

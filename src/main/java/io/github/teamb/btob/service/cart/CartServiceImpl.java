@@ -10,17 +10,14 @@ import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.cart.CartItemDTO;
 import io.github.teamb.btob.dto.cart.CartItemInsertDTO;
 import io.github.teamb.btob.mapper.cart.CartMapper;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 	private final CartMapper cartMapper;
 	private final LoginUserProvider loginUserProvider;
-	
-	public CartServiceImpl(CartMapper cartMapper, LoginUserProvider loginUserProvider) {
-		this.cartMapper = cartMapper;
-		this.loginUserProvider = loginUserProvider;
-	}
 	
 	@Override
 	public List<CartItemDTO> getCartItemList(String orderNo) {
@@ -76,8 +73,8 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	public void updateCartItemQty(CartItemInsertDTO dto) {
-		dto.setTotalPrice(dto.getTotalQty() * dto.getBaseUnitPrc());
-        cartMapper.updateCartItem(dto);	
+		dto.setUserId(loginUserProvider.getLoginUserId());
+	    cartMapper.updateCartItem(dto);	
 	}
 	
 	@Override

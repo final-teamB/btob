@@ -24,7 +24,8 @@ public class CartItemDTO {
     private LocalDateTime regDtime;
     private String regId;
     private String useYn;
-    
+    private int targetProductPrc;
+    private int targetProductAmt;
     // OIL
     private int fuelId;
     private String fuelNm;
@@ -37,6 +38,13 @@ public class CartItemDTO {
     private int orderId;
     private String orderStatus;
     
+    // EST
+    private String estNo;
+    private String ctrtNm;
+    private int targetTotalAmount;
+    private int baseTotalAmount;
+    private String estdtMemo;
+    
     // 공통
     private String etpSttsNm;
     
@@ -48,7 +56,7 @@ public class CartItemDTO {
     // COMPANIES
     private String companyCd;
     private String companyName;
-    private String bizNumber;
+    private String companyPhone;
     private String masterId;
     private String addrKor;
 }

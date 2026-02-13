@@ -6,11 +6,13 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Spring 트랜잭션 권장
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryDTO;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryHistoryDTO;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryStatus;
 import io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper;
 import io.github.teamb.btob.service.notification.NotificationService;
+import io.github.teamb.btob.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,6 +21,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 	
 	private final DeliveryMapper deliveryMapper;
 	private final NotificationService notificationService;
+	private final PaymentService paymentService;
+	private final LoginUserProvider loginUserProvider;
 
 	// 전체 배송 목록 조회 (관리자용)
 	@Override
@@ -43,6 +47,12 @@ public class DeliveryServiceImpl implements DeliveryService {
 		DeliveryDTO oldData = deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
 		if (oldData == null) {
 	        throw new IllegalArgumentException("존재하지 않는 배송 정보입니다.");
+	    }
+		
+		// 화면에서 orderId가 안 넘어왔을 경우를 대비해 DB 데이터로 채워줌
+	    if (deliveryDTO.getOrderId() == 0) {
+	        deliveryDTO.setOrderId(oldData.getOrderId());
+	        System.out.println("DB에서 복구된 OrderID: " + deliveryDTO.getOrderId());
 	    }
 		
 		// 주문상태에 따른 배송상태 변경 권환
@@ -73,6 +83,23 @@ public class DeliveryServiceImpl implements DeliveryService {
 		
         // 배송 정보 업데이트 
         deliveryMapper.updateDelivery(deliveryDTO);
+        System.out.println("DTO OrderID: " + deliveryDTO.getOrderId());
+        // 2차 결제 생성 로직 추가
+		DeliveryStatus newStatus = deliveryDTO.getDeliveryStatus();
+		String adminId = loginUserProvider.getLoginUserId();        
+	        // 상태가 '통관완료(dv005)'로 바뀌었을 때만 실행
+	        if (newStatus != null && "dv005".equals(newStatus.name())) {
+	            int orderId = deliveryDTO.getOrderId(); 
+	            if (orderId <= 0) {
+	                throw new RuntimeException("해당 배송 정보에 연결된 주문 ID가 없습니다.");
+	            }
+	            try {
+	                paymentService.prepareSecondPayment(orderId, adminId);
+	            } catch (Exception e) {
+	                // 트랜잭션 처리가 되어 있으므로 에러 발생 시 전체 롤백됨
+	                throw new RuntimeException("2차 결제 준비 중 오류가 발생했습니다: " + e.getMessage());
+        	}
+        }
         
         // 배송 이력 등록 
         DeliveryHistoryDTO history = new DeliveryHistoryDTO();
@@ -87,7 +114,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryMapper.insertDeliveryHistory(history);
         
         // 알림
-        DeliveryStatus newStatus = deliveryDTO.getDeliveryStatus();
         if(newStatus  != null && (oldData == null || oldData.getDeliveryStatus() != newStatus)) {
         	String receiverUserId =
         		    deliveryMapper.selectReceiverUserId(deliveryDTO.getDeliveryId());
@@ -97,7 +123,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         		
         		notificationService.send(receiverUserId, "DELIVERY", deliveryDTO.getDeliveryId(), msg, deliveryDTO.getUpdId());
         	}
-        }
+    	}
 	}
 	
 	// 삭제 (비활성화)

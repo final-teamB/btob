@@ -1,8 +1,8 @@
 package io.github.teamb.btob.controller.trade;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.trade.TradePendingDTO;
+import io.github.teamb.btob.service.document.TradeDocService;
 import io.github.teamb.btob.service.trade.TradeApprovalService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TradeApprovalController {
 	private final TradeApprovalService tradeApprovalService;
+	private final TradeDocService tradeDocService;
+	private final LoginUserProvider loginUserProvider;
 	
 	@GetMapping("/pending")
 	public String pending(TradePendingDTO dto, Model model) {
@@ -35,47 +39,56 @@ public class TradeApprovalController {
 		return "layout/layout";
 	}
 		
-	/**
-     * 견적서 미리보기 (POST 전용)
-     */
-	@PostMapping("/previewEst")
-	public String previewEst(@RequestParam Map<String, Object> params, Model model) {
+	@GetMapping("/approveEst")
+	public String previewEst(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+		// 1. 주문 기본 정보 및 품목 리스트 조회 (DB 재조회)
+	    // 보통 orderId 하나로 여러 품목이 나올 수 있도록 itemList로 가져옵니다.
+	    List<TradePendingDTO> itemList = tradeDocService.getOrderDetailList(orderId);
 	    
-	    // 1. 기존 JSP 규격 맞추기 (리스트화)
-	    List<Map<String, Object>> itemList = new ArrayList<>();
-	    itemList.add(params);
-	    model.addAttribute("itemList", itemList);
+	    if (itemList != null && !itemList.isEmpty()) {
+	        // 2. 상단 업체/요청자 정보 (리스트의 첫 번째 항목 기준)
+	        model.addAttribute("info", itemList.get(0));
+	        
+	        // 3. 테이블에 뿌릴 품목 전체 리스트
+	        model.addAttribute("itemList", itemList);
+	        model.addAttribute("userType", userType);
+	        
+	        // 4. cartIds 추출 (발주 승인 시 필요)
+	        // 리스트 내의 모든 cartId를 콤마로 연결한 문자열 생성
+	        String cartIds = itemList.stream()
+	                                 .map(item -> String.valueOf(item.getCartId()))
+	                                 .collect(Collectors.joining(","));
+	        model.addAttribute("cartIds", cartIds);
+	    }
 	    
-	    // 2. JSP 하단 버튼 및 스크립트용 데이터
-	    model.addAttribute("cartIds", params.get("cartIds"));
-	    model.addAttribute("totalSum", params.get("totalPrice"));
-
-	    // 3. [핵심] 마스터 전용 페이지이므로 권한을 MASTER로 고정
-	    // 이렇게 하면 JSP의 <c:when test="${user_type eq 'MASTER'}"> 블록이 무조건 실행됩니다.
-	    model.addAttribute("userType", "MASTER");
-
-	    return "document/previewEst"; 
+	    return "document/approveEst";
 	}
 
-    /**
-     * 발주서 미리보기 (POST 전용)
-     */
-	@PostMapping("previewOrder")
-	public String previewOrder(@RequestParam Map<String, Object> params, Model model) {
+	@GetMapping("/previewOrder")
+	public String previewOrder(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+		// 1. 주문 기본 정보 및 품목 리스트 조회 (DB 재조회)
+	    // 보통 orderId 하나로 여러 품목이 나올 수 있도록 itemList로 가져옵니다.
+	    List<TradePendingDTO> itemList = tradeDocService.getOrderDetailList(orderId);
 	    
-	    // 1. 기존 JSP 규격 맞추기 (리스트화)
-	    List<Map<String, Object>> itemList = new ArrayList<>();
-	    itemList.add(params);
-	    model.addAttribute("itemList", itemList);
-	    
-	    // 2. JSP 하단 버튼 및 스크립트용 데이터
-	    model.addAttribute("cartIds", params.get("cartIds"));
-	    model.addAttribute("totalSum", params.get("totalPrice"));
+	    if (itemList != null && !itemList.isEmpty()) {
+	        // 2. 상단 업체/요청자 정보 (리스트의 첫 번째 항목 기준)
+	        model.addAttribute("info", itemList.get(0));
+	        
+	        // 3. 테이블에 뿌릴 품목 전체 리스트
+	        model.addAttribute("itemList", itemList);
+	        model.addAttribute("userType", userType);
+	        
+	        // 4. cartIds 추출 (발주 승인 시 필요)
+	        // 리스트 내의 모든 cartId를 콤마로 연결한 문자열 생성
+	        String cartIds = itemList.stream()
+	                                 .map(item -> String.valueOf(item.getCartId()))
+	                                 .collect(Collectors.joining(","));
+	        model.addAttribute("cartIds", cartIds);
+	    }
 
-	    // 3. [핵심] 마스터 전용 페이지이므로 권한을 MASTER로 고정
-	    model.addAttribute("userType", "MASTER");
-
-	    return "document/previewOrder"; 
+	    return "document/previewOrder";
 	}
 	
 	/**

@@ -2,11 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.trade.TradeApprovalMapper">
 	
-	<select id="getTradePendingList" resultType="io.github.teamb.btob.dto.trade.TradePendingDTO">
+	<select id="getTradePendingList1" resultType="io.github.teamb.btob.dto.trade.TradePendingDTO">
 		SELECT 
         O.order_id,
-        O.quote_req_id,
-        CASE WHEN O.quote_req_id IS NOT NULL AND O.quote_req_id > 0 
+        O.est_id,
+        CASE WHEN O.est_id IS NOT NULL AND O.est_id > 0 
              THEN 'ESTIMATE' 
              ELSE 'PURCHASE ORDER'
         END AS docType,
@@ -41,10 +41,10 @@
         AND O.order_status = 'od001'
         /* 검색 필터: 견적/주문 구분 */
         <if test="tradeType == 'EST'">
-            AND O.quote_req_id IS NOT NULL AND O.quote_req_id > 0
+            AND O.est_id IS NOT NULL AND O.est_id > 0
         </if>
         <if test="tradeType == 'ORD'">
-            AND (O.quote_req_id IS NULL OR O.quote_req_id = 0)
+            AND (O.est_id IS NULL OR O.est_id = 0)
         </if>
         <if test="keyword != null and keyword != ''">
             AND (O.order_no LIKE CONCAT('%', #{keyword}, '%') 
@@ -54,7 +54,7 @@
     GROUP BY 
 		O.order_no, 
     O.order_id, 
-    O.quote_req_id, 
+    O.est_id,
     O.order_status, 
     U.user_no, 
     U.user_id, 
@@ -65,6 +65,93 @@
     CO.biz_number, 
     CO.addr_kor, 
     O.reg_dtime
+    ORDER BY O.reg_dtime DESC
+</select>
+
+<resultMap id="tradePendingMap" type="io.github.teamb.btob.dto.trade.TradePendingDTO">
+    <id property="orderNo" column="order_no" />
+    <result property="orderId" column="order_id" />
+    <result property="estId" column="est_id" />
+    <result property="orderStatus" column="order_status" />
+    <result property="regDtime" column="reg_dtime" />
+    <result property="userName" column="user_name" />
+    <result property="companyName" column="company_name" />
+    <result property="companyPhone" column="company_phone" />
+    <result property="addrKor" column="addr_kor" />
+    <result property="docType" column="docType" />
+    
+    <result property="estNo" column="est_no" />
+    <result property="ctrtNm" column="ctrt_nm" />
+    <result property="estdtMemo" column="estdt_memo" />
+    <result property="baseTotalAmount" column="base_total_amount" />
+    <result property="targetTotalAmount" column="target_total_amount" />
+
+    <collection property="itemList" ofType="io.github.teamb.btob.dto.trade.TradePendingDTO">
+        <result property="cartId" column="cart_id" />
+        <result property="fuelNm" column="fuel_nm" />
+        <result property="totalQty" column="total_qty" />
+        <result property="baseUnitPrc" column="base_unit_prc" />
+        <result property="targetProductPrc" column="target_product_prc" />
+        <result property="targetProductAmt" column="target_product_amt" />
+    </collection>
+</resultMap>
+
+<select id="getTradePendingList" resultMap="tradePendingMap">
+    SELECT 
+        /* 1. 주문 마스터 (TB_ORDER_MST) */
+        O.order_no, 
+        O.order_id, 
+        O.order_status, 
+        O.reg_dtime,
+        
+        /* 2. 견적 상세 정보 (TB_EST_DOC) - 주문의 est_id와 조인 */
+        E.est_no,
+        E.ctrt_nm,
+        E.estdt_memo,
+        E.base_total_amount,
+        E.target_total_amount,
+        
+        /* 3. 사용자 및 회사 정보 */
+        U.user_name,
+        CO.company_name,
+        CO.company_phone,
+        CO.addr_kor,
+        
+        /* 4. 문서 타입 구분 */
+        CASE WHEN O.est_id IS NOT NULL AND O.est_id > 0 THEN 'ESTIMATE' ELSE 'PURCHASE ORDER' END AS docType,
+        
+        /* 5. 상세 품목 정보 (TB_CART + TB_OIL_MST) */
+        C.cart_id,
+        C.total_qty,
+        C.target_product_prc,
+        C.target_product_amt,
+        F.fuel_nm,
+        F.base_unit_prc
+        
+    FROM TB_ORDER_MST O
+    LEFT OUTER JOIN TB_EST_DOC E ON O.est_id = E.est_doc_id  /* 견적 정보가 없을 수도 있으므로 LEFT JOIN */
+    INNER JOIN TB_CART C ON O.order_no = C.order_no
+    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+    INNER JOIN TB_COMPANIES CO ON U.company_cd = CO.company_cd
+    INNER JOIN TB_OIL_MST F ON C.fuel_id = F.fuel_id
+    <where>
+    	AND O.use_yn = 'Y'
+        AND O.order_status = 'od001' /* 승인 대기 상태 */
+        
+        /* 승인권자의 회사 소속 데이터만 조회 */
+        AND CO.company_cd = (SELECT company_cd FROM TB_USERS WHERE user_no = #{userNo})
+        
+        /* 검색 필터 */
+        <if test="tradeType == 'EST'">
+            AND O.est_id IS NOT NULL AND O.est_id > 0
+        </if>
+        <if test="tradeType == 'ORD'">
+            AND (O.est_id IS NULL OR O.est_id = 0)
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (O.order_no LIKE CONCAT('%', #{keyword}, '%') OR U.user_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </where>
     ORDER BY O.reg_dtime DESC
 </select>
 

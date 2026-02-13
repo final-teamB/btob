@@ -45,8 +45,9 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		Integer refId = approvalDecisionRequestDTO.getRefId();					// 식별번호
 		String approvalStatus = approvalDecisionRequestDTO.getApprovalStatus();	// 승인,반려 타입
 		String requestEtpStatus = approvalDecisionRequestDTO.getRequestEtpStatus(); // 변경요청 상태코드 
-		Integer apprUserNo = approvalDecisionRequestDTO.getApprUserNo();	// 요청자
-		String userId = approvalDecisionRequestDTO.getUserId();
+		String apprUserNo = approvalDecisionRequestDTO.getApprUserNo();	// 승인자
+		String requestUserNo = approvalDecisionRequestDTO.getRequestUserNo();
+		String userId = approvalDecisionRequestDTO.getUserId(); // 요청자
 		
 		if ( !("APPROVED".equals(approvalStatus)) && 
 			     !("REJECTED".equals(approvalStatus)) && 
@@ -137,8 +138,7 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		etpStatusSelectDTO.setTargetPkCol(targetPkCol);
 		etpStatusSelectDTO.setTargetStatusCol(eDto.getTargetStatusCol());
 		etpStatusSelectDTO.setRefId(refId);
-		//etpStatusSelectDTO.setApprUserNo(apprUserNo);
-		etpStatusSelectDTO.setUserId(userId);
+	    etpStatusSelectDTO.setUserId(userId);
 
 		String currentEtpStatus = bizWorkflowMapper.selectCurrentStatusByRefId(etpStatusSelectDTO);
 		
@@ -230,8 +230,8 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		String rejtRsn = approvalDecisionRequestDTO.getRejtRsn() != null 
 			    ? approvalDecisionRequestDTO.getRejtRsn() 
 			    : "";
-		Integer apprUserNo = approvalDecisionRequestDTO.getApprUserNo();
-		Integer requestUserNo = approvalDecisionRequestDTO.getRequestUserNo();
+		String apprUserNo = approvalDecisionRequestDTO.getApprUserNo();
+		String requestUserNo = approvalDecisionRequestDTO.getRequestUserNo();
 		String userId = approvalDecisionRequestDTO.getUserId();
 		
 		EtpHistInsertDTO histInsertDTO = new EtpHistInsertDTO();

@@ -14,6 +14,8 @@ public class OrderVoDTO {
     private String orderStatus;     // 주문상태 코드 (pm001, pm002...)
     private String statusNm;        // 주문상태 명칭 (결제대기, 검수중...)
     private LocalDateTime regDtime; // 주문일시
+    private String regId;
+    private int userNo;
     private int amount;            // 1차 총 결제 금액
     
     // 2. 배송지 정보

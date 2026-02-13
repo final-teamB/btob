@@ -9,10 +9,15 @@ import io.github.teamb.btob.dto.payment.PaymentVo;
 @Mapper
 public interface PaymentMapper {
 	
+	PaymentViewDTO getPaymentSecondViewInfo(String orderNo);
+	
 	PaymentViewDTO getPaymentViewInfo(String orderNo);
 
 	void insertPaymentMst(PaymentRequestDTO payment);
 
 	String selectFormattedPaymentNo(String systemId, String loginUserId);
+
+	void updatePaymentForSecondStep(PaymentRequestDTO payment);
+
 
 }

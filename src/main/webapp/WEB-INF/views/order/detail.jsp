@@ -141,7 +141,7 @@
 	                            2차 결제 금액: <span class="text-orange-600"><fmt:formatNumber value="${order.secondPay.amount}" pattern="#,###"/></span>원
 	                        </p>
 	                    </div>
-	                    <button onclick="window.parent.openPaymentPopup(${order.orderId})" 
+	                    <button onclick="window.parent.openPaymentPopup('${order.orderNo}')" 
 	                            class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-bold shadow-md transition-all active:scale-95">
 	                        2차 결제
 	                    </button>
@@ -155,6 +155,13 @@
 	                <span>2차 결제 금액 (배송비/세금)</span>
 	                <span><fmt:formatNumber value="${order.secondPay.amount}" pattern="#,###"/>원 (결제 완료)</span>
 	            </div>
+	        
+	        <div class="mt-4 p-4 bg-gray-900 rounded-lg flex justify-between items-center">
+			    <span class="text-white font-bold">최종 총 결제 금액</span>
+			    <span class="text-xl font-bold text-yellow-400">
+			        <fmt:formatNumber value="${order.firstPay.amount + order.secondPay.amount}" pattern="#,###"/>원
+			    </span>
+			</div>
 	        </c:when>
 	        
 	        <%-- 그 외 상태 (검수 중 등) --%>

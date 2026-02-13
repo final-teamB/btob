@@ -21,7 +21,21 @@ const rawData = [
         userName: "${p.userName}",
         userId: "${p.userId}",
         phone: "${p.phone}",
-        regDtime: "${p.regDtime}"
+        baseTotalAmount: "${p.baseTotalAmount}",
+        targetTotalAmount: "${p.targetTotalAmount}",	
+        estdtMemo: `${p.estdtMemo}`,
+        regDtime: "${p.regDtime}",
+        itemList: [
+            <c:forEach var="item" items="${p.itemList}" varStatus="i">
+            {
+                fuelNm: "${item.fuelNm}",
+                totalQty: "${item.totalQty}",
+                baseUnitPrc: "${item.baseUnitPrc}",
+                targetProductPrc: "${item.targetProductPrc}",
+                targetProductAmt: "${item.targetProductAmt}"
+            }${!i.last ? ',' : ''}
+            </c:forEach>
+        ]
     }${!status.last ? ',' : ''}
     </c:forEach>
 ];
@@ -67,15 +81,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });   
 });
 
-window.handleGridAction = function(rowData, action) {
+window.handleGridAction = function(rawData, action) {
     if(action === 'OPEN_DETAIL') {
-        const orderId = rowData.orderId;
+        const orderId = rawData.orderId;
+        const docType = rawData.docType; // 'ESTIMATE' 또는 'ORDER'
         const ctx = "${pageContext.request.contextPath}";
-       
-        const targetUrl = ctx + "/document/previewOrder?orderId=" + orderId;
+        
+        let targetUrl = "";
+        
+        if(docType === 'ESTIMATE') {
+            // 견적 승인용 상세 페이지 (희망 단가, 총 합계 등 포함)
+            targetUrl = ctx + "/trade/approveEst?orderId=" + orderId;
+        } else {
+            // 일반 주문 승인용 상세 페이지
+            targetUrl = ctx + "/trade/previewOrder?orderId=" + orderId;
+        }
 
-
-        // 창 이름을 "_blank"로 주어 별도의 탭에서 열리게 합니다.
         const win = window.open(targetUrl, "_blank");
         if (win) win.focus();
     }

@@ -30,5 +30,9 @@ public interface CartMapper {
 	void updateCartOrderInfo(Map<String, Object> cartParams);
 	
 	void updateCartStatusOrdered(Map<String, Object> cartParams);
+
+	void updateCartPayment(Map<String, Object> cartParams);
+
+    void updateCartEstInfo(Map<String, Object> cartParams);
 	
 }
