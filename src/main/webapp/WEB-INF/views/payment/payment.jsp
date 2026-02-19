@@ -76,9 +76,9 @@
                                     <td class="p-4 text-right text-gray-700">${item.totalQty} UNIT</td>
                                     <td class="p-4 text-right font-bold text-gray-900">
                                         <c:choose>
-									        <c:when test="${not empty item.targetProductAmount and item.targetProductAmount > 0}">
+									        <c:when test="${not empty item.targetProductAmt and item.targetProductAmt > 0}">
 									            <span class="text-[10px] bg-orange-100 text-orange-600 px-1 rounded mr-1">협의가</span>
-									            <fmt:formatNumber value="${item.targetProductAmount}" pattern="#,###"/>원
+									            <fmt:formatNumber value="${item.targetProductAmt}" pattern="#,###"/>원
 									        </c:when>
 									        <c:otherwise>
 									            <fmt:formatNumber value="${item.totalPrice}" pattern="#,###"/>원
@@ -124,12 +124,12 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <label class="relative flex flex-col p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input type="radio" name="payMethod" value="CARD" class="absolute top-4 right-4" checked>
+                        <input type="radio" name="payMethod" value="카드" class="absolute top-4 right-4" checked>
                         <span class="text-base font-bold text-gray-900">신용/체크카드</span>
                         <span class="text-xs text-gray-500 mt-1">모든 카드사 이용 가능</span>
                     </label>
                     <label class="relative flex flex-col p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input type="radio" name="payMethod" value="VACCOUNT" class="absolute top-4 right-4">
+                        <input type="radio" name="payMethod" value="가상계좌" class="absolute top-4 right-4">
                         <span class="text-base font-bold text-gray-900">가상계좌</span>
                         <span class="text-xs text-gray-500 mt-1">무통장 입금 (현금영수증 가능)</span>
                     </label>
@@ -150,10 +150,10 @@
     // 페이지와 외부 스크립트가 모두 로드된 후 실행
     window.addEventListener('load', function() {
         const clientKey = '${tossCk}'; 
-        
         // 1. 초기화
         const tossPayments = TossPayments(clientKey);
         
+        const orderNo = '${paymentView.orderNo}';
         // 2. 주문명 설정
         const displayOrderName = '${paymentView.itemList[0].fuelNm}' + 
     	(${fn:length(paymentView.itemList)} > 1 ? ' 외 ${fn:length(paymentView.itemList) - 1}건' : '');
@@ -162,21 +162,27 @@
         document.getElementById('checkoutBtn').addEventListener('click', async function () {
             const method = document.querySelector('input[name="payMethod"]:checked').value;
             const btn = this;
-
+			
+            const timestamp = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
+	        const safeOrderNo = orderNo.replace(/[^a-zA-Z0-9-_]/g, '');
+	        const tossOrderId = "PAY-" + safeOrderNo + "-" + timestamp;
+            
             btn.disabled = true;
             btn.innerText = "결제창을 불러오는 중...";
 
-            try {
+           try {
             	await tossPayments.requestPayment(method, {
             	    amount: ${paymentView.totalPrice}, 
-            	    orderId: '${paymentView.orderNo}', 
+            	    orderId: tossOrderId, 
+            	    orderNo: '${paymentView.orderNo}',
             	    orderName: displayOrderName,
             	    successUrl: window.location.origin + '${pageContext.request.contextPath}/payment/success' 
             	               + '?payStep=FIRST'
             	               + '&orderNo=${paymentView.orderNo}'
             	               + '&dbOrderId=${paymentView.orderId}'
-            	               + '&tossOrderId=${paymentView.orderNo}',
-            	    failUrl: window.location.origin + '${pageContext.request.contextPath}/payment/fail',
+            	               + '&tossOrderId='+tossOrderId,
+            	    failUrl: window.location.origin + '${pageContext.request.contextPath}/payment/fail'
+            	   	 + '?orderNo=${paymentView.orderNo}'+'&payStep=FIRST',
             	    customerName: '${paymentView.userName}'
             	});
             } catch (error) {

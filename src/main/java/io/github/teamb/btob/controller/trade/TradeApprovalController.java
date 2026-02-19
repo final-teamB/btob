@@ -1,8 +1,8 @@
 package io.github.teamb.btob.controller.trade;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
+import io.github.teamb.btob.dto.trade.EstimateDetailDTO;
+import io.github.teamb.btob.dto.trade.OrderDetailDTO;
 import io.github.teamb.btob.dto.trade.TradePendingDTO;
+import io.github.teamb.btob.service.document.TradeDocService;
 import io.github.teamb.btob.service.trade.TradeApprovalService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TradeApprovalController {
 	private final TradeApprovalService tradeApprovalService;
+	private final TradeDocService tradeDocService;
+	private final LoginUserProvider loginUserProvider;
 	
 	@GetMapping("/pending")
 	public String pending(TradePendingDTO dto, Model model) {
@@ -35,47 +41,49 @@ public class TradeApprovalController {
 		return "layout/layout";
 	}
 		
-	/**
-     * 견적서 미리보기 (POST 전용)
-     */
-	@PostMapping("/previewEst")
-	public String previewEst(@RequestParam Map<String, Object> params, Model model) {
-	    
-	    // 1. 기존 JSP 규격 맞추기 (리스트화)
-	    List<Map<String, Object>> itemList = new ArrayList<>();
-	    itemList.add(params);
-	    model.addAttribute("itemList", itemList);
-	    
-	    // 2. JSP 하단 버튼 및 스크립트용 데이터
-	    model.addAttribute("cartIds", params.get("cartIds"));
-	    model.addAttribute("totalSum", params.get("totalPrice"));
+	@GetMapping("/approveEst")
+	public String previewEst(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+	    String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
 
-	    // 3. [핵심] 마스터 전용 페이지이므로 권한을 MASTER로 고정
-	    // 이렇게 하면 JSP의 <c:when test="${user_type eq 'MASTER'}"> 블록이 무조건 실행됩니다.
-	    model.addAttribute("userType", "MASTER");
-
-	    return "document/previewEst"; 
+	    // 1. 단일 DTO로 가져옵니다 (그 안에 List<OrderItemDTO>가 포함된 구조)
+	    EstimateDetailDTO detail = tradeDocService.getEstimateDetail(orderId);
+	    
+	    if (detail != null) {
+	        model.addAttribute("info", detail); // 상단 업체 정보 등
+	        model.addAttribute("itemList", detail.getItemList()); // 실제 품목 리스트
+	        model.addAttribute("userType", userType);
+	        
+	        // 2. 이제 detail.getItemList()에서 스트림을 돌립니다.
+	        // ItemDTO에는 cartId가 있으므로 에러가 사라집니다.
+	        String cartIds = detail.getItemList().stream()
+	                                 .map(item -> String.valueOf(item.getCartId()))
+	                                 .collect(Collectors.joining(","));
+	        model.addAttribute("cartIds", cartIds);
+	    }
+	    
+	    return "document/approveEst";
 	}
-
-    /**
-     * 발주서 미리보기 (POST 전용)
-     */
-	@PostMapping("previewOrder")
-	public String previewOrder(@RequestParam Map<String, Object> params, Model model) {
+	@GetMapping("/previewOrder")
+	public String previewOrder(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+		// 1. 주문 기본 정보 및 품목 리스트 조회 (DB 재조회)
+	    // 보통 orderId 하나로 여러 품목이 나올 수 있도록 itemList로 가져옵니다.
+	    OrderDetailDTO detail = tradeDocService.getOrderDetail(orderId);
 	    
-	    // 1. 기존 JSP 규격 맞추기 (리스트화)
-	    List<Map<String, Object>> itemList = new ArrayList<>();
-	    itemList.add(params);
-	    model.addAttribute("itemList", itemList);
-	    
-	    // 2. JSP 하단 버튼 및 스크립트용 데이터
-	    model.addAttribute("cartIds", params.get("cartIds"));
-	    model.addAttribute("totalSum", params.get("totalPrice"));
+	    if (detail != null) {
+	        model.addAttribute("info", detail); // 상단 업체 정보 등
+	        model.addAttribute("itemList", detail.getItemList()); // 실제 품목 리스트
+	        model.addAttribute("userType", userType);
+	        
+	        // 2. 이제 detail.getItemList()에서 스트림을 돌립니다.
+	        // ItemDTO에는 cartId가 있으므로 에러가 사라집니다.
+	        String cartIds = detail.getItemList().stream()
+	                                 .map(item -> String.valueOf(item.getCartId()))
+	                                 .collect(Collectors.joining(","));
+	        model.addAttribute("cartIds", cartIds);
+	    }
 
-	    // 3. [핵심] 마스터 전용 페이지이므로 권한을 MASTER로 고정
-	    model.addAttribute("userType", "MASTER");
-
-	    return "document/previewOrder"; 
+	    return "document/previewOrder";
 	}
 	
 	/**

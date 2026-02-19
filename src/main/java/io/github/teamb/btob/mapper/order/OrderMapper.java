@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import io.github.teamb.btob.dto.est.EstDocListDTO;
+import io.github.teamb.btob.dto.est.EstDocInsertDTO;
 import io.github.teamb.btob.dto.order.OrderDTO;
 import io.github.teamb.btob.dto.order.OrderHistoryDTO;
 import io.github.teamb.btob.dto.order.OrderVoDTO;
@@ -25,8 +25,14 @@ public interface OrderMapper {
 	Integer getOrderIdByOrderNo(String orderNo);
 
 
-	void insertEstDoc(EstDocListDTO docDto);
+	void insertEstDoc(EstDocInsertDTO docDto);
 
 	OrderVoDTO getOrderDetailWithAll(int orderId);
+
+	OrderVoDTO getOrderBasicInfoForPayment(int orderId);
+
+	OrderVoDTO getOrderDetailWithAll(String orderNo);
+
+	
 
 }
