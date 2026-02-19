@@ -436,7 +436,17 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	}
 	
 	/**
+	 * 
 	 * 기존에 이미 등록되어 있던 파일들의 상태(useYn)를 현재 상품 상태와 동기화
+	 * @author GD
+	 * @since 2026. 2. 19.
+	 * @param fuelId
+	 * @param systemId
+	 * @param useYn
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 19.  GD       최초 생성
 	 */
 	private void syncExistingFilesStatus(Integer fuelId, String systemId, String useYn) throws Exception {
 	   
