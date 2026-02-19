@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.OrderMgmtAdmMapper">
+	
+	<sql id="searchCondi">
+	
+		AND ( 
+			        order_no LIKE CONCAT('%', #{searchCondition}, '%') 
+			        OR reg_id LIKE CONCAT('%', #{searchCondition}, '%') 
+				)
+				
+	</sql>
+	
+	<!-- 주문/구매 관리 조회 -->
+	<select id="selectOrderSearchConditionListAdm"
+		parameterType="java.util.Map"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.order.SearchConditionOrderDTO">
+	
+			SELECT
+				 ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
+				,order_id -- hidden 값
+				,order_no
+				,quote_req_id
+				,user_id
+				,cart_id
+				,order_status
+				,reg_dtime
+				,reg_id
+				,upd_dtime
+				,upd_id
+				,use_yn
+			FROM
+				TB_ORDER_MST
+			WHERE 1=1
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+		       <include refid="searchCondi" />
+		    </if>
+		    ORDER BY ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) DESC
+			LIMIT #{startRow}, #{limit}
+	
+	</select>
+	
+	<!-- 주문/구매 관리 조회 건수 -->
+	<select id="selectOrderSearchConditionListCntAdm"
+		parameterType="java.util.Map"
+		resultType="int">
+			
+			SELECT
+				count(order_id)
+			FROM
+				TB_ORDER_MST
+			WHERE 1=1
+			<if test="searchCondition != null and searchCondition.trim() != ''">
+		       <include refid="searchCondi" />
+		    </if>
+		
+	</select>
+	
+	<!-- 상세 조회 -->
+	<select id="selectOrderDetailInfoByIdAdm">
+	
+	</select>
+	
+
+</mapper>

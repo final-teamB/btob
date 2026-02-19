@@ -64,6 +64,12 @@
         </c:forEach>
     ];
 
+    window.handleGridAction = function(rowData) {
+        if (rowData && rowData.noticeId) {
+            location.href = '/notice/edit/' + rowData.noticeId;
+        }
+    };
+    
     // [5] 모달 제어 함수
     function openWriteModal() {
         document.getElementById('customModalOverlay').style.display = 'flex';
@@ -92,7 +98,13 @@
                 { header: '제목', name: 'title', align: 'left', sortable: true },
                 { header: '작성자', name: 'displayRegId', width: 120, align: 'center' },
                 { header: '등록일', name: 'regDtime', width: 150, align: 'center', sortable: true },
-                { header: '조회수', name: 'viewCount', width: 100, align: 'center', sortable: true }
+                { header: '조회수', name: 'viewCount', width: 100, align: 'center', sortable: true },
+                {
+                    header: '관리', name: 'editBtn', width: 90, align: 'center',
+                    renderer: {
+                        type:  CustomActionRenderer, options:{ btnText:'수정', btnClass: 'edit-view-btn'}
+                    }
+                }
             ],
             data: rawData
         });
@@ -109,11 +121,12 @@
 
         // [8] 행 클릭 상세조회
         noticeGrid.grid.on('click', (ev) => {
-            const rowData = noticeGrid.grid.getRow(ev.rowKey);
-            // targetType이 cell이거나 수정 버튼을 눌렀을 때
-            if (rowData && (ev.targetType === 'cell' || ev.nativeEvent.target.classList.contains('edit-view-btn'))) {
-                // detail 대신 edit 경로로 바로 보냅니다.
-                location.href = '/notice/edit/' + rowData.noticeId;
+        	
+            if (ev.columnName === 'editBtn' || (ev.nativeEvent && ev.nativeEvent.target.classList.contains('edit-view-btn'))) {
+            	const rowData = deliveryGrid.grid.getRow(ev.rowKey);
+            	if (rowData && rowData.noticeId) {
+                    location.href = '/notice/edit/' + rowData.deliveryId;
+                }
             }
         });
     });
@@ -137,5 +150,5 @@
     .close-btn { font-size: 1.5rem; font-weight: bold; color: #9ca3af; cursor: pointer; border: none; background: none; }
     .btn-cancel { padding: 0.5rem 1rem; background: white; border: 1px solid #d1d5db; border-radius: 0.5rem; font-weight: bold; cursor: pointer; }
     .btn-save { padding: 0.5rem 1.25rem; background: #2563eb; color: white; border-radius: 0.5rem; font-weight: bold; cursor: pointer; border: none; }
-    .tui-grid-cell { cursor: pointer !important; }
+    .tui-grid-cell { cursor: default !important; }
 </style>

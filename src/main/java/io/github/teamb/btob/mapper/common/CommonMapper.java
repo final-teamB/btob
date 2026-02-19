@@ -5,15 +5,11 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
-
-
-import java.util.Map;
-
-
+import io.github.teamb.btob.dto.common.SelectBoxVO;
 
 @Mapper
 public interface CommonMapper {
 	
 	// 셀렉박스 추출
-	List<Map<String, Object>> selectBoxList(SelectBoxListDTO selectBoxListDTO); 
+	List<SelectBoxVO> selectBoxList(SelectBoxListDTO selectBoxListDTO); 
 }

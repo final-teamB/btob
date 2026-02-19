@@ -21,4 +21,3 @@ public class EtpDynamicParamsDTO {
 	private String targetPkCol;				// 업데이트 대상 테이블 식별자 컬럼
 
 }
-

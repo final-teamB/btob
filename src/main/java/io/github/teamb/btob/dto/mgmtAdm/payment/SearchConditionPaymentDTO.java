@@ -24,6 +24,6 @@ public class SearchConditionPaymentDTO {
 	private String status;		// 결재상태
 	private String payMethod;	// 결재수단
 	private LocalDateTime regDtime;	// 생성일시
-	private Integer regId;		// 생성자
+	private String regId;		// 생성자
 	private String useYn;		// 사용여부 YN
 }

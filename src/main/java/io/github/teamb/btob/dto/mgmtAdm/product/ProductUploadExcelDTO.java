@@ -35,6 +35,7 @@ public class ProductUploadExcelDTO {
     private Integer flashPnt;        // 인화점
     private Integer viscosity;       // 점도
     private Integer density15c;      // 15도 밀도
+    private String fuelMemo;		// 상세내용
     
     // 이미지 일괄 업로드
     // 공통첨부파일 사용 TB_ATCH_FILE_MST
@@ -76,6 +77,9 @@ public class ProductUploadExcelDTO {
                 .flashPnt(this.flashPnt)
                 .viscosity(this.viscosity)
                 .density15c(this.density15c)
+                .fuelMemo(this.fuelMemo)
+                .regId(this.regId)     
+                .useYn(this.useYn)
                 .build();
     }
     

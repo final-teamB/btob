@@ -23,6 +23,7 @@ public class InsertDetailInfoProductDTO {
     private Integer flashPnt;        // 인화점
     private Integer viscosity;       // 점도
     private Integer density15c;      // 15도 밀도
-    private Integer regId;			// 등록자 ID
+    private String regId;			// 등록자 ID
     private String useYn;			// 사용여부 YN
+    private String fuelMemo;		// 상세내용
 }

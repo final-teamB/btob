@@ -1,0 +1,245 @@
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<div id="detailModal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-[calc(100%-1rem)] max-h-full bg-black/50">
+    <div class="relative w-full max-w-5xl max-h-full mx-auto">
+        <div class="relative bg-white rounded-xl shadow-2xl border border-gray-200">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-900">상품 상세 정보 조회</h2>
+                <button type="button" onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-900 ml-auto p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 grid grid-cols-12 gap-6">
+                <div class="col-span-12 md:col-span-6 space-y-4 border-r pr-6">
+                    <div class="flex justify-between items-center border-b pb-1">
+                        <h3 class="font-bold text-blue-600 text-sm uppercase">기본 정보</h3>
+                        <span id="detailUseYnBadge" class="text-[10px] px-2 py-0.5 rounded-full font-bold"></span>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-500 mb-1">상품명</label>
+                        <p id="detFuelNm" class="text-base font-semibold text-gray-900 bg-gray-50 p-2 rounded-lg border border-gray-100"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">유류코드</label>
+                            <input type="text" id="detFuelCd" class="w-full bg-white border-0 text-sm font-medium p-1" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">유류종류</label>
+                            <input type="text" id="detFuelCatNm" class="w-full bg-white border-0 text-sm font-medium p-1" readonly>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">단가</label>
+                            <p id="detBaseUnitPrc" class="text-sm font-bold text-blue-700 p-1"></p>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">원산지</label>
+                            <p id="detOriginCntryNm" class="text-sm p-1"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">현재 재고량</label>
+                            <div class="flex items-baseline gap-1">
+                                <span id="detCurrStockVol" class="text-lg font-bold text-gray-900"></span>
+                                <span id="detVolUnitNm" class="text-xs text-gray-500"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">안전 재고량</label>
+                            <span id="detSafeStockVol" class="text-sm font-medium"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-2">메인 이미지</label>
+                            <div id="detMainImgContainer" class="w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-dashed flex items-center justify-center">
+                                </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-2">서브 이미지</label>
+                            <div id="detSubImgContainer" class="w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-dashed flex items-center justify-center">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-12 md:col-span-6 space-y-4">
+                    <h3 class="font-bold text-blue-600 border-b pb-1 text-sm uppercase">기술 제원 (Specifications)</h3>
+                    <div class="grid grid-cols-3 gap-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">API GRV</p>
+                            <p id="detApiGrv" class="text-sm font-bold text-gray-800">-</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">Sulfur(%)</p>
+                            <p id="detSulfurPCnt" class="text-sm font-bold text-gray-800">-</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">Flash Pt</p>
+                            <p id="detFlashPnt" class="text-sm font-bold text-gray-800">-</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">Viscosity</p>
+                            <p id="detViscosity" class="text-sm font-bold text-gray-800">-</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">Density 15C</p>
+                            <p id="detDensity15c" class="text-sm font-bold text-gray-800">-</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-500 mb-1 uppercase">등록/수정 정보</label>
+                        <div class="text-[12px] text-gray-600 bg-gray-50 p-2 rounded-lg space-y-1">
+                            <div class="flex justify-between">
+                                <span>최초 등록: <span id="detRegNm"></span></span>
+                                <span id="detRegDtime" class="text-gray-400"></span>
+                            </div>
+                            <div class="flex justify-between border-t pt-1">
+                                <span>최종 수정: <span id="detUpdNm"></span></span>
+                                <span id="detUpdDtime" class="text-gray-400"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">상품 상세 설명</label>
+                        <div id="detFuelMemo" class="w-full min-h-[150px] p-4 border rounded-lg bg-gray-50 text-sm overflow-y-auto">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center p-6 border-t gap-2">
+                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition">정보 수정</button>
+                <button type="button" onclick="closeDetailModal()" class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border rounded-lg ml-auto">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let detailModal = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Modal !== 'undefined') {
+            detailModal = new Modal(document.getElementById('detailModal'), {
+                backdrop: 'static',
+                closable: false
+            });
+        }
+    });
+
+    // 상세 조회 호출 함수
+    function openDetailView(fuelId) {
+    if(!fuelId) return;
+
+    // 1. URL 구성 확인 (Context Path 포함)
+    const url = '${pageContext.request.contextPath}/admin/products/api/' + fuelId;
+    
+    console.log("호출 시도 URL:", url);
+
+    fetch(url)
+        .then(res => {
+            if(!res.ok) throw new Error("HTTP error " + res.status);
+            return res.json();
+        })
+        .then(data => {
+
+            // DTO 구조가 Flatten 형식이므로 data에서 바로 추출
+            // 기본 정보
+            document.getElementById('detFuelNm').innerText = data.fuelNm || '-';
+            document.getElementById('detFuelCd').value = data.fuelCd || '-';
+            document.getElementById('detFuelCatNm').value = data.fuelCatNm || '-';
+            document.getElementById('detBaseUnitPrc').innerText = '₩ ' + (data.baseUnitPrc ? data.baseUnitPrc.toLocaleString() : '0');
+            document.getElementById('detOriginCntryNm').innerText = data.originCntryNm || '-';
+            document.getElementById('detCurrStockVol').innerText = (data.currStockVol || 0).toLocaleString();
+            document.getElementById('detVolUnitNm').innerText = data.volUnitNm || '';
+            document.getElementById('detSafeStockVol').innerText = '(안전재고: ' + (data.safeStockVol || 0).toLocaleString() + ')';
+            
+            // 기술 제원
+            document.getElementById('detApiGrv').innerText = data.apiGrv || '-';
+            document.getElementById('detSulfurPCnt').innerText = data.sulfurPCnt || '-';
+            document.getElementById('detFlashPnt').innerText = data.flashPnt || '-';
+            document.getElementById('detViscosity').innerText = data.viscosity || '-';
+            document.getElementById('detDensity15c').innerText = data.density15c || '-';
+
+            // 등록/수정 정보
+            document.getElementById('detRegNm').innerText = data.regNm || '-';
+            document.getElementById('detRegDtime').innerText = data.regDtime ? data.regDtime.replace('T', ' ').split('.')[0] : '-';
+            document.getElementById('detUpdNm').innerText = data.updNm || '-';
+            document.getElementById('detUpdDtime').innerText = data.updDtime ? data.updDtime.replace('T', ' ').split('.')[0] : '-';
+
+            // 상태 배지
+            const badge = document.getElementById('detailUseYnBadge');
+            const isActive = data.useYn === 'Y' || data.useYn === 'ACTIVE';
+            badge.innerText = isActive ? 'ACTIVE' : 'STOPPED';
+            badge.className = isActive 
+                ? 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700'
+                : 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-red-100 text-red-700';
+
+            // 이미지 바인딩 (수정된 로직)
+            const mainCont = document.getElementById('detMainImgContainer');
+            const subCont = document.getElementById('detSubImgContainer');
+            mainCont.innerHTML = '<span class="text-gray-400 text-[11px]">이미지 없음</span>';
+            subCont.innerHTML = '<span class="text-gray-400 text-[11px]">이미지 없음</span>';
+
+            if (data.fileList && data.fileList.length > 0) {
+                data.fileList.forEach(function(file) {
+                    // JSP EL과 충돌을 피하기 위해 + 연산자로 URL 결합
+                    var imageUrl = cp + file.fileUrl;
+                    
+                    // 태그를 직접 조립 (백틱 ` 대신 따옴표 ' 사용)
+                    var imgHtml = '<img src="' + imageUrl + '" ' +
+                                  'class="w-full h-full object-contain" ' +
+                                  'style="display: block;" ' +
+                                  'onerror="this.src=\'https://placehold.co/400x300?text=No+Image\';">';
+                    
+                    if (file.systemId === 'PRODUCT_M') {
+                        mainCont.innerHTML = imgHtml;
+                    } else if (file.systemId === 'PRODUCT_S') {
+                        subCont.innerHTML = imgHtml;
+                    }
+                });
+            }
+
+            // 상세 메모 (HTML)
+            document.getElementById('detFuelMemo').innerHTML = data.fuelMemo || '<p class="text-gray-400">등록된 상세 설명이 없습니다.</p>';
+
+            // 수정 버튼 이벤트
+            document.getElementById('btnGoEdit').onclick = function() {
+                closeDetailModal();
+                // DTO의 최상위 fuelId 전달
+                openEditModalByFuelId(data.fuelId);
+            };
+
+            // 모달 표시
+            if(detailModal) detailModal.show();
+            else {
+                // 인스턴스가 없을 경우 대비
+                detailModal = new Modal(document.getElementById('detailModal'));
+                detailModal.show();
+            }
+        })
+        .catch(err => {
+            console.error("Fetch error:", err);
+            console.dir(err); // 에러의 객체 구조까지 출력
+            alert("상세 데이터를 가져오는 데 실패했습니다.");
+        });
+}
+
+    function closeDetailModal() { if(detailModal) detailModal.hide(); }
+</script>

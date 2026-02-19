@@ -6,7 +6,7 @@
 <c:set var="showAddBtn" value="false" scope="request" />
 
 <div class="mx-4 my-8">
-    <div class="max-w-4xl mx-auto space-y-6">
+    <div class="mx-auto space-y-6">
         
         <%-- [2] 제목 및 정보 영역 --%>
         <div class="border-b border-gray-200 dark:border-gray-700 pb-6">

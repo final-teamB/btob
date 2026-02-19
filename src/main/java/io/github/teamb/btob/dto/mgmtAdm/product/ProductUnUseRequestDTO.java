@@ -17,5 +17,5 @@ public class ProductUnUseRequestDTO {
 	private String useYn;		// 사용여부
 	private String updId;		// 수정자
 	private Integer fuelId;		// 식별자
-	private Integer userNo;		// 사용자?
+	private String userId;		// 사용자?
 }

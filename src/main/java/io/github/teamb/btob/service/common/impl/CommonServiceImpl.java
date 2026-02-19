@@ -1,32 +1,21 @@
 package io.github.teamb.btob.service.common.impl;
 
 import java.util.Collection;
-
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.mapper.common.CommonMapper;
 import io.github.teamb.btob.service.common.CommonService;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collections;
-
-import java.util.stream.Collectors;
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-
 @Service
 @RequiredArgsConstructor
 public class CommonServiceImpl implements CommonService{
 	
 	private final CommonMapper commonMapper;
-	private final ObjectMapper objectMapper = new ObjectMapper();
 	
 
 	/**
@@ -43,29 +32,16 @@ public class CommonServiceImpl implements CommonService{
 	 * 2026. 1. 28.  GD       최초 생성
 	 */
 	@Override
-	public <T> List<T> getSelectBoxList(SelectBoxListDTO dto, Class<T> targetDTO) {
-	
-		// 필수 파라미터 검사 
-	    if (dto.getCommonCd() == null || 
-	    		dto.getCommonNm() == null || 
-	    		dto.getCommonTable() == null) {
-	    	
-	        throw new IllegalArgumentException("필수 파라미터가 없습니다.");
+	public List<SelectBoxVO> getSelectBoxList(SelectBoxListDTO dto) {
+	    
+	    
+		// 파라미터 검증만 하고 바로 던지면 끝!
+		if (dto.getCommonTable() == null || dto.getCommNo() == null) {
+	        throw new IllegalArgumentException("필수 파라미터 누락");
 	    }
-		
-		// DB에서 Map 리스트로 가져옴
-        List<Map<String, Object>> selectBoxList = commonMapper.selectBoxList(dto);
-
-        // 데이터가 없는 경우 빈 리스트 반환 (Null 방어)
-        if (selectBoxList == null || selectBoxList.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Map을 원하는 DTO 클래스 타입으로 변환하여 리스트로 반환
-        return selectBoxList.stream()
-                .map((Map<String, Object> map) -> 
-                	objectMapper.convertValue(map, targetDTO))
-                .collect(Collectors.toList());
+	    
+	    // 결과가 자동으로 SelectBoxVO(value, text)에 매핑됨
+	    return commonMapper.selectBoxList(dto);
 	}
 
 

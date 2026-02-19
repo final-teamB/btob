@@ -2,7 +2,43 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<c:set var="info" value="${not empty itemList ? itemList[0] : dto}" />
+<%-- 더미 데이터 세팅 --%>
+<c:if test="${empty dto}">
+    <jsp:useBean id="dummyDto" class="java.util.HashMap" scope="request"/>
+    <c:set target="${dummyDto}" property="estNo" value="EST-20260205-001"/>
+    <c:set target="${dummyDto}" property="estDocId" value="10042"/>
+    <c:set target="${dummyDto}" property="companyName" value="(주)글로벌 유류 트레이딩"/>
+    <c:set target="${dummyDto}" property="companyPhone" value="02-1234-5678"/>
+    <c:set target="${dummyDto}" property="ctrtNm" value="2026년도 상반기 복합 유종 정기 공급 계약"/>
+    
+    <c:set target="${dummyDto}" property="requestCompanyNm" value="(주)대한물류네트웍스"/>
+    <c:set target="${dummyDto}" property="requestCompanyAddr" value="서울특별시 강남구 테헤란로 456, 대한빌딩 12층"/>
+    <c:set target="${dummyDto}" property="requestCompanyPhone" value="02-987-6543"/>
+    <c:set target="${dummyDto}" property="requestUserNm" value="김철수 과장"/>
+    <c:set target="${dummyDto}" property="requestUserId" value="1029"/>
+    
+    <c:set target="${dummyDto}" property="apprUserNm" value="이영희 본부장"/>
+    <c:set target="${dummyDto}" property="apprUserPhone" value="010-5678-1234"/>
+    <c:set target="${dummyDto}" property="apprUserEmail" value="yh.lee@globalfuel.com"/>
+    
+    <c:set target="${dummyDto}" property="estdtMemo" value="최근 홍해 물류 사태로 인한 운임 상승분을 고려하여 희망 단가를 산출하였습니다. 대량 구매 옵션 5% 할인이 적용된 수치입니다."/>
+    <c:set target="${dummyDto}" property="baseTotalAmount" value="162000000"/>
+    <c:set target="${dummyDto}" property="targetTotalAmount" value="154700000"/>
+    <c:set var="dto" value="${dummyDto}" scope="request"/>
+
+    <%
+        java.util.List list = new java.util.ArrayList();
+        java.util.Map item1 = new java.util.HashMap();
+        item1.put("productNm", "항공유 (Jet A-1 / International Standard)");
+        item1.put("productQty", 100);
+        item1.put("baseProductPrc", 450000);
+        item1.put("baseProductAmt", 45000000);
+        item1.put("targetProductPrc", 430000);
+        item1.put("targetProductAmt", 43000000);
+        list.add(item1);
+        request.setAttribute("detailList", list);
+    %>
+</c:if>
 
 <!DOCTYPE html>
 <html>
@@ -208,7 +244,6 @@
             </div>
         </div>
     </div>
-
 <script>
     $(document).ready(function() {
         updateCalculations();
@@ -287,5 +322,6 @@
         });
     }
 </script>
+>>>>>>> origin/main
 </body>
 </html>

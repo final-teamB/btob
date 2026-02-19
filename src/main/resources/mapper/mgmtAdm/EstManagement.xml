@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.EstMgmtAdmMapper">
+	
+	<sql id="searchCondi">
+	
+		AND ( 
+			        b.est_no LIKE CONCAT('%', #{searchCondition}, '%')
+			        OR b.ctrt_nm LIKE CONCAT('%', #{searchCondition}, '%')
+					OR fnc_get_user_nm(b.request_user_id) LIKE CONCAT ('%', #{searchCondition}, '%' )
+					OR c.company_name LIKE CONCAT ('%', #{searchCondition}, '%')
+				)
+				
+	</sql>
+	
+	<!-- 견적서 관리 조회 -->
+	<select id="selectEstSearchConditionListAdm"
+		parameterType="java.util.Map"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.est.SearchConditionEstDTO">
+		
+			SELECT
+				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				,b.est_no
+				,b.ctrt_nm
+				,b.company_name
+				,b.company_phone
+				,b.request_user_id AS requestUserNm
+				,a.reg_dtime
+				,a.expire_dtime
+				,a.etp_stts_cd
+				,c.appr_dtime
+			FROM
+				TB_EST_MST a,
+				TB_EST_DOC b,
+				TB_ETP_HIST c,
+				TB_USERS d
+			WHERE 1=1
+				AND a.est_doc_id = b.est_doc_id
+				AND a.est_id = c.etp_id
+				AND b.request_user_id = d.user_no
+				<if test="searchCondition != null and searchCondition.trim() != ''">
+			       <include refid="searchCondi" />
+			    </if>
+			ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
+			LIMIT #{startRow}, #{limit}
+		 
+	</select>
+	
+	<!-- 견적서 조회 건수 -->
+	<select id="selectEstSearchConditionListCntAdm"
+		parameterType="String"
+		resultType="int">
+		
+			SELECT
+				COUNT(a.est_id)
+			FROM
+				TB_EST_MST a,
+				TB_EST_DOC b,
+				TB_ETP_HIST c,
+				TB_USERS d
+			WHERE 1 = 1
+				AND a.est_doc_id = b.est_doc_id
+				AND a.est_id = c.etp_id
+				AND b.request_user_id = d.user_no
+				<if test="searchCondition != null and searchCondition.trim() != ''">
+			       <include refid="searchCondi" />
+			    </if>
+		    
+	</select>
+	
+	<!-- 견적서 상세 조회 -->
+	<select id="selectEstDocByIdAdm"
+		parameterType="int"
+		resultType="io.github.teamb.btob.dto.mgmtAdm.est.EstDocDTO">
+		
+			SELECT 
+			    b.est_no          
+			    ,b.company_name    
+			    ,b.company_phone   
+			    ,fnc_get_usernm(b.request_user_id) AS requestUserNm 
+			    ,fnc_get_usernm(b.appr_user_id) AS apprUserNm    
+			    ,b.ctrt_nm         
+			    ,b.estdt_memo      
+			    ,fnc_get_productnm(c.product_id) AS productNm       
+			    ,c.product_qty      
+			    ,c.base_product_prc  
+			    ,c.base_product_amt  
+			    ,c.target_product_prc
+			    ,c.target_product_amt
+			    ,b.base_total_amount
+			    ,b.target_total_amount
+			FROM 
+				TB_EST_MST a,
+				TB_EST_DOC b,
+				TB_EST_CART_ITEM c
+			WHERE 1=1
+			AND a.est_id = b.est_id
+			AND b.est_cart_id = c.est_cart_id
+			AND a.est_id = #{estId}
+		
+	</select>
+	
+	<!-- 1. 견적서 메인 장바구니 생성 -->
+	<insert id="insertEstCartAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstCartDTO"
+		useGeneratedKeys="true" 
+        keyProperty="estCartId">
+        
+			INSERT INTO TB_EST_CART (reg_id) VALUES (#{requestUserId})
+			
+	</insert>
+	
+	<!-- 2. 견적서 장바구니 물품 등록 -->
+	<insert id="insertEstCartItemsAdm" 
+		parameterType="java.util.List">
+		
+		    INSERT INTO TB_EST_CART_ITEM (
+		        est_cart_id
+		        , product_id
+		        , product_qty
+		        , base_product_prc
+		        , base_product_amt
+		        , target_product_prc
+		        , target_product_amt
+		        , reg_id
+		    ) VALUES 
+		    <foreach collection="list" item="item" separator=",">
+		    (
+		        #{item.estCartId}
+		        , #{item.productId}
+		        , #{item.productQty}
+		        , #{item.baseProductPrc}
+		        , #{item.baseProductAmt}
+		        , #{item.targetProductPrc}
+		        , #{item.targetProductAmt}
+		        , #{item.regId}
+		    )
+		    </foreach>
+		    
+	</insert>
+	
+	<!-- 3. 견적서 문서 생성 -->
+	<insert id="insertEstDocAdm" 
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstDocDTO"
+		useGeneratedKeys="true" 
+        keyProperty="estDocId">
+		
+		    INSERT INTO TB_EST_DOC (
+		        est_no
+		        , company_name
+		        , company_phone
+		        , request_user_id
+		        , appr_user_id
+		        , ctrt_nm
+		        , est_cart_id
+		        , estdt_memo
+		        , base_total_amount
+		        , target_total_amount
+		        , reg_id
+		    ) VALUES (
+		        #{estNo}
+		        , #{companyName}
+		        , #{companyPhone}
+		        , #{requestUserId}
+		        , #{apprUserId}
+		        , #{ctrtNm}
+		        , #{estCartId}
+		        , #{estdtMemo}
+		        , #{baseTotalAmount}
+		        , #{targetTotalAmount}
+		        , #{requestUserId}
+		    )
+		    
+	</insert>
+	
+	<!-- 4. 견적서 메인 생성 -->
+	<insert id="insertEstMstAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.InsertEstMstDTO">
+	
+			INSERT INTO TB_EST_MST ( 
+				est_doc_id,
+				etp_stts_cd
+			) VALUES (
+				 #{estDocId}
+				,#{etpSttsCd}
+			)
+	
+	</insert>
+	
+	<!-- 견적서 문서 수정 -->
+	<update id="updateEstDoc"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.UpdateEstDocMstDTO">
+	
+			UPDATE 
+				TB_EST_DOC
+			SET
+				ctrt_nm = #{ctrtNm}
+				,estdt_memo = #{estdtMemo}
+				,upd_dtime = CURRENT_TIMESTAMP
+				,upd_id = #{requestUserId}
+			WHERE 1=1
+			AND est_doc_id = #{estDocId}
+			AND request_user_id = #{requestUserId}
+			AND use_yn = 'Y'
+			
+	</update>
+	
+	<!-- 견적서 유효 기한 연장 -->
+	<update id="updateEstDocExpireDtimeExten">
+	
+		UPDATE
+			TB_EST_MST
+		SET 
+			expire_dtime = expire_dtime + INTERVAL 7 DAY
+		WHERE expire_dtime <![CDATA[<]]> NOW();
+	
+	</update>
+	
+	
+	<!-- 견적서 문서 및 기간 연장 수정 가능 조건 -->
+	<select id="updateEstValidate"
+		parameterType="int"
+		resultType="int">
+
+			SELECT 
+				COUNT(a.est_doc_id) 
+			FROM 
+			TB_EST_DOC A
+			,TB_EST_MST B
+			WHERE 1=1
+			AND a.est_doc_id = b.est_doc_id
+			AND a.est_doc_id = #{estDocId}
+			AND etp_stts_cd = 'et001'
+		
+	</select>
+	
+	
+	<!-- 견적서 기본 미사용 처리 -->
+	<update id="unUseEstAdm"
+		parameterType="io.github.teamb.btob.dto.mgmtAdm.est.UnUseEstDTO">
+		
+			UPDATE 
+				TB_EST_MST
+			SET
+				use_yn = 'N'
+			WHERE 1=1
+			AND est_id = #{estId}
+			AND est_doc_id = #{estDocId}
+		
+	</update>
+	
+	<!-- 견적서 세부 미사용 처리 -->
+	<update id="unUseEstDoc"
+		parameterType="int">
+	
+		UPDATE
+			TB_EST_DOC
+		SET
+			use_yn = 'N'
+		WHERE est_id = #{estDocId}
+		
+	</update>
+	
+</mapper>

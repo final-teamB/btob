@@ -22,7 +22,7 @@ public class SearchConditionEstDTO {
 	private String ctrtNm;			// 계약명
 	private String companyName; 	// 회사명
 	private String companyPhone;	// 회사연락처
-	private Integer requestUserId;	// 요청자ID
+	private String requestUserId;	// 요청자ID
 	private String requestUserNm;	// 요청자 이름 (fnc_get_usernm 활용용)
 	private LocalDateTime regDtime;	// 생성일자
 	private LocalDateTime expireDtime;	// 견적서 만료일자
