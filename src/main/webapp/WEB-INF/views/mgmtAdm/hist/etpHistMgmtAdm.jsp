@@ -4,6 +4,23 @@
 
 <%-- 1. 스타일 정의 (상품관리와 동일한 컨테이너 클래스 유지) --%>
 <style>
+	/* 배지 공통 스타일 */
+    .stts-badge {
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+    /* 상태별 색상 (예시) */
+    .stts-et { bg-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; } /* 요청 */
+    .stts-od { bg-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a; } /* 주문 */
+    .stts-reject { bg-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; } /* 반려/취소 */
+    .stts-default { bg-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+</style>
+<style>
     .hist-link { 
         color: #1e293b; 
         font-weight: 600; 
@@ -119,30 +136,23 @@
             });
     };
 
- // 5. 그리드 초기화
+ 	// 5. 그리드 초기화
     function initGrid(data, perPage) {
-        // [추가] 날짜 형식 가공 (T 제거)
-        // 데이터가 들어올 때마다 미리 가공해서 넣어주면 렌더링이 깔끔합니다.
         var formattedData = (data || []).map(function(item) {
-            var newItem = Object.assign({}, item); // 원본 데이터 보존을 위한 복사
-            if (newItem.regDtime && typeof newItem.regDtime === 'string') {
-                newItem.regDtime = newItem.regDtime.replace('T', ' ').split('.')[0];
-            }
-            if (newItem.apprDtime && typeof newItem.apprDtime === 'string') {
-                newItem.apprDtime = newItem.apprDtime.replace('T', ' ').split('.')[0];
-            }
+            var newItem = Object.assign({}, item); 
+            if (newItem.regDtime) newItem.regDtime = newItem.regDtime.replace('T', ' ').split('.')[0];
+            if (newItem.apprDtime) newItem.apprDtime = newItem.apprDtime.replace('T', ' ').split('.')[0];
             return newItem;
         });
 
-        // 기존 그리드가 존재할 경우 (업데이트 모드)
         if (myGrid && myGrid.grid) {
-            myGrid.allData = formattedData; // 가공된 데이터 할당
-            myGrid.perPage = parseInt(perPage); // 페이지당 개수 동기화
+            myGrid.allData = formattedData;
+            myGrid.perPage = parseInt(perPage);
             myGrid.executeFiltering(true);
+            setTimeout(function() { myGrid.grid.refreshLayout(); }, 50);
             return;
         }
 
-        // 그리드 최초 생성 시
         myGrid = new DataGrid({
             containerId: 'dg-container',
             searchId: 'dg-search-input',
@@ -152,27 +162,87 @@
             data: formattedData,
             perPage: parseInt(perPage),
             columns: [
-                // { header: '순번', name: 'rownm', width: 70, align: 'center' }, <-- 이 줄을 삭제했습니다.
                 { 
-                    header: '주문번호', name: 'etpId', width: 140, align: 'center',
+                    header: '주문번호', 
+                    name: 'orderNo', 
+                    width: 160, 
+                    align: 'center',
                     renderer: {
                         type: class {
                             constructor(props) {
                                 var el = document.createElement('span');
                                 el.className = 'hist-link';
-                                el.innerText = props.value;
                                 this.el = el;
+                                this.render(props);
                             }
                             getElement() { return this.el; }
+                            render(props) {
+                                this.el.innerText = props.value || '-';
+                            }
                         }
                     }
                 },
-                { header: '의사결정단계', name: 'etpSttsNm', width: 180, align: 'center' },
+                { 
+                    header: '의사결정단계', 
+                    name: 'etpSttsNm', 
+                    width: 150, 
+                    align: 'center',
+                    renderer: {
+                        type: class {
+                            constructor(props) {
+                                this.el = document.createElement('span');
+                                this.render(props);
+                            }
+                            getElement() { return this.el; }
+                            render(props) {
+                                var row = props.grid.getRow(props.rowKey);
+                                if(!row) return;
+
+                                // [수정] CamelCase와 SnakeCase 둘 다 대응하도록 변경
+                                var code = String(row.etpSttsCd || row.etp_stts_cd || '').toLowerCase().trim();
+                                var text = props.value || '-';
+                                
+                                var colorClass = 'stts-default';
+                                if (code.includes('999')) colorClass = 'stts-reject';
+                                else if (code.startsWith('et')) colorClass = 'stts-et';
+                                else if (code.startsWith('od')) colorClass = 'stts-od';
+                                else if (code.startsWith('pr')) colorClass = 'stts-pr';
+                                else if (code.startsWith('pm')) colorClass = 'stts-pm';
+                                else if (code.startsWith('dv')) colorClass = 'stts-dv';
+
+                                // 배지 클래스 적용 (기존 스타일 시트에 정의된 클래스 사용)
+                                this.el.className = 'stts-badge ' + colorClass;
+                                this.el.innerText = text;
+                            }
+                        }
+                    }
+                },
                 { header: '요청자', name: 'requestUserNm', width: 120, align: 'center' },
-                { header: '요청일자', name: 'regDtime', width: 180, align: 'center' },
-                { header: '승인자', name: 'apprUserNm', width: 120, align: 'center' },
-                { header: '승인일자', name: 'apprDtime', width: 170, align: 'center' },
-                { header: '반려사유', name: 'rejtRsn', width: 300, align: 'left' }
+                { header: '요청일자', name: 'regDtime', width: 170, align: 'center' },
+                { header: '승인자', name: 'apprUserNm', width: 120, align: 'center', formatter: (v) => v.value || '-' },
+                { header: '승인일자', name: 'apprDtime', width: 170, align: 'center', formatter: (v) => v.value || '-' },
+                { 
+                    header: '반려사유', 
+                    name: 'rejtRsn', 
+                    width: 300, 
+                    align: 'center', // [수정] 가운데 정렬로 변경
+                    renderer: {
+                        type: class {
+                            constructor(props) {
+                                var el = document.createElement('div');
+                                // [수정] text-red-600으로 더 진하게, font-bold로 굵게, text-center로 중앙정렬
+                                el.className = 'px-2 truncate text-red-600 font-bold text-center';
+                                this.el = el;
+                                this.render(props);
+                            }
+                            getElement() { return this.el; }
+                            render(props) {
+                                this.el.innerText = props.value || '-';
+                                if(props.value) this.el.title = props.value;
+                            }
+                        }
+                    }
+                }
             ]
         });
     }

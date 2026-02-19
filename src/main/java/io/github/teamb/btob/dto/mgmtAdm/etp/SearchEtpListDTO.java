@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class SearchEtpListDTO {
 	
-	private Integer rowNm; 		// 순번
+	private Integer rownm; 		// 순번
 	private String systemId;	// 시스템ID
 	private Integer orderId;	// 주문식별자
 	private String orderNo;		// 주문번호

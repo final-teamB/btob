@@ -479,6 +479,10 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	@Override
 	public void modifyProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO) throws Exception{
 		
+		if ( !(commonService.nullEmptyChkValidate(updateProductCurrVolDTO)) ) {
+			  throw new Exception("유효 하지 않은 파라미터 입니다."); 
+		}
+		
 		// 상품명
 		Integer fuelId = updateProductCurrVolDTO.getFuelId();
 		// 주문량
@@ -488,46 +492,57 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		// 현재 재고량
 		Integer currvol = productMgmtAdmMapper.selectProductCurrVolById(fuelId);
 		
+		if (currvol == null) {
+		    throw new Exception("해당 상품의 재고 정보를 찾을 수 없습니다.");
+		}
+		
 		int result = 0;
 		
-		if ( type.equals("UP")) {
+		// 주문 했을때 제품 수량은 감소하게된다.
+		if ( type.equals("DOWN")) {
 			
-			if((currvol - orderQty) <= 0) {
+			// 현재 재고량 - 주문수량
+			if( (currvol - orderQty) < 0 ) {
 				throw new Exception("주문 수량이 재고량보다 많습니다.");
 			} else {
 				
 				// 주문 수량이 재고량보다 적으면 감소 처리
 				result = productMgmtAdmMapper.decrProductCurrVol(updateProductCurrVolDTO);
-				
-				// 감소 처리 후 재고량이 0이 될 경우 판매상태코드 품절로 변경
+
+				// 감소처리가 성공할 경우
 				if ( result > 0 ) {
-					if ( productMgmtAdmMapper.selectProductCurrVolById(fuelId) == 0 ) {
+					
+					// 감소 처리 한 후 현재 수량이 만약 0이면 제품상태코드를 품절로 변경한다.
+					if ( productMgmtAdmMapper.selectProductCurrVolById(fuelId) != null ||
+							productMgmtAdmMapper.selectProductCurrVolById(fuelId) == 0 ) {
 						
 						productMgmtAdmMapper.itemSttsChgSoldOut(fuelId);
-					} else {
-						throw new Exception("판매상태코드 업데이트 시 오류가 발생했습니다.");
-					}
+					} 
+				// 감소 처리 작업이 실패한 경우
 				} else {
-					throw new Exception("재고량 업데이트시 오류가 발생했습니다.");
+					throw new Exception("재고량 업데이트시 오류가 발생했습니다. (재고 부족 등)");
 				}
 			}
-		} else if ( type.equals("DOWN") ) {
+		// 반려 됬을 때 제품 수량은 증가하게된다.
+		} else if ( type.equals("UP") ) {
 			
 			Integer statusChk = productMgmtAdmMapper.chkOrderStatusCd(updateProductCurrVolDTO.getOrderStatus());
 			
+			// 반려 가능한 상태코드이면
 			if ( statusChk > 0) {
 				
+				// 제품 회수한다.
 				result = productMgmtAdmMapper.incrProductCurrVol(updateProductCurrVolDTO);
 				
-				// 증감 처리 후 이전 현재 재고량이 0일 경우 판매상태코드 판매중 상태로 변경
+				// 제품 회수 처리가 성공하고 이전 현재 재고량이 0인 경우 판매상태코드 판매중 상태로 변경
 				if ( result > 0 && currvol == 0) {
 					productMgmtAdmMapper.itemSttsChgOnSale(fuelId);
-				} else {
-					throw new Exception("재고량 업데이트시 오류가 발생했습니다.");
 				}
+			// 반려 가능한 상태가 아닌 상태코드이다.
 			} else {
-				throw new Exception("올바르지 않은 요청 상태입니다.");
+				throw new Exception("반려가 불가능한 상태입니다.");
 			}
+		// UP, DOWN 타입 이외인 경우
 		} else {
 			throw new Exception("올바르지 않은 요청 상태입니다.");
 		}

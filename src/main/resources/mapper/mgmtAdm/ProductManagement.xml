@@ -379,8 +379,9 @@
 				TB_OIL_MST
 			SET
 				curr_stock_vol = curr_stock_vol - #{orderQty}
-			WHERE
-				fuel_id = #{fuelId}
+			WHERE 1=1
+				AND fuel_id = #{fuelId}
+				AND curr_stock_vol >= #{orderQty}
 	
 	</update>
 	
@@ -433,7 +434,7 @@
 			FROM TB_ETP_STTS_CD
 			WHERE 1=1
 			AND seq = '99'
-			AND order_status = #{orderStatus}
+			AND etp_stts_cd = #{orderStatus}
 		
 	</select>
 	

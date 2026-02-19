@@ -17,5 +17,5 @@ public interface EtpMgmtAdmMapper {
 	Integer selectEtpSearchConditioinListCntAdm(Map<String, Object> searchParams);
 	
 	// 파라미터 체크
-	SearchEtpListDTO selectEtpParamsChk();
+	SearchEtpListDTO selectEtpParamsChk(Integer orderId);
 }

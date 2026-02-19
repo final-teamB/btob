@@ -5,7 +5,7 @@
 	<sql id="searchCondi">
 	
 		AND ( 
-			        a.etp_id LIKE CONCAT('%', #{searchCondition}, '%')
+			        e.order_no LIKE CONCAT('%', #{searchCondition}, '%')
 			        OR c.user_name LIKE CONCAT('%', #{searchCondition}, '%')
 					OR d.user_name LIKE CONCAT ('%', #{searchCondition}, '%')
 					OR a.rejt_rsn LIKE CONCAT ('%', #{searchCondition}, '%')
@@ -22,6 +22,8 @@
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
 				,a.etp_id
+				,e.order_no
+				,a.etp_stts_cd
 				,b.etp_stts_nm AS etpSttsNm
 				,c.user_name AS requestUserNm
 				,a.reg_dtime
@@ -33,11 +35,12 @@
 				,TB_ETP_STTS_CD b
 				,TB_USERS c
 				,TB_USERS d
-				
+				,TB_ORDER_MST e
 			WHERE 1=1
 			AND a.etp_stts_cd = b.etp_stts_cd
 			AND a.request_user_id = c.user_id
 			AND a.appr_user_id = d.user_id
+			AND a.etp_id = e.order_id
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
 			</if>
@@ -61,11 +64,12 @@
 				,TB_ETP_STTS_CD b
 				,TB_USERS c
 				,TB_USERS d
-				
+				,TB_ORDER_MST e
 			WHERE 1=1
 			AND a.etp_stts_cd = b.etp_stts_cd
 			AND a.request_user_id = c.user_id
 			AND a.appr_user_id = d.user_id
+			AND a.etp_id = e.order_id
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
 			</if>
@@ -78,17 +82,23 @@
 		resultType="io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO">
 	
 			SELECT
-				ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
-				,fnc_get_etp_sttsnm(etp_stts_cd) AS etpSttsNm
-				,fnc_get_usernm(request_user_id) AS requestUserNm
-				,fnc_get_usernm(appr_user_id) AS apprUserNm
-				,rejt_rsn
-				,reg_dtime
-				,appr_dtime
+				ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+				,b.order_no
+				,a.etp_stts_cd
+				,fnc_get_etp_sttsnm(a.etp_stts_cd) AS etpSttsNm
+				,fnc_get_usernm(a.request_user_id) AS requestUserNm
+				,fnc_get_usernm(a.appr_user_id) AS apprUserNm
+				,a.rejt_rsn
+				,a.reg_dtime
+				,a.appr_dtime
 			FROM
-				TB_ETP_HIST
-			WHERE etp_id = #{etpId}
-			ORDER BY ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) DESC
+				TB_ETP_HIST a,
+				TB_ORDER_MST b 
+			WHERE 1=1 
+			AND a.etp_id = b.order_id
+			/* etpId 는 orderId 값이 들어옴 */
+			AND a.etp_id = #{etpId}	
+			ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
 	
 	</select>
 	
