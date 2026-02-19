@@ -43,10 +43,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     public void modifyDelivery(DeliveryDTO deliveryDTO) {
 		
 		// 이전 데이터 조회
-		DeliveryDTO oldData = deliveryMapper.selectDeliveryJoinOrder(deliveryDTO.getOrderId());
-        if (oldData == null) {
-            throw new IllegalArgumentException("존재하지 않는 배송/주문 정보입니다.");
-        }
+		DeliveryDTO oldData = deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
+	    if (oldData == null) {
+	        throw new IllegalArgumentException("존재하지 않는 배송 정보입니다.");
+	    }
         
         String orderStatus = oldData.getOrderStatus();
         

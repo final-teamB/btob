@@ -11,6 +11,12 @@ import io.github.teamb.btob.dto.adminDelivery.DeliveryHistoryDTO;
 @Mapper
 public interface DeliveryMapper {
 	
+	// 배송 생성
+	void insertDelivery(DeliveryDTO delivery);
+
+	// 배송 상태 수정
+	void updateDeliveryStatus(DeliveryDTO deliveryDTO);
+	
 	// 전체 배송 목록 조회 (주문 정보 조인)
 	List<DeliveryDTO> selectDeliveryList(DeliveryDTO deliveryDTO);
 	

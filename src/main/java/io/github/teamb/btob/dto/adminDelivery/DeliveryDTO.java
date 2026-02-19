@@ -24,6 +24,10 @@ public class DeliveryDTO {
 	
 	private String orderStatus;
 	
+	private String companyName;    // 회사명 (company_name)
+    private String addrKor;        // 회사 주소 (addr_kor)
+    private String zipCode;        // 우편번호 (zip_code)
+	
 	private String searchStartDate;    // 검색 시작일
 	private String searchEndDate;      // 검색 종료일
 	private String searchType;   // 검색 조건 (주문번호, 송장번호 등)
