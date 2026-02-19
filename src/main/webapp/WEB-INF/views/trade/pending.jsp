@@ -12,32 +12,20 @@
 <script>
 /** 1. 데이터 매핑 (MyBatis 결과를 JS 객체로) **/
 const rawData = [
-    <c:forEach var="p" items="${pendingList}" varStatus="status">
-    {
-        orderId: "${p.orderId}",
-        orderNo: "${p.orderNo}",
-        docType: "${p.docType}",
-        userNo: "${p.userNo}",
-        userName: "${p.userName}",
-        userId: "${p.userId}",
-        phone: "${p.phone}",
-        baseTotalAmount: "${p.baseTotalAmount}",
-        targetTotalAmount: "${p.targetTotalAmount}",	
-        estdtMemo: `${p.estdtMemo}`,
-        regDtime: "${p.regDtime}",
-        itemList: [
-            <c:forEach var="item" items="${p.itemList}" varStatus="i">
-            {
-                fuelNm: "${item.fuelNm}",
-                totalQty: "${item.totalQty}",
-                baseUnitPrc: "${item.baseUnitPrc}",
-                targetProductPrc: "${item.targetProductPrc}",
-                targetProductAmt: "${item.targetProductAmt}"
-            }${!i.last ? ',' : ''}
-            </c:forEach>
-        ]
-    }${!status.last ? ',' : ''}
-    </c:forEach>
+    <c:if test="${not empty pendingList}">
+        <c:forEach var="p" items="${pendingList}" varStatus="status">
+        {
+            orderId: "${p.orderId}",
+            orderNo: "${p.orderNo}",
+            docType: "${p.docType}",
+            userNo: "${p.userNo}",
+            userName: "${p.userName}",
+            userId: "${p.userId}",
+            phone: "${p.phone}",
+            regDtime: "${p.regDtime}"
+        }${status.last ? '' : ','}
+        </c:forEach>
+    </c:if>
 ];
 
 document.addEventListener('DOMContentLoaded', function() {

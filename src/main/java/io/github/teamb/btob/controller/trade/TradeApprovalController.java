@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
+import io.github.teamb.btob.dto.trade.EstimateDetailDTO;
+import io.github.teamb.btob.dto.trade.OrderDetailDTO;
 import io.github.teamb.btob.dto.trade.TradePendingDTO;
 import io.github.teamb.btob.service.document.TradeDocService;
 import io.github.teamb.btob.service.trade.TradeApprovalService;
@@ -41,22 +43,19 @@ public class TradeApprovalController {
 		
 	@GetMapping("/approveEst")
 	public String previewEst(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
-		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
-		// 1. 주문 기본 정보 및 품목 리스트 조회 (DB 재조회)
-	    // 보통 orderId 하나로 여러 품목이 나올 수 있도록 itemList로 가져옵니다.
-	    List<TradePendingDTO> itemList = tradeDocService.getOrderDetailList(orderId);
+	    String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+
+	    // 1. 단일 DTO로 가져옵니다 (그 안에 List<OrderItemDTO>가 포함된 구조)
+	    EstimateDetailDTO detail = tradeDocService.getEstimateDetail(orderId);
 	    
-	    if (itemList != null && !itemList.isEmpty()) {
-	        // 2. 상단 업체/요청자 정보 (리스트의 첫 번째 항목 기준)
-	        model.addAttribute("info", itemList.get(0));
-	        
-	        // 3. 테이블에 뿌릴 품목 전체 리스트
-	        model.addAttribute("itemList", itemList);
+	    if (detail != null) {
+	        model.addAttribute("info", detail); // 상단 업체 정보 등
+	        model.addAttribute("itemList", detail.getItemList()); // 실제 품목 리스트
 	        model.addAttribute("userType", userType);
 	        
-	        // 4. cartIds 추출 (발주 승인 시 필요)
-	        // 리스트 내의 모든 cartId를 콤마로 연결한 문자열 생성
-	        String cartIds = itemList.stream()
+	        // 2. 이제 detail.getItemList()에서 스트림을 돌립니다.
+	        // ItemDTO에는 cartId가 있으므로 에러가 사라집니다.
+	        String cartIds = detail.getItemList().stream()
 	                                 .map(item -> String.valueOf(item.getCartId()))
 	                                 .collect(Collectors.joining(","));
 	        model.addAttribute("cartIds", cartIds);
@@ -64,25 +63,21 @@ public class TradeApprovalController {
 	    
 	    return "document/approveEst";
 	}
-
 	@GetMapping("/previewOrder")
 	public String previewOrder(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
 		String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
 		// 1. 주문 기본 정보 및 품목 리스트 조회 (DB 재조회)
 	    // 보통 orderId 하나로 여러 품목이 나올 수 있도록 itemList로 가져옵니다.
-	    List<TradePendingDTO> itemList = tradeDocService.getOrderDetailList(orderId);
+	    OrderDetailDTO detail = tradeDocService.getOrderDetail(orderId);
 	    
-	    if (itemList != null && !itemList.isEmpty()) {
-	        // 2. 상단 업체/요청자 정보 (리스트의 첫 번째 항목 기준)
-	        model.addAttribute("info", itemList.get(0));
-	        
-	        // 3. 테이블에 뿌릴 품목 전체 리스트
-	        model.addAttribute("itemList", itemList);
+	    if (detail != null) {
+	        model.addAttribute("info", detail); // 상단 업체 정보 등
+	        model.addAttribute("itemList", detail.getItemList()); // 실제 품목 리스트
 	        model.addAttribute("userType", userType);
 	        
-	        // 4. cartIds 추출 (발주 승인 시 필요)
-	        // 리스트 내의 모든 cartId를 콤마로 연결한 문자열 생성
-	        String cartIds = itemList.stream()
+	        // 2. 이제 detail.getItemList()에서 스트림을 돌립니다.
+	        // ItemDTO에는 cartId가 있으므로 에러가 사라집니다.
+	        String cartIds = detail.getItemList().stream()
 	                                 .map(item -> String.valueOf(item.getCartId()))
 	                                 .collect(Collectors.joining(","));
 	        model.addAttribute("cartIds", cartIds);
