@@ -119,10 +119,10 @@ class DirectSelectRenderer {
         
         // 주문 상태별 선택 옵션 제한 로직
         if (rowData.orderStatus === 'pm004') {
-            // 1차결제완료(pm004) -> 국내배송중, 배송완료만
+            // 2차결제완료(pm004) -> 국내배송중, 배송완료만
             allowedStatus = list.filter(s => s.v === 'dv006' || s.v === 'dv007');
         } else if (rowData.orderStatus === 'pm002') {
-            // 2차결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
+            // 1차결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
             allowedStatus = list.filter(s => ['dv001', 'dv002', 'dv003', 'dv004', 'dv005'].includes(s.v));
         }
         

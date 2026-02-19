@@ -71,12 +71,18 @@
         WHERE delivery_id = #{deliveryId}
 	</update>
 	
-	<!-- 주문 상태 조회 -->
-	<select id="getOrderStatusByOrderId" parameterType="int" resultType="String">
-		SELECT O.order_status orderStatus
-		FROM TB_ORDER_MST O
-		JOIN TB_DELIVERY D ON O.order_id = D.order_id
-    	WHERE D.delivery_id = #{deliveryId}
+	<select id="selectDeliveryJoinOrder" parameterType="int" resultType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+	    SELECT 
+	        D.delivery_id as deliveryId,
+	        D.order_id as orderId,
+	        D.delivery_status as deliveryStatus,
+	        D.tracking_no as trackingNo,
+	        D.carrier_name as carrierName,
+	        O.order_status as orderStatus -- 주문 상태를 한꺼번에 가져옴
+	    FROM TB_DELIVERY D
+	    INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id
+	    WHERE D.order_id = #{orderId} AND D.use_yn = 'Y'
+	    LIMIT 1
 	</select>
 	
 	<!-- 주문 상태 동기화 -->
