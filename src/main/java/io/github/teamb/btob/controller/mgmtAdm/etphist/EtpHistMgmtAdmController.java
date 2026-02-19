@@ -113,6 +113,6 @@ public class EtpHistMgmtAdmController {
         // 프론트에서 isExcel='Y'를 던져주겠지만, 안전하게 한 번 더 체크
         params.put("isExcel", "Y");
         
-        etpHistExcelService.downloadProductExcel(response, params);
+        etpHistExcelService.downloadEtpHistExcel(response, params);
     }
 }

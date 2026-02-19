@@ -8,7 +8,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>PURCHASE ORDER</title>
+<title>PURCHASE ORDER | (주)글로벌 유류 트레이딩</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
@@ -27,23 +27,26 @@
         <div class="bg-white p-12 rounded-xl shadow-lg border border-gray-100 print-shadow-none">
 
             <%-- 상단 헤더: 견적서(Estimate) 규격 1:1 매칭 --%>
-            <div class="flex justify-between items-end border-b-4 border-gray-800 pb-8 mb-10">
-                <div class="mt-4 space-y-1 text-sm text-gray-500">
-				    <p>주문번호: 
-				        <span class="font-bold text-gray-800 italic uppercase">
-				            <c:choose>
-				                <%-- 주문번호가 null이 아니고 비어있지 않은 경우 실제 번호 출력 --%>
-				                <c:when test="${not empty info.orderNo}">
-				                    <c:out value="${info.orderNo}" />
-				                </c:when>
-				                <%-- 주문번호가 없는 경우(최초 생성 전 등) 대기 문구 출력 --%>
-				                <c:otherwise>
-				                    Approval Pending
-				                </c:otherwise>
-				            </c:choose>
-				        </span>
-				    </p>                   
-				</div>
+          <div class="flex justify-between items-end border-b-4 border-gray-800 pb-8 mb-10">
+		    <div>
+		        <h2 class="text-4xl font-black text-gray-900 tracking-tighter uppercase italic">Purchase Order</h2>
+		          <div class="mt-4 text-sm text-gray-500">
+		            <p>주문번호: 
+		                <span class="font-bold text-gray-800 italic uppercase">
+		                    <c:choose>
+		                        <%-- 실제 주문번호(orderNo)가 있을 경우 출력 --%>
+		                        <c:when test="${not empty info.orderNo}">
+		                            <c:out value="${info.orderNo}" />
+		                        </c:when>
+		                        <%-- 번호가 아직 생성되지 않은 경우(승인 전 등) --%>
+		                        <c:otherwise>
+		                            Approval Pending
+		                        </c:otherwise>
+		                    </c:choose>
+		                </span>
+		            </p>                   
+		        </div>
+		    </div>
                 <div class="text-right">
                     <h3 class="text-2xl font-bold text-emerald-800">(주)글로벌 유류 트레이딩</h3>
                     <p class="text-gray-600 mt-1 font-medium italic">Customer Service: 02-1234-5678</p>
@@ -87,7 +90,7 @@
                     </div>
                 </div>
                 
-                <%-- Approval Authority 섹션: 견적서 원본 텍스트 규격과 완벽 일치 --%>
+               
                 <div class="p-8 bg-gray-50 rounded-xl border border-gray-200 shadow-sm flex flex-col">
                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Approval Authority</h4>
                     <div class="flex-grow space-y-4">

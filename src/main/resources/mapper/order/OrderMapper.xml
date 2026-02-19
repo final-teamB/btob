@@ -36,21 +36,35 @@
 	
 	<select id="getOrderDetailWithAll" resultMap="FullOrderMap">
 	    SELECT 
-	        m.order_id, m.order_no, m.order_status, s.etp_stts_nm, m.reg_dtime,
-	        u.user_name, u.phone, com.company_name, com.zip_code, com.addr_kor,
-	        o.fuel_nm, c.total_qty, o.base_unit_prc, c.total_price, e.target_total_amount,
-	        p1.amount AS first_amount, p1.status AS first_status,
-        	p2.amount AS second_amount, p2.status AS second_status 
+	        m.order_id,
+	        m.order_no,
+	        m.order_status,
+	        s.etp_stts_nm,
+	        m.reg_dtime,	        
+	        u.user_name, 
+	        u.phone, 
+	        com.company_name, 
+	        com.zip_code, 
+	        com.addr_kor,
+	        o.fuel_nm, 
+	        c.total_qty, 
+	        o.base_unit_prc, 
+	        c.total_price, 
+	        e.target_total_amount,
+	        p1.amount AS first_amount, 
+	        p1.status AS first_status,
+        	p2.amount AS second_amount, 
+        	p2.status AS second_status 
 	    FROM TB_ORDER_MST m
 	    INNER JOIN TB_USERS u ON m.user_no = u.user_no
 	    INNER JOIN TB_COMPANIES com ON u.company_cd = com.company_cd
 	    LEFT JOIN TB_ETP_STTS_CD s ON m.order_status = s.etp_stts_cd
 	    LEFT JOIN TB_CART c ON m.order_no = c.order_no
 	    LEFT JOIN TB_OIL_MST o ON c.fuel_id = o.fuel_id
-	    LEFT JOIN TB_EST_DOC e ON m.quote_req_id = e.est_doc_id
+	    LEFT JOIN TB_EST_DOC e ON m.est_id = e.est_doc_id
 	    LEFT JOIN TB_PAYMENT_MST p1 ON m.order_id = p1.order_id AND p1.pay_step = 'FIRST'
         LEFT JOIN TB_PAYMENT_MST p2 ON m.order_id = p2.order_id AND p2.pay_step = 'SECOND'
-	    WHERE m.order_id = #{orderId}
+	    WHERE m.order_No = #{orderNo}
 	</select>
 
 	<select id="selectUserOrderList" resultType="io.github.teamb.btob.dto.order.OrderHistoryDTO">
@@ -63,7 +77,8 @@
 	        END AS productName,
 	        o.order_status,
 	        s1.etp_stts_nm AS statusNm, 
-	        p.amount, o.reg_dtime,
+	        MAX(p.amount) AS amount,
+	        o.reg_dtime,
 	        d.delivery_status, 
 	        s2.etp_stts_nm AS deliveryStatusNm
 	    FROM TB_ORDER_MST o
@@ -72,11 +87,18 @@
 	    LEFT JOIN TB_DELIVERY d ON o.order_id = d.order_id
 	    LEFT JOIN TB_ETP_STTS_CD s2 ON d.delivery_status = s2.etp_stts_cd
 	    LEFT JOIN TB_PAYMENT_MST p ON o.order_id = p.order_id 
+	    	AND p.pay_step = (
+            CASE 
+                WHEN o.order_status IN ('pm003', 'pm004') THEN 'SECOND' 
+                ELSE 'FIRST' 
+            END
+        )
 	    <where>
 	        <if test="userType != 'MASTER'">
 	            AND o.reg_id = #{dto.regId}
 	        </if>
 	        AND o.use_yn = 'Y'
+	        AND o.order_status NOT IN ('et999', 'od999', 'pr999')
 	        <if test="dto.orderStatus != null and dto.orderStatus != ''">
 	            AND o.order_status = #{dto.orderStatus}
 	        </if>
@@ -85,7 +107,7 @@
 	                 OR o.reg_id LIKE CONCAT('%', #{dto.keyword}, '%'))
 	        </if>
 	    </where>
-	    GROUP BY o.order_id, o.order_no, o.reg_id, o.order_status, s1.etp_stts_nm, p.amount, o.reg_dtime, d.delivery_status, s2.etp_stts_nm
+	    GROUP BY o.order_id, o.order_no, o.reg_id, o.order_status, s1.etp_stts_nm, o.reg_dtime, d.delivery_status, s2.etp_stts_nm
 	    ORDER BY o.order_no DESC
 	</select>
 	
@@ -94,14 +116,17 @@
 	        CONCAT(
 	            #{systemId}, '-', 
 	            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-', 
-	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',
-	            LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(est_no, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0')
+	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',    
+	            LPAD(
+	                (SELECT IFNULL(MAX(CAST(SUBSTRING_INDEX(est_no, '-', -1) AS UNSIGNED)), 0) + 1 
+	                 FROM TB_EST_DOC 
+	                 WHERE est_no LIKE CONCAT(#{systemId}, '-', 
+	                                          (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-', 
+	                                          DATE_FORMAT(NOW(), '%Y%m%d'), '-%') 
+	                 COLLATE utf8mb4_unicode_ci
+	                ), 3, '0'
+	            )
 	        )
-	    FROM TB_EST_DOC
-	    WHERE est_date = CURDATE()  AND est_no LIKE CONCAT(
-	          #{systemId}, '-', 
-	          (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-%'
-	      )
 	</select>
 	
 	<select id="selectFormattedOrderNo" resultType="string">
@@ -109,15 +134,25 @@
 	        CONCAT(
 	            #{prefix}, '-', 
 	            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-', 
-	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',
-	            LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(order_no, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0')
+	            DATE_FORMAT(NOW(), '%Y%m%d'), '-',	
+	            LPAD(
+	                (SELECT IFNULL(MAX(CAST(SUBSTRING_INDEX(order_no, '-', -1) AS UNSIGNED)), 0) + 1 
+	                 FROM TB_ORDER_MST 
+	                 WHERE order_no LIKE CONCAT(#{prefix}, '-', 
+	                                            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-', 
+	                                            DATE_FORMAT(NOW(), '%Y%m%d'), '-%')
+	                ), 3, '0'
+	            )
 	        )
-	    FROM TB_ORDER_MST
-	    WHERE order_date = CURDATE()
-	      AND order_no LIKE CONCAT(
-	            #{prefix}, '-', 	
-	            (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), '-%'
-	        )
+	</select>
+	
+	<select id="getOrderBasicInfoForPayment" resultType="io.github.teamb.btob.dto.order.OrderVoDTO">
+	    SELECT 
+	        order_no,
+	        reg_id,
+	        user_no 
+        FROM TB_ORDER_MST
+	    WHERE order_id = #{orderId}
 	</select>
 	
 	<select id="getOrderIdByOrderNo" parameterType="string" resultType="int">
@@ -125,16 +160,39 @@
 	</select>
 	
 	<insert id="upsertOrderMaster" parameterType="io.github.teamb.btob.dto.order.OrderDTO" 
-      	 useGeneratedKeys="true" keyProperty="orderId" keyColumn="order_id">
-	    INSERT INTO TB_ORDER_MST (order_no, user_no, order_status, reg_dtime, reg_id, use_yn) 
-	    VALUES (#{orderNo}, #{userNo}, #{orderStatus}, NOW(), #{regId}, 'Y')
-	    ON DUPLICATE KEY UPDATE order_status = #{orderStatus}, upd_dtime = NOW(), upd_id = #{regId}
+        useGeneratedKeys="true" keyProperty="orderId" keyColumn="order_id">
+	    INSERT INTO TB_ORDER_MST (
+	        order_no, 
+	        <if test="estId != null">est_id,</if>
+	        user_no, 
+	        order_status, 
+	        reg_dtime, 
+	        reg_id, 
+	        use_yn
+	    ) 
+	    VALUES (
+	        #{orderNo}, 
+	        <if test="estId != null">#{estId},</if>
+	        #{userNo}, 
+	        #{orderStatus}, 
+	        NOW(), 
+	        #{regId}, 
+	        'Y'
+	    )
+	    ON DUPLICATE KEY UPDATE 
+	        <if test="estId != null">est_id = #{estId},</if>
+	        order_status = #{orderStatus}, 
+	        upd_dtime = NOW(), 
+	        upd_id = #{regId}
 	</insert>
 		
-	<insert id="insertEstDoc" parameterType="io.github.teamb.btob.dto.est.EstDocListDTO" 
+	<insert id="insertEstDoc" parameterType="io.github.teamb.btob.dto.est.EstDocInsertDTO" 
       	 useGeneratedKeys="true" keyProperty="estDocId" keyColumn="est_doc_id">
-		INSERT INTO TB_EST_DOC (est_no, company_name, company_phone, request_user_id, ctrt_nm, base_total_amount, target_total_amount, estdt_memo, reg_id, reg_dtime) 
-	    VALUES (#{estNo}, #{companyName}, #{companyPhone}, #{requestUserId}, #{ctrtNm}, #{baseTotalAmount}, #{targetTotalAmount}, #{estdtMemo}, #{regId}, NOW())
+		INSERT INTO TB_EST_DOC 
+		(est_no, est_status, company_name, company_phone, request_user_id, ctrt_nm, base_total_amount, target_total_amount, estdt_memo, reg_id, reg_dtime) 
+	    VALUES 
+	    (#{estNo}, #{estStatus}, #{companyName}, #{companyPhone}, #{requestUserId}, #{ctrtNm}, #{baseTotalAmount}, #{targetTotalAmount}, #{estdtMemo}, #{regId}, NOW())
 	</insert>
+	
 	
 </mapper>

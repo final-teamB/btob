@@ -17,8 +17,8 @@ public class EtpHistInsertDTO {
 
 	private Integer refId;					// 식별자
 	private String requestEtpStatus;		// 변경요청한 상태코드
-	private Integer apprUserNo;			// 승인자
-	private Integer requestUserNo;		// 요청자
+	private String apprUserNo;			// 승인자
+	private String requestUserNo;		// 요청자
 	private String rejtRsn;				// 사유 (반려시)
 	private String userId;
 }

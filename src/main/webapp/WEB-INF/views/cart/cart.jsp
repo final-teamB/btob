@@ -110,6 +110,10 @@
                                             class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-lg">
                                         주문 요청 (즉시 진행)
                                     </button>
+                                     <button type="button" onclick="fn_openPreview('EST')"
+                                            class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg">
+                                        견적 승인 요청
+                                    </button>
                                 </c:when>
                             </c:choose>
                         </c:when>
@@ -125,12 +129,12 @@
                                     </c:if>
                                 </c:when>
                                 <c:when test="${status == 'od002'}"> 
-                                    <button type="button" onclick="fn_processWorkflow('PURCHASE', 'pr001', '${orderNo}')" 
-                                            class="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition shadow-lg">
-                                        구매 승인 요청 (최종)
-                                    </button>
-                                </c:when>
-                                <c:when test="${status == 'pr002'}">
+								       <button type="button" onclick="fn_processWorkflow('PURCHASE', 'pr001', '${orderNo}')" 
+								            class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-lg">
+								        구매 승인 요청 (최종)
+								    </button>
+								</c:when>
+                                <c:when test="${status == 'pm001'}">
                                     <button type="button" onclick="location.href='${pageContext.request.contextPath}/payment/payment?orderNo=${orderNo}'" 
                                             class="px-12 py-4 bg-orange-500 hover:bg-orange-600 text-white text-lg font-black rounded-xl transition shadow-xl transform hover:-translate-y-1">
                                         1차 결제하기
@@ -154,68 +158,87 @@
 </div>
 
 <script>
-    function updateFinalTotal() {
-        let sum = 0;
-        document.querySelectorAll('[id^="total-"]').forEach(el => {
-            const price = parseInt(el.innerText.replace(/[^0-9]/g, '') || 0);
-            sum += price;
-        });
-        document.getElementById('final-total').innerText = '₩' + sum.toLocaleString();
+const contextPath = '${pageContext.request.contextPath}';
+
+function updateFinalTotal() {
+    let sum = 0;
+    document.querySelectorAll('[id^="total-"]').forEach(el => {
+        const price = parseInt(el.innerText.replace(/[^0-9]/g, '') || 0);
+        sum += price;
+    });
+    const finalTotalEl = document.getElementById('final-total');
+    if (finalTotalEl) {
+        finalTotalEl.innerText = '₩' + sum.toLocaleString();
     }
-    
-    function increaseQty(cartId, unitPrice) {
-        const input = document.getElementById(`qty-\${cartId}`);
-        let qty = parseInt(input.value) + 1;
+}
+
+function increaseQty(cartId, unitPrice) {
+    // JSP 환경에서는 백틱 대신 일반 문자열 결합 추천
+    const input = document.getElementById('qty-' + cartId);
+    if(!input) return;
+    let qty = parseInt(input.value) + 1;
+    input.value = qty;
+    updateCartQty(cartId, qty, unitPrice);
+}
+
+function decreaseQty(cartId, unitPrice) {
+    const input = document.getElementById('qty-' + cartId);
+    if(!input) return;
+    let qty = parseInt(input.value);
+    if(qty > 1) {
+        qty -= 1;
         input.value = qty;
         updateCartQty(cartId, qty, unitPrice);
     }
+}
+
+function updateCartQty(cartId, qty, unitPrice) {
+    const calculatedPrice = unitPrice * qty;
     
-    function decreaseQty(cartId, unitPrice) {
-        const input = document.getElementById(`qty-\${cartId}`);
-        let qty = parseInt(input.value);
-        if(qty > 1) {
-            qty -= 1;
-            input.value = qty;
-            updateCartQty(cartId, qty, unitPrice);
+    $.ajax({
+        url: contextPath + "/cart/update",
+        type: "POST",
+        data: { 
+            cartId: cartId, 
+            totalQty: qty,
+            totalPrice: calculatedPrice
+        },
+        success: function(res) {
+            // 서버에서 성공(success) 응답을 받아야만 화면 금액을 업데이트함
+            if(res.result === 'success' || res === 'success') {
+                const totalEl = document.getElementById('total-' + cartId);
+                if(totalEl) {
+                    totalEl.innerText = '₩' + calculatedPrice.toLocaleString();
+                }
+                updateFinalTotal();
+                console.log("DB 저장 완료:", cartId, qty);
+            } else {
+                alert("저장에 실패했습니다: " + (res.message || "알 수 없는 오류"));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX 오류:", error);
+            alert("서버 통신 중 오류가 발생했습니다.");
         }
-    }
-    
-    function updateCartQty(cartId, qty, unitPrice) {
-        $.ajax({
-            url: "${pageContext.request.contextPath}/cart/update",
-            type: "POST",
-            data: { 
-                cartId: cartId, 
-                totalQty: qty 
-            },
-            success: function(res) {
-                if(res.result === 'success') {
-                    const totalPrice = unitPrice * qty;
-                    document.getElementById(`total-\${cartId}`).innerText = '₩' + totalPrice.toLocaleString();
-                    updateFinalTotal();
-                }
-            },
-            error: function() {
-                alert("수량 변경에 실패했습니다.");
+    });
+}
+
+function deleteCartItem(cartId) {
+    if(!confirm('정말 삭제하시겠습니까?')) return;
+    $.ajax({
+        url: contextPath + "/cart/delete",
+        type: "POST",
+        data: { cartId: cartId },
+        success: function(res) {
+            if(res.result === 'success' || res === 'success') {
+                const row = document.getElementById('cart-row-' + cartId);
+                if(row) row.remove();
+                updateFinalTotal();
+                if(document.querySelectorAll('[id^="cart-row-"]').length === 0) location.reload();
             }
-        });
-    }
-    
-    function deleteCartItem(cartId) {
-        if(!confirm('정말 삭제하시겠습니까?')) return;
-        $.ajax({
-            url: "${pageContext.request.contextPath}/cart/delete",
-            type: "POST",
-            data: { cartId: cartId },
-            success: function(res) {
-                if(res.result === 'success') {
-                    $(`#cart-row-\${cartId}`).remove();
-                    updateFinalTotal();
-                    if($('[id^="cart-row-"]').length === 0) location.reload();
-                }
-            }
-        });
-    }
+        }
+    });
+}
 
     function fn_openPreview(type) {
         const cartIds = [];
@@ -262,7 +285,7 @@
             data: JSON.stringify({
                 systemId: systemId,
                 refId: orderNo,
-                approvalStatus: 'APPROVED',
+                approvalStatus: 'COMPLETE',
                 requestEtpStatus: nextStatus
             }),
             success: function() {

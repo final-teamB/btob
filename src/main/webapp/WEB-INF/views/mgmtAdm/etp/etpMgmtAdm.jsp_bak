@@ -1,0 +1,277 @@
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="cp" value="${pageContext.request.contextPath}" />
+
+<style>
+    /* 상태별 배지 스타일 */
+    .stts-badge { padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    .stts-ready { background-color: #f3f4f6; color: #374151; }    /* 대기 */
+    .stts-ing { background-color: #eff6ff; color: #1d4ed8; }      /* 진행중 */
+    .stts-complete { background-color: #ecfdf5; color: #059669; } /* 완료 */
+    .stts-reject { background-color: #fef2f2; color: #dc2626; }   /* 반려 */
+
+    .btn-action { transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-1px); shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+</style>
+
+<div class="max-w-screen-2xl mx-auto">
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">견적/주문/구매/결제 관리</h2>
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                        전체 <span id="total-count-display">0</span>건
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">단계별 프로세스를 모니터링하고 관리자 승인/반려 처리를 수행합니다.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="EtpExcelHandler.downloadExcel()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-file-excel mr-1 text-green-600"></i> 엑셀 다운로드
+                </button>
+            </div>
+        </div>
+
+        <div class="grid-relative-wrapper">
+            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                <jsp:param name="showSearchArea" value="true" />
+                <jsp:param name="showPerPage" value="true" />
+            </jsp:include>
+        </div>
+    </div>
+</div>
+
+<jsp:include page="etpApprovRejctModal.jsp" />
+
+<script>
+    const cp = window.location.origin + ( '${pageContext.request.contextPath}' === '/' ? '' : '${pageContext.request.contextPath}' );
+    let etpGrid, approvModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 모달 초기화
+        if (typeof Modal !== 'undefined') {
+            approvModal = new Modal(document.getElementById('approvModal'), { backdrop: 'static' });
+        }
+
+     	// [추가] 실시간 검색 및 필터 변경 이벤트 감지 (이벤트 위임)
+        const filterWrapper = document.getElementById('dg-common-filter-wrapper');
+        if (filterWrapper) {
+            filterWrapper.addEventListener('change', function(e) {
+                if (e.target.tagName === 'SELECT') {
+                    window.fetchData();
+                }
+            });
+        }
+
+        const searchInput = document.getElementById('dg-search-input');
+        if (searchInput) {
+            let debounceTimer;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => window.fetchData(), 300);
+            });
+        }
+
+        window.fetchData();
+    });
+
+ 	// --- 데이터 조회 함수 ---
+    window.fetchData = function() {
+        const searchInput = document.getElementById('dg-search-input');
+        const searchCondition = searchInput && searchInput.value ? encodeURIComponent(searchInput.value) : '';
+
+        // [수정 포인트] 필터 셀렉트 박스 값 수집
+        const etpSttsCd = document.getElementById('filter-etpSttsCd')?.value || '';
+        const ordYear = document.getElementById('filter-ordYear')?.value || '';
+        
+        const perPageEl = document.getElementById('dg-per-page');
+        const currentPerPage = perPageEl ? parseInt(perPageEl.value) : 10;
+
+        let url = cp + '/admin/etp/api/list?limit=5000'
+                + '&searchCondition=' + searchCondition
+                + '&etpSttsCd=' + encodeURIComponent(etpSttsCd)
+                + '&ordYear=' + encodeURIComponent(ordYear);
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const totalCountEl = document.getElementById('total-count-display');
+                if (totalCountEl) {
+                    totalCountEl.innerText = (data.totalCnt || 0).toLocaleString();
+                }
+                
+                // [핵심 수정] 로컬 필터링을 위해 서버 데이터의 키값을 매핑합니다.
+                // datagrid.js는 'etpSttsCd' 필터를 돌릴 때 데이터의 'etpSttsCd' 속성을 검사합니다.
+                const mappedList = (data.list || []).map(item => ({
+                    ...item,
+                    etpSttsCd: item.orderStatus, // 서버의 orderStatus 값을 필터가 사용하는 키값으로 복사
+                    ordYear: item.orderDate ? item.orderDate.substring(0, 4) : '' // 연도 필터 대응
+                }));
+
+                initGrid(mappedList, currentPerPage);
+            });
+    };
+
+    function initGrid(data, perPage) {
+        const container = document.getElementById('dg-container');
+        if (!container) return;
+
+        // 기존 그리드가 있을 경우
+        if (etpGrid && etpGrid.grid) {
+            // 이미 fetchData에서 매핑된 data가 들어옵니다.
+            etpGrid.allData = data.map(item => {
+                const newItem = { ...item };
+                if (newItem.regDtime && typeof newItem.regDtime === 'string') {
+                    newItem.regDtime = newItem.regDtime.replace('T', ' ').split('.')[0];
+                }
+                return newItem;
+            });
+            
+            etpGrid.perPage = perPage;
+            etpGrid.currentPage = 1;
+            
+            // 데이터에 etpSttsCd 속성이 생겼으므로 로컬 필터링이 정상적으로 작동합니다.
+            etpGrid.executeFiltering(true);
+            
+            setTimeout(() => etpGrid.grid.refreshLayout(), 50);
+            return;
+        }
+
+        // --- 그리드 최초 생성 ---
+        container.innerHTML = '';
+        etpGrid = new DataGrid({
+            containerId: 'dg-container',
+            searchId: 'dg-search-input',
+            paginationId: 'dg-pagination',
+            perPageId: 'dg-per-page',
+            data: data,
+            perPage: perPage || 10,
+            columns: [
+                { header: '시스템', name: 'systemId', width: 100, align: 'center' },
+                { header: '주문번호', name: 'orderNo', width: 150, align: 'center' },
+                { header: '계약명', name: 'ctrtNm', width: 250 },
+                { header: '요청자', name: 'userName', width: 150, align: 'center', formatter: (v) => v.value + '(' + v.row.userId + ')' },
+                { header: '회사명', name: 'companyName', width: 150 },
+                { 
+                    header: '상태', name: 'etpSttsNm', width: 120, align: 'center',
+                    renderer: {
+                    	type: class {
+                            constructor(props) {
+                                const el = document.createElement('span');
+                                this.el = el;
+                                this.render(props); // 최초 렌더링
+                            }
+                            getElement() { return this.el; }
+                            // [핵심 추가] 데이터가 바뀔 때 호출되는 함수
+                            render(props) {
+                                this.el.className = 'stts-badge ' + getSttsClass(props.rowKey, props.grid);
+                                this.el.innerText = props.value || '-';
+                            }
+                        }
+                    }
+                },
+                { header: '등록일', name: 'regDtime', width: 150, align: 'center' },
+                {
+                    header: '관리', name: 'manage', width: 180, align: 'center',
+                    renderer: {
+                        type: class {
+                            constructor(props) {
+                                const container = document.createElement('div');
+                                container.className = 'flex gap-2 justify-center';
+                                
+                                const btnAppr = document.createElement('button');
+                                btnAppr.className = 'px-3 py-1 text-xs font-bold text-blue-600 border border-blue-600 rounded hover:bg-blue-50';
+                                btnAppr.innerText = '승인/반려';
+                                btnAppr.onclick = () => openApproveModal(props.grid.getRow(props.rowKey));
+                                
+                                const btnHist = document.createElement('button');
+                                btnHist.className = 'px-3 py-1 text-xs font-bold text-gray-600 border border-gray-300 rounded hover:bg-gray-50';
+                                btnHist.innerText = '이력';
+                                btnHist.onclick = () => viewHistory(props.grid.getRow(props.rowKey).orderId);
+
+                                container.appendChild(btnAppr);
+                                container.appendChild(btnHist);
+                                this.el = container;
+                            }
+                            getElement() { return this.el; }
+                        }
+                    }
+                }
+            ]
+        });
+
+        if (etpGrid.initFilters) {
+            etpGrid.initFilters([
+                { 
+                    field: 'etpSttsCd', 
+                    title: '진행상태', 
+                    options: [
+                        <c:forEach var="opt" items="${selectBoxes.etpSttsCdList}" varStatus="status">
+                            { value: '${opt.value}', text: '${opt.text}' }${!status.last ? ',' : ''}
+                        </c:forEach>
+                    ]
+                },
+                { 
+                    field: 'ordYear', 
+                    title: '연도별', 
+                    options: [
+                        <c:forEach var="opt" items="${selectBoxes.ordYearList}" varStatus="status">
+                            { value: '${opt.value}', text: '${opt.text}' }${!status.last ? ',' : ''}
+                        </c:forEach>
+                    ]
+                }
+            ]);
+            
+            // [추가] 초기 데이터 로드 후 현재 필터 상태에 맞춰 로컬 필터링 1회 실행
+            etpGrid.executeFiltering(true);
+        }
+    }
+
+    function getSttsClass(rowKey, grid) {
+        const row = grid.getRow(rowKey);
+        // 행 데이터가 없거나 orderStatus가 없는 경우 대비
+        if (!row || !row.orderStatus) return 'stts-ready';
+        
+        const code = row.orderStatus; 
+
+        // 1. 반려 (999 또는 rej 포함)
+        if (code.includes('999') || code.toLowerCase().includes('rej')) {
+            return 'stts-reject';
+        }
+        
+        // 2. 대기 (끝자리가 001)
+        if (code.endsWith('001')) {
+            return 'stts-ready';
+        }
+        
+        // 3. 완료 (끝자리가 002, 003, 004 또는 complete 포함)
+        // pm002: 주문요청완료, pm003: 1차결제완료, pm004: 2차결제완료 등
+        if (code.endsWith('002') || code.endsWith('003') || code.endsWith('004') || code.toLowerCase().includes('complete')) {
+            return 'stts-complete';
+        }
+        
+        // 4. 그 외 나머지는 진행중 (stts-ing)
+        return 'stts-ing';
+    }
+
+    // 모달 오픈 함수
+    function openApproveModal(rowData) {
+        document.getElementById('modalOrderId').value = rowData.orderId;
+        document.getElementById('modalSystemId').value = rowData.systemId;
+        document.getElementById('modalRequestUser').innerText = rowData.userName + ' (' + rowData.userId + ')';
+        document.getElementById('modalCtrtNm').innerText = rowData.ctrtNm;
+        document.getElementById('rejtRsnArea').style.display = 'none';
+        document.getElementById('rejtRsn').value = '';
+        
+        if(approvModal) approvModal.show();
+    }
+
+    // 엑셀 핸들러
+    const EtpExcelHandler = {
+        downloadExcel: function() {
+            const searchCondition = document.getElementById('dg-search-input')?.value || '';
+            location.href = cp + '/admin/etp/download/excel?searchCondition=' + encodeURIComponent(searchCondition) + '&isExcel=Y';
+        }
+    };
+</script>

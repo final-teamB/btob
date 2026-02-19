@@ -36,7 +36,7 @@ public class EtpHistExcelServiceImpl implements EtpHistExcelService {
 	 * 2026. 2. 10.  GD       최초 생성
 	 */
 	@Override
-	public void downloadProductExcel(HttpServletResponse response, Map<String, Object> params) throws Exception {
+	public void downloadEtpHistExcel(HttpServletResponse response, Map<String, Object> params) throws Exception {
 		
 				// 1. DB에서 데이터 조회
 				List<SearchEtpHistListDTO> dataList = etpHistMgmtAdmMapper.selectEtpHistSearchConditioinListAdm(params);

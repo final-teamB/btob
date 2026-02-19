@@ -60,8 +60,8 @@
 		    c.total_qty AS item_qty,           
 	        o.base_unit_prc,  
 	        e.target_total_amount,
-	        eci.target_product_prc, 
-	        eci.target_product_amt, 
+	        c.target_product_prc, 
+	        c.target_product_amt, 
 	        cp.company_name,
 	        cp.biz_number,
 	        cp.master_id,
@@ -81,10 +81,24 @@
 	        INNER JOIN TB_USERS u ON m.user_no = u.user_no
 	        INNER JOIN TB_COMPANIES cp ON u.company_cd = cp.company_cd
 	        LEFT OUTER JOIN TB_USERS master_u ON cp.master_id = master_u.user_id
-	        LEFT OUTER JOIN TB_EST_DOC e ON m.quote_req_id = e.est_doc_id
-	        LEFT OUTER JOIN TB_EST_CART_ITEM eci ON e.est_cart_id = eci.est_cart_id AND o.fuel_id = eci.product_id
+	        LEFT OUTER JOIN TB_EST_DOC e ON m.est_id = e.est_doc_id
 	    WHERE m.order_no = #{orderNo}
 	      AND m.order_status = 'pr002'
+	      AND m.use_yn = 'Y'
+	</select>
+	
+	<select id="getPaymentSecondViewInfo" resultType="io.github.teamb.btob.dto.payment.PaymentViewDTO">
+	    SELECT
+	        m.order_id,
+	        m.order_no,
+	        p.amount,
+	        u.user_name
+        FROM TB_ORDER_MST m
+	        INNER JOIN TB_PAYMENT_MST p ON m.order_id = p.order_id
+	        INNER JOIN TB_USERS u ON m.user_no = u.user_no
+	    WHERE m.order_no = #{orderNo}
+	      AND p.pay_step = 'SECOND'
+	      AND p.status = 'READY'
 	      AND m.use_yn = 'Y'
 	</select>
 		
@@ -106,7 +120,7 @@
     ) VALUES (
         #{paymentNo},
         #{dbOrderId},
-        'FIRST',
+        #{payStep},
         #{paymentKey},
         #{method},
         #{amount},
@@ -115,4 +129,17 @@
         NOW()
     )
 </insert>
+
+<update id="updatePaymentForSecondStep" parameterType="io.github.teamb.btob.dto.payment.PaymentRequestDTO">
+    UPDATE TB_PAYMENT_MST
+    SET 
+        payment_key = #{paymentKey},
+        method = #{method},
+        status = 'DONE',
+        upd_dtime =  NOW(),
+        upd_id = #{updId}
+    WHERE order_id = #{dbOrderId} 
+      AND pay_step = 'SECOND'
+</update>
+
 </mapper>

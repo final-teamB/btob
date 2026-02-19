@@ -8,18 +8,20 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.teamb.btob.dto.document.DocumentListDTO;
 import io.github.teamb.btob.dto.document.DocumentMemoActionDTO;
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
+import io.github.teamb.btob.dto.trade.EstimateDetailDTO;
+import io.github.teamb.btob.dto.trade.OrderDetailDTO;
 import io.github.teamb.btob.dto.trade.TradePendingDTO;
 import io.github.teamb.btob.mapper.document.TradeDocMapper;
+import io.github.teamb.btob.mapper.trade.TradeApprovalMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TradeDocService {
 	private final TradeDocMapper tradeDocMapper;
-
-	public TradeDocService(TradeDocMapper tradeDocMapper) {
-		this.tradeDocMapper = tradeDocMapper;
-	}
+	private final TradeApprovalMapper tradeApprovalMapper;
 	
 	// 메모수정
 	public void modifyMemo(DocumentMemoActionDTO dma) {
@@ -36,7 +38,13 @@ public class TradeDocService {
 		return tradeDocMapper.getDocumentList(docType, keyword);
 	}
 
-	public List<TradePendingDTO> getOrderDetailList(int orderId) {
-		return tradeDocMapper.getOrderDetailList(orderId);
+
+	public EstimateDetailDTO getEstimateDetail(Integer orderId) {
+		return tradeApprovalMapper.getEstimateDetail(orderId);
 	}
+
+	public OrderDetailDTO getOrderDetail(Integer orderId) {
+		return tradeApprovalMapper.getOrderDetail(orderId);
+	}
+
 }

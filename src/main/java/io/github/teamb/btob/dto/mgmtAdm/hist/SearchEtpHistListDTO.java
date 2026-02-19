@@ -18,7 +18,7 @@ import lombok.Data;
 public class SearchEtpHistListDTO {
 	
 	private Integer etpId;				// 식별자( 견적, 주문, 구매, 결제 )
-	private String regId;				// 요청자
+	private String requestUserId;		// 요청자
 	private String requestUserNm;		// 요청자 성명
 	private String apprUserId;			// 승인자
 	private String apprUserNm;			// 승인자 성명
@@ -27,6 +27,7 @@ public class SearchEtpHistListDTO {
 	private String rejtRsn;				// 반려사유
 	private LocalDateTime regDtime;		// 요청일자
 	private LocalDateTime apprDtime;	// 승인일자
+	private String regId;				// 등록자
 	
 	private Integer rownm;				// 순번
 }
