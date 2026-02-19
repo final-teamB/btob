@@ -20,7 +20,7 @@ public class OrderDTO {
 
     private int orderId;                 // order_id
     private String orderNo;              // order_no
-    private int quoteReqId;              // quote_req_id
+    private int estId;                  // est_id
     private int userNo;                  // user_no
     private String orderStatus;          // order_status 주문/구매 진행 상태
     private LocalDateTime regDtime;      // reg_dtime 등록일

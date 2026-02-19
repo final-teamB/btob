@@ -44,6 +44,10 @@ public interface UserMapper {
 	
 	// 아이디로 PK찾기
 	Integer getUserNoById(String userId);
+
+	String selectMasterIdByUserId(String loginUserId);
+	
+	List<String> selectAllAdminIds();
 	
 	
 

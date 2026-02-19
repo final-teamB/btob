@@ -108,12 +108,11 @@
 	</insert>
 	
 	<!-- 알림 수신자 user_id(email) 조회 -->
-	<select id="selectReceiverUserId" parameterType="int" resultType="string">
-	    SELECT u.user_id
-	    FROM TB_DELIVERY d
-	    JOIN TB_ORDER_MST o ON d.order_id = o.order_id
-	    JOIN TB_USERS u ON o.reg_id = u.user_no
-	    WHERE d.delivery_id = #{deliveryId}
+	<select id="selectReceiverUserId" resultType="string">
+	    SELECT 
+	        O.reg_id  FROM TB_ORDER_MST O
+	    JOIN TB_DELIVERY D ON O.order_id = D.order_id
+	    WHERE D.delivery_id = #{deliveryId}
 	</select>
 	
 </mapper>

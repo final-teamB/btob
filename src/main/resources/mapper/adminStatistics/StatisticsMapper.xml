@@ -70,7 +70,7 @@
     <select id="getDeliveryKPI" resultType="map">
         SELECT 
         IFNULL(ROUND(AVG(DATEDIFF(upd_dtime, reg_dtime)), 1), 0) "avg_delivery_time",
-        COUNT(CASE WHEN delivery_status = 'dv006' THEN 1 END) "current_shipping",
+        COUNT(CASE WHEN delivery_status IN ('dv002', 'dv003', 'dv004', 'dv005', 'dv006') THEN 1 END) "current_shipping",
         COUNT(CASE WHEN delivery_status != 'dv007' AND DATEDIFF(NOW(), reg_dtime) >= 3 THEN 1 END) "delay_count"
     FROM TB_DELIVERY
     WHERE use_yn = 'Y'

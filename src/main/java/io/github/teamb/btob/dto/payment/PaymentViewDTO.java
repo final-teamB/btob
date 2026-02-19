@@ -29,6 +29,10 @@ public class PaymentViewDTO {
     private String zipCode;
     private String customsNum; // 통관번호가 필요한 경우 포함
     
+    // 결제 총 금액
+    private int amount;
+    private int targetTotalAmount; // 최종희망단가합계금액
+    
     private List<PaymentItemDTO> itemList;
     
     @Data
@@ -39,7 +43,7 @@ public class PaymentViewDTO {
         private int baseUnitPrc; // 단가
         private int targetProductPrc; // 희망단가
         private int targetProductAmount; //희망단가*수량
-        private int targetTotalAmt; // 최종희망단가합계금액
+        private int targetProductAmt;
       
     }
 }

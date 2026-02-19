@@ -4,25 +4,25 @@
 <div class="mx-4 my-6 space-y-6">
     
     <%-- [1. 타이틀 영역] 중앙 정렬 통일 --%>
-    <div class="px-5 py-4 text-center">
+    <div class="px-5 py-4 text-left">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
             <c:choose>
-                <c:when test="${not empty faq.faqId}">FAQ</c:when>
+                <c:when test="${faq.faqId > 0}">FAQ 수정</c:when>
                 <c:otherwise>FAQ 신규 등록</c:otherwise>
             </c:choose>
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">사용자가 자주 묻는 질문에 대한 정확한 정보를 입력해 주세요.</p>
     </div>
 
-    <%-- [2. 입력 폼 영역] max-w-4xl mx-auto 추가하여 중앙 배치 --%>
-    <section class="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+    <%-- [2. 입력 폼 영역] --%>
+    <section class="p-8 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
         <form action="/support/admin/${faq.faqId > 0 ? 'modifyFaq' : 'registerFaq'}" method="post" class="space-y-6">
             <c:if test="${faq.faqId > 0}">
                 <input type="hidden" name="faqId" value="${faq.faqId}">
             </c:if>
 
             <%-- 카테고리 선택 --%>
-            <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-6 items-center gap-2">
                 <label class="text-sm font-bold text-gray-700 dark:text-gray-300">카테고리 <span class="text-red-500">*</span></label>
                 <div class="md:col-span-3">
                     <select name="category" required 
@@ -36,9 +36,9 @@
             </div>
 
             <%-- 질문 입력 --%>
-            <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-4 border-t border-gray-50 pt-6 dark:border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-6 items-center gap-2 border-t border-gray-50 pt-6 dark:border-gray-700">
                 <label class="text-sm font-bold text-gray-700 dark:text-gray-300">질문 (Question) <span class="text-red-500">*</span></label>
-                <div class="md:col-span-3">
+                <div class="md:col-span-5">
                     <input type="text" name="question" value="${faq.question}" required 
                            placeholder="사용자가 질문할 내용을 입력하세요."
                            class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all">
@@ -46,9 +46,9 @@
             </div>
 
             <%-- 답변 입력 --%>
-            <div class="grid grid-cols-1 md:grid-cols-4 items-start gap-4 border-t border-gray-50 pt-6 dark:border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-6 items-start gap-4 border-t border-gray-50 pt-6 dark:border-gray-700">
                 <label class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">답변 (Answer) <span class="text-red-500">*</span></label>
-                <div class="md:col-span-3">
+                <div class="md:col-span-5">
                     <textarea name="answer" rows="12" required 
                               placeholder="질문에 대한 상세 답변을 입력하세요."
                               class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all resize-none">${faq.answer}</textarea>
