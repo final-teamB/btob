@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.mgmtAdm.CompyMgmtAdmMapper">
+
+
+    <sql id="searchCondi">
+
+        AND (
+            a.company_name LIKE CONCAT('%', #{searchCondition}, '%') -- 회사명
+            OR a.company_cd LIKE CONCAT('%', #{searchCondition}, '%') -- 회사코드
+            OR b.user_name LIKE CONCAT('%', #{searchCondition}, '%') -- 대표자명
+        )
+
+    </sql>
+
+    <!-- 회사 검색 조회 -->
+    <select id="selectCompySearchConditionListAdm"
+            parameterType="java.util.Map"
+            resultType="io.github.teamb.btob.dto.mgmtAdm.compy.SearchConditionCompyDTO">
+
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) AS rownm
+                    a.company_seq,
+                    a.company_cd,
+                    a.company_name,
+                    a.company_phone,
+                    a.master_id,
+                    b.user_name
+                    a.biz_number,
+                    a.customs_num,
+                    a.reg_dtime,
+                    a.upd_dtime,
+                    a.use_yn
+                FROM TB_COMPANIES a,
+                        TB_USERS b
+                WHERE 1=1
+                AND a.master_id = b.user_id
+                <if test="searchCondition != null and searchCondition.trim() != ''">
+                    <include refid="searchCondi" />
+                </if>
+                ORDER BY ROW_NUMBER() OVER (ORDER BY a.reg_dtime ASC) DESC
+
+                <if test='isExcel == null or isExcel != "Y"'>
+                    <if test="startRow != null and limit != null">
+                        LIMIT #{startRow}, #{limit}
+                    </if>
+                </if>
+
+    </select>
+
+    <!-- 회사 검색 조회 건수 -->
+    <select id="selectCompySearchConditionListCntAdm"
+            parameterType="java.util.Map"
+            resultType="int">
+
+                SELECT
+                    COUNT(a.company_seq)
+                FROM TB_COMPANIES a,
+                        TB_USERS b
+                WHERE 1=1
+                AND a.master_id = b.user_id
+                <if test="searchCondition != null and searchCondition.trim() != ''">
+                    <include refid="searchCondi" />
+                </if>
+
+    </select>
+
+    <!-- 회사 상세 조회 -->
+    <select id="selectCompyDetailInfoByIdAdm"
+        parameterType="int"
+        resultType="io.github.teamb.btob.dto.mgmtAdm.compy.SearchDetailInfoCompyDTO">
+
+                SELECT
+                    a.company_seq,
+                    a.company_cd,
+                    a.company_name,
+                    a.company_phone,
+                    a.addr_kor,
+                    a.addr_eng,
+                    a.zip_code,
+                    a.biz_number,
+                    a.customs_num,
+                    a.master_id,
+                    b.user_name,
+                    a.reg_dtime,
+                    a.reg_id,
+                    a.upd_dtime,
+                    a.upd_id,
+                    a.use_yn,
+                    c.system_id,
+                    c.file_id,
+                    c.str_file_nm
+                FROM TB_COMPANIES a
+                INNER JOIN TB_USERS b
+                ON a.master_id = b.user_id
+                LEFT OUTER JOIN (
+                    /* [수정 포인트] 최신 파일만 뽑아내는 서브쿼리 */
+                     SELECT *
+                        FROM (
+                                SELECT
+                                    *,
+                                ROW_NUMBER() OVER (PARTITION BY ref_id, system_id ORDER BY file_id DESC) as rn
+                                FROM TB_ATCH_FILE_MST
+                                WHERE system_id IN ('COMPANY')
+                              ) tmp
+                              WHERE rn = 1
+                        ) c ON a.company_seq = c.ref_id
+                WHERE 1=1
+                AND a.company_seq = #{companySeq}
+
+    </select>
+
+    <!-- 회사 등록 -->
+    <insert id="insertCompyAdm"
+            parameterType="io.github.teamb.btob.dto.mgmtAdm.compy.InsertCompyDTO"
+            useGeneratedKeys="true"
+            keyProperty="companySeq">
+
+                INSERT INTO TB_COMPANIES (
+                    company_seq,
+                    company_cd,
+                    company_name,
+                    company_phone,
+                    addr_kor,
+                    addr_eng,
+                    zip_code,
+                    biz_number,
+                    customs_num,
+                    master_id,
+                    user_name,
+                    reg_id
+                ) VALUES (
+                    #{companySeq},
+                    #{companyCd},
+                    #{companyName},
+                    #{companyPhone},
+                    #{addrKor},
+                    #{addrEng},
+                    #{zipCode},
+                    #{bizNumber},
+                    #{customsNum},
+                    #{masterId},
+                    #{userName},
+                    #{regId},
+                )
+
+    </insert>
+
+    <!-- 회사 수정 -->
+    <update id="updateCompyAdm"
+            parameterType="io.github.teamb.btob.dto.mgmtAdm.compy.UpdateCompyDTO">
+
+
+                UPDATE
+                    TB_COMPANIES
+                SET
+                    company_name = #{companyName},
+                    company_phone = #{companyPhone},
+                    addr_kor = #{addrKor},
+                    addr_eng = #{addrEng},
+                    zip_code = #{zipCode},
+                    biz_number = #{bizNumber},
+                    customs_num = #{customsNum},
+                    master_id = #{masterId},
+                    user_name = #{userName},
+                    upd_dtime = #{updDtime},
+                    upd_id = #{updId},
+                    use_yn = #{useYn}
+                WHERE company_seq = #{companySeq}
+
+    </update>
+
+    <!-- 회사 삭제 ( 비활성화 ) -->
+    <update id="deleteCompyByIdAdm"
+            parameterType="int">
+
+                UPDATE
+                    TB_COMPANIES
+                SET
+                    use_yn          = #{useYn},
+                    upd_dtime       = CURRENT_TIMESTAMP,
+                    upd_id          = #{updId}
+                WHERE company_seq = #{companySeq}
+
+    </update>
+
+    <!-- 회사코드 자동생성 식별번호 확인 -->
+    <select id="selectAutoObjId"
+            resultType="int">
+
+                SELECT
+                    (COUNT(company_seq) + 1) AS rownm
+                FROM TB_COMPANIES
+
+    </select>
+
+
+</mapper>

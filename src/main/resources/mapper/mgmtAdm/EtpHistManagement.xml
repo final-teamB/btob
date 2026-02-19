@@ -36,7 +36,7 @@
 				
 			WHERE 1=1
 			AND a.etp_stts_cd = b.etp_stts_cd
-			AND a.reg_id = c.user_id
+			AND a.request_user_id = c.user_id
 			AND a.appr_user_id = d.user_id
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
@@ -64,7 +64,7 @@
 				
 			WHERE 1=1
 			AND a.etp_stts_cd = b.etp_stts_cd
-			AND a.reg_id = c.user_id
+			AND a.request_user_id = c.user_id
 			AND a.appr_user_id = d.user_id
 			<if test="searchCondition != null and searchCondition.trim() != ''">
 				<include refid="searchCondi" />
@@ -80,8 +80,8 @@
 			SELECT
 				ROW_NUMBER() OVER (ORDER BY reg_dtime ASC) AS rownm
 				,fnc_get_etp_sttsnm(etp_stts_cd) AS etpSttsNm
-				,fnc_get_usernm(regId) AS requestUserNm
-				,fnc_get_usernm(apprUserId) AS apprUserNm
+				,fnc_get_usernm(request_user_id) AS requestUserNm
+				,fnc_get_usernm(appr_user_id) AS apprUserNm
 				,rejt_rsn
 				,reg_dtime
 				,appr_dtime

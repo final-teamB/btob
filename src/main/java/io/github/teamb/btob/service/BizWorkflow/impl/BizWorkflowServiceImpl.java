@@ -46,8 +46,8 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		String approvalStatus = approvalDecisionRequestDTO.getApprovalStatus();	// 승인,반려 타입
 		String requestEtpStatus = approvalDecisionRequestDTO.getRequestEtpStatus(); // 변경요청 상태코드 
 		String apprUserNo = approvalDecisionRequestDTO.getApprUserNo();	// 승인자
-		String requestUserNo = approvalDecisionRequestDTO.getRequestUserNo();
-		String userId = approvalDecisionRequestDTO.getUserId(); // 요청자
+		String requestUserNo = approvalDecisionRequestDTO.getRequestUserNo(); // 요청자
+		String userId = approvalDecisionRequestDTO.getUserId();
 		
 		if ( !("APPROVED".equals(approvalStatus)) && 
 			     !("REJECTED".equals(approvalStatus)) && 
@@ -138,8 +138,15 @@ public class BizWorkflowServiceImpl implements BizWorkflowService{
 		etpStatusSelectDTO.setTargetPkCol(targetPkCol);
 		etpStatusSelectDTO.setTargetStatusCol(eDto.getTargetStatusCol());
 		etpStatusSelectDTO.setRefId(refId);
-	    etpStatusSelectDTO.setUserId(userId);
+		etpStatusSelectDTO.setUserId(userId);
 
+		System.out.println("TargetTable: " + etpStatusSelectDTO.getTargetTable());
+		System.out.println("TargetPkCol: " + etpStatusSelectDTO.getTargetPkCol());
+		System.out.println("TargetStatusCol: " + etpStatusSelectDTO.getTargetStatusCol());
+		System.out.println("RefId: " + etpStatusSelectDTO.getRefId());
+		System.out.println("UserId: " + etpStatusSelectDTO.getUserId());
+		
+		
 		String currentEtpStatus = bizWorkflowMapper.selectCurrentStatusByRefId(etpStatusSelectDTO);
 		
 		if (currentEtpStatus == null || currentEtpStatus.isEmpty() ) {
