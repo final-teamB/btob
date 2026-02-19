@@ -112,16 +112,22 @@
 	</select>
 	
 	<!-- 관리자가 처리 할 수 있는 상태변경 권한 (승인,반려) -->
-	<select id="approvRejctChgAuthByAdm"
-		resultType="io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO">
-	
-			SELECT 
-				system_id, 
-				etp_stts_cd 
-			FROM TB_ETP_STTS_CD
-			WHERE 1=1
-			AND system_id IN ('ESTIMATE', 'PURCHASE')
-			AND reject_yn = 'Y'
+	<select id="selectEtpParamsChk"
+			parameterType="int"
+			resultType="io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO">
+
+				SELECT
+					a.order_status
+					,b.user_type
+				FROM
+					TB_ORDER_MST a,
+					TB_USERS b,
+					TB_ETP_STTS_CD c
+				WHERE
+				1 = 1
+				AND a.user_no = b.user_no
+				AND a.order_status = c.etp_stts_cd
+				AND a.order_id = #{orderId}
 	
 	</select>
 	

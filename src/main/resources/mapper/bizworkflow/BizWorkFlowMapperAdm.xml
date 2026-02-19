@@ -2,128 +2,77 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.bizworkflow.BizWorkflowMapperAdm">	
 
-	<!-- 견적 ~ 주문 상태코드 업데이트 시 요청 들어온 진행건의 현재 상태코드 확인 -->
-	<select id="selectCurrentStatusByRefId"
-		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusSelectDTO"
-		resultType="String">
-	
-			SELECT
-				${targetStatusCol}
-			FROM
-				${targetTable}
-			WHERE 1=1 
-			AND ${targetPkCol} = #{refId}
-			AND reg_id = #{userId}
-	
-	</select>
-	
-	<!-- 견적/주문/구매/결제 현재상태코드의 다음단계 상태코드 조회 (승인) -->
-	<select id="selectNextStatus"
-		parameterType="String"
-		resultType="String">
-		
-			SELECT 
-				etp_stts_cd
-			FROM TB_ETP_STTS_CD
-			WHERE 1=1 
-			AND seq != 99
-			AND seq > (
-							SELECT 
-								seq 
-							FROM 
-								TB_ETP_STTS_CD 
-							WHERE 1=1 
-							AND etp_stts_cd = #{currentEtpStatus}
-			  			)
-			ORDER BY seq ASC
-			LIMIT 1;
-		
-	</select>
-
-	<!-- 견적/주문/구매/결제 현재상태코드의 반려 상태코드 조회 ( 반려 ) -->
-	<select id="selectRejtStatus"
-		parameterType="String"
-		resultType="String">
-	
-			SELECT 
-				reject_target_cd
-			FROM TB_ETP_STTS_CD
-			WHERE 1=1
-			AND etp_stts_cd = #{currentEtpStatus}
-			AND reject_yn = 'Y' 
-		
-	</select>
-
-	
-	
-	
-	<insert id="insertEtpHist" 
-		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpHistInsertDTO">
-	
-			INSERT INTO TB_ETP_HIST (
-				 etp_id
-				,appr_user_id
-				,request_user_id
-				,etp_stts_cd
-				,rejt_rsn
-				,reg_id
-			) VALUES (
-				 #{refId}
-				,#{apprUserNo}
-				,#{requestUserNo}
-				,#{requestEtpStatus}
-				,#{rejtRsn}
-				,#{userId}
-			)
-	
-	</insert>
-	
-	<!-- 견적서 승인 -->
-	<update id="updateEstDocApprUser"
-		parameterType="java.util.Map">
-			
-			UPDATE 
-				TB_EST_DOC 
-			SET 
-				appr_user_id = #{userNo} 
-			WHERE est_doc_id = #{estDocId}
-	</update>
-	
-	<!-- 고정으로 무조건 변경되는 상태코드 오더 테이블 -->
-	<update id="fixUpdateOrderStatus"
-		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusUpdateDTO">
-	
-			UPDATE
-				TB_ORDER_MST
-			SET
-				order_status = #{updateStatus}
-			WHERE
-				order_id = #{refId}
-	
-	</update>
-	
-	
-	
-	
-	
-	<!-- 다시 짜는중 -->
-	
-	<!-- selectCurrentEtpStatusValidate -->
-	<select id="currentEtpSttsCd"
-		parameterType="io.github.teamb.btob.dto.bizworkflow.BizCurrentSttsCdDTO"
+	<!-- 현재 상태 코드 -->
+	<select id="selectCurrentEtpSttsCd"
+		parameterType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO"
 		resultType="String">
 
 			SELECT
 				a.order_status
 			FROM
 				TB_ORDER_MST a,
-				TB_USERS b
+				TB_USERS b,
+				TB_ETP_STTS_CD c
 			WHERE
 				1 = 1
 				AND a.user_no = b.user_no
+				AND a.order_status = c.etp_stts_cd
 				AND a.order_id = #{orderId}
+				AND c.system_id = #{systemId}
 				AND b.user_id = #{userId}
-	
+
+	</select>
+
+	<!-- 사용자 권한 확인 체크 -->
+	<select id="selectUserTypeChk"
+			parameterType="String"
+			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
+
+				SELECT
+					user_type,
+					company_cd
+				FROM TB_USERS
+				WHERE 1=1
+				AND user_id = #{userId}
+
+	</select>
+
+	<!-- 견적/주문/구매/결제 현재상태코드의 다음 단계 시스템아이디 및 상태코드 조회 -->
+	<select id="selectNextStatus"
+			parameterType="String"
+			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
+
+				SELECT
+					system_id,
+					etp_stts_cd
+				FROM TB_ETP_STTS_CD
+				WHERE 1=1
+				AND seq != 99
+				AND seq > (
+						SELECT
+							seq
+						FROM
+						TB_ETP_STTS_CD
+						WHERE 1=1
+						AND etp_stts_cd = #{currentEtpStatus}
+						)
+				ORDER BY seq ASC
+				LIMIT 1;
+
+	</select>
+
+	<!-- 견적/주문/구매/결제 현재상태코드의 반려 시스템아이디 및 상태코드 조회 ( 반려 ) -->
+	<select id="selectRejtStatus"
+			parameterType="String"
+			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
+
+				SELECT
+					reject_target_cd
+				FROM TB_ETP_STTS_CD
+				WHERE 1=1
+				AND etp_stts_cd = #{currentEtpStatus}
+				AND reject_yn = 'Y'
+
 	</select>
 	
 	<!-- 동적쿼리 사용 시 적용할 테이블, 상태 컬럼, 식별자컬럼 확인 -->
@@ -141,8 +90,28 @@
 				system_id = #{systemId}
 	
 	</select>
-	
-	<!-- 견적/주문결제 상태코드 값 변경 -->
+
+	<!-- 동적 쿼리 사용 시 식별번호 값 확인 -->
+	<select id="selectRefIds"
+			parameterType="int"
+			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
+
+			SELECT
+				a.order_id,
+				a.est_id,
+				b.payment_id
+			FROM TB_ORDER_MST a
+				LEFT OUTER JOIN TB_PAYMENT_MST b
+				ON a.order_id = b.order_id
+				LEFT OUTER JOIN TB_USERS c
+				ON a.user_no = c.user_no
+			WHERE 1=1
+			AND a.order_id = #{orderId}
+			AND c.user_id = #{userId}
+
+	</select>
+
+	<!-- 견적/주문/구매/결제 테이블 상태코드 값 변경 (동적)-->
 	<update id="updateEtpStatus" 
 		parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusUpdateDTO">
 		
@@ -158,21 +127,59 @@
 				AND ${targetStatusCol} = #{currentEtpStatus}
 				
 	</update>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+	<!-- 고정으로 무조건 변경되는 상태코드 오더 테이블 -->
+	<update id="fixUpdateOrderStatus"
+			parameterType="io.github.teamb.btob.dto.bizworkflow.EtpStatusUpdateDTO">
+
+			UPDATE
+				TB_ORDER_MST
+			SET
+				order_status = #{updateStatus}
+			WHERE 1=1
+			AND order_id = #{refId}
+
+	</update>
+
+	<!-- 견적/주문/구매/결제 이력 추가 -->
+	<insert id="insertEtpHist"
+			parameterType="io.github.teamb.btob.dto.bizworkflow.EtpHistInsertDTO">
+
+			INSERT INTO TB_ETP_HIST (
+				etp_id
+				,appr_user_id
+				,request_user_id
+				,etp_stts_cd
+				,rejt_rsn
+				,reg_id
+			) VALUES (
+				#{refId}
+				,#{apprUserNo}
+				,#{requestUserNo}
+				,#{requestEtpStatus}
+				,#{rejtRsn}
+				,#{userId}
+			)
+
+	</insert>
+
+
+
+	<!-- 반품 제품명 및 수량 확인 -->
+	<select id="selectReturnProductIdAndQty"
+			parameterType="int"
+			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
+
+				SELECT
+					b.fuel_id,
+					b.total_qty
+				FROM
+				TB_ORDER_MST a,
+				TB_CART b
+				WHERE 1 = 1
+				AND a.order_no = b.order_no
+				AND order_id = #{orderId}
+
+	</select>
 
 </mapper>

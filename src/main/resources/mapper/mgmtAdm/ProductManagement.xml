@@ -384,6 +384,19 @@
 	
 	</update>
 	
+	<!-- 수량 감소 시 0일때 품절로 변경처리 -->
+	<update id="itemSttsChgSoldOut"
+		parameterType="int">
+				
+			UPDATE
+				TB_OIL_MST
+			SET
+				item_stts_cd = 'SO002'
+			WHERE
+				fuel_id = #{fuelId}
+	
+	</update>
+	
 	<!-- 제품 반려 시 수량 증가 -->
 	<update id="incrProductCurrVol"
 		parameterType="io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO">
@@ -395,6 +408,19 @@
 			WHERE
 				fuel_id = #{fuelId}
 			
+	</update>
+	
+	<!-- 수량 0에서 증가 시 판매중으로 변경 -->
+	<update id="itemSttsChgOnSale"
+		parameterType="int">
+				
+			UPDATE
+				TB_OIL_MST
+			SET
+				item_stts_cd = 'SA001'
+			WHERE
+				fuel_id = #{fuelId}
+	
 	</update>
 	
 	<!-- 반품 시 진행코드 검증 -->

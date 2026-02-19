@@ -54,8 +54,14 @@ public interface ProductMgmtAdmMapper {
 	// 제품 구매 시 수량 감소 (카트에 담을때부터 수량이 감소되게함)
 	Integer decrProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO);
 	
+	// 수량 감소 시 0일때 품절로 변경처리
+	Integer itemSttsChgSoldOut(Integer fuelId);
+	
 	// 제품 반려 시 수량 증가 (카트아이템에 있는 정보 다 가져와서 업데이트처리해야함)
 	Integer incrProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO);
+	
+	// 수량 0에서 증가 시 판매중으로 변경
+	Integer itemSttsChgOnSale(Integer fuelId);
 	
 	// 반품시 진행코드 검증
 	Integer chkOrderStatusCd(String orderStatus);

@@ -469,22 +469,37 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	@Override
 	public void modifyProductCurrVol(UpdateProductCurrVolDTO updateProductCurrVolDTO) throws Exception{
 		
+		// 상품명
 		Integer fuelId = updateProductCurrVolDTO.getFuelId();
+		// 주문량
 		Integer orderQty = updateProductCurrVolDTO.getOrderQty();
+		// 타입
 		String type = updateProductCurrVolDTO.getRequestType();	// UP, DOWN
+		// 현재 재고량
+		Integer currvol = productMgmtAdmMapper.selectProductCurrVolById(fuelId);
+		
+		int result = 0;
 		
 		if ( type.equals("UP")) {
 			
-			Integer currvol = productMgmtAdmMapper.selectProductCurrVolById(fuelId);
-			
 			if((currvol - orderQty) <= 0) {
 				throw new Exception("주문 수량이 재고량보다 많습니다.");
-			}
-			
-			int result = productMgmtAdmMapper.decrProductCurrVol(updateProductCurrVolDTO);
-			
-			if ( result <= 0 ) {
-				throw new Exception("재고 업데이트시 오류가 발생했습니다.");
+			} else {
+				
+				// 주문 수량이 재고량보다 적으면 감소 처리
+				result = productMgmtAdmMapper.decrProductCurrVol(updateProductCurrVolDTO);
+				
+				// 감소 처리 후 재고량이 0이 될 경우 판매상태코드 품절로 변경
+				if ( result > 0 ) {
+					if ( productMgmtAdmMapper.selectProductCurrVolById(fuelId) == 0 ) {
+						
+						productMgmtAdmMapper.itemSttsChgSoldOut(fuelId);
+					} else {
+						throw new Exception("판매상태코드 업데이트 시 오류가 발생했습니다.");
+					}
+				} else {
+					throw new Exception("재고량 업데이트시 오류가 발생했습니다.");
+				}
 			}
 		} else if ( type.equals("DOWN") ) {
 			
@@ -492,10 +507,13 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 			
 			if ( statusChk > 0) {
 				
-				int result = productMgmtAdmMapper.incrProductCurrVol(updateProductCurrVolDTO);
+				result = productMgmtAdmMapper.incrProductCurrVol(updateProductCurrVolDTO);
 				
-				if ( result <= 0 ) {
-					throw new Exception("재고 업데이트시 오류가 발생했습니다.");
+				// 증감 처리 후 이전 현재 재고량이 0일 경우 판매상태코드 판매중 상태로 변경
+				if ( result > 0 && currvol == 0) {
+					productMgmtAdmMapper.itemSttsChgOnSale(fuelId);
+				} else {
+					throw new Exception("재고량 업데이트시 오류가 발생했습니다.");
 				}
 			} else {
 				throw new Exception("올바르지 않은 요청 상태입니다.");
