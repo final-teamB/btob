@@ -77,11 +77,6 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 			// 권한 체크
 			this.canUseStep(requestUserNo, loginUserId, nextSystemId, nextEtpStatus);
 
-			// 다음 스텝이 1차 결제 요청일때. 체크부분 중요
-			if (nextEtpStatus.equals("pm001")) {
-				// 이때 결제 요청쪽 TB_PAYMENT 테이블이 INSERT가 되어야함.
-			}
-
 			// 다음 상태코드로 변경할 테이블 서치
 			EtpDynamicParamsDTO edDto = this.getTargetParams(nextSystemId);
 
@@ -436,11 +431,19 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 
 		int updateResult = 0;
 
-		// 1. 상태코드 업데이트
+		// 1. 상태코드 업데이트 여기서 시스템ID는 다음 상태코드의 시스템ID입니다.
 		if (systemId.equals("ESTIMATE") || systemId.equals("PAYMENT")) {
 
 			// 1. 견적서 테이블 또는 결제 테이블 업데이트
-			updateResult =  bizWorkflowMapperAdm.updateEtpStatus(edto);
+			// 다음 스텝이 1차 결제 요청일때. 체크부분 중요
+			// 코드리뷰가 결과 이때 결제 승인이 되어야지 TB_PAYMENT 테이블이 INSERT가 되는것으로 확인
+			// 따라서 다음 스텝이 1차 결제 요청, 2차 결제 요청으로 변경이 필요한 경우 동적테이블은 업데이트 처리 안합니다.
+			if (!(requestDTO.getRequestEtpStatus().equals("pm001") || 
+					requestDTO.getRequestEtpStatus().equals("pm003"))) {
+				
+				updateResult =  bizWorkflowMapperAdm.updateEtpStatus(edto);
+			}
+			
 			// 2. 주문 테이블 업데이트
 			if (updateResult > 0) {
 
