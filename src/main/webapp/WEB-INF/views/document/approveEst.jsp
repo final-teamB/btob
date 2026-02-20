@@ -2,8 +2,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<c:set var="info" value="${not empty itemList ? itemList[0] : dto}" />
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -211,7 +209,10 @@
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
+            	"orderId": "${info.orderId}",
                 "orderNo": "${info.orderNo}",
+    	        "userNo": "${info.userNo}",
+    	        "userId": "${info.userId}",
                 "status": status,
                 "rejectReason": reason
             }),

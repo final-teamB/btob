@@ -20,6 +20,7 @@ public class TradePendingDTO {
 	private int userNo;             // 사원 번호
     private String userId;          // 로그인 ID
     private String userName;        // 이름
+    private String docType;
     private String phone;           // 전화번호
     private String companyName;     // 업체명
     private Integer orderId;        // order_id

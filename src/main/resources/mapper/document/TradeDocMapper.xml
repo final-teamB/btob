@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.document.TradeDocMapper">
 		
+		<!-- 
 		<select id="getOrderDetailList" resultType="io.github.teamb.btob.dto.trade.TradePendingDTO">
 		SELECT 
 	        O.order_id,
@@ -30,6 +31,7 @@
 	    WHERE O.order_id = #{orderId}
 	    ORDER BY C.cart_id ASC
 		</select>
+		-->
 		
 		<update id="modifyMemo">
 			UPDATE TB_DOCUMENT_MST

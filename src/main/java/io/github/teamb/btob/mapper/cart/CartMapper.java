@@ -34,5 +34,7 @@ public interface CartMapper {
 	void updateCartPayment(Map<String, Object> cartParams);
 
     void updateCartEstInfo(Map<String, Object> cartParams);
+
+	CartItemDTO selectCartItemById(int cartId);
 	
 }

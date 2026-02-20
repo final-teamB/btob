@@ -1,45 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
-<%-- 더미 데이터 세팅 --%>
-<c:if test="${empty dto}">
-    <jsp:useBean id="dummyDto" class="java.util.HashMap" scope="request"/>
-    <c:set target="${dummyDto}" property="estNo" value="EST-20260205-001"/>
-    <c:set target="${dummyDto}" property="estDocId" value="10042"/>
-    <c:set target="${dummyDto}" property="companyName" value="(주)글로벌 유류 트레이딩"/>
-    <c:set target="${dummyDto}" property="companyPhone" value="02-1234-5678"/>
-    <c:set target="${dummyDto}" property="ctrtNm" value="2026년도 상반기 복합 유종 정기 공급 계약"/>
-    
-    <c:set target="${dummyDto}" property="requestCompanyNm" value="(주)대한물류네트웍스"/>
-    <c:set target="${dummyDto}" property="requestCompanyAddr" value="서울특별시 강남구 테헤란로 456, 대한빌딩 12층"/>
-    <c:set target="${dummyDto}" property="requestCompanyPhone" value="02-987-6543"/>
-    <c:set target="${dummyDto}" property="requestUserNm" value="김철수 과장"/>
-    <c:set target="${dummyDto}" property="requestUserId" value="1029"/>
-    
-    <c:set target="${dummyDto}" property="apprUserNm" value="이영희 본부장"/>
-    <c:set target="${dummyDto}" property="apprUserPhone" value="010-5678-1234"/>
-    <c:set target="${dummyDto}" property="apprUserEmail" value="yh.lee@globalfuel.com"/>
-    
-    <c:set target="${dummyDto}" property="estdtMemo" value="최근 홍해 물류 사태로 인한 운임 상승분을 고려하여 희망 단가를 산출하였습니다. 대량 구매 옵션 5% 할인이 적용된 수치입니다."/>
-    <c:set target="${dummyDto}" property="baseTotalAmount" value="162000000"/>
-    <c:set target="${dummyDto}" property="targetTotalAmount" value="154700000"/>
-    <c:set var="dto" value="${dummyDto}" scope="request"/>
-
-    <%
-        java.util.List list = new java.util.ArrayList();
-        java.util.Map item1 = new java.util.HashMap();
-        item1.put("productNm", "항공유 (Jet A-1 / International Standard)");
-        item1.put("productQty", 100);
-        item1.put("baseProductPrc", 450000);
-        item1.put("baseProductAmt", 45000000);
-        item1.put("targetProductPrc", 430000);
-        item1.put("targetProductAmt", 43000000);
-        list.add(item1);
-        request.setAttribute("detailList", list);
-    %>
-</c:if>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -234,7 +195,7 @@
             <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-between items-center">
                 <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm">프린트 / PDF</button>
                 <div class="flex gap-2">
-                    <c:if test="${empty info.estNo && userType eq 'USER'}">
+                    <c:if test="${empty info.estNo && (userType eq 'USER' || userType eq 'MASTER')}">
                         <button type="button" onclick="fn_confirmOrder()" class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl transition">견적 요청하기</button>
                     </c:if>
                     <c:if test="${not empty info.estNo}">
@@ -251,34 +212,35 @@
     });
 
     function updateCalculations() {
-        let totalBase = 0;
-        let totalTarget = 0;
+        let totalBase = 0;   // 기존 총액
+        let totalSupply = 0; // 희망 공급가액 합계 (수량 * 희망단가)
 
         $('.item-row').each(function() {
-            // dataset에서 값을 가져올 때는 확실하게 숫자로 변환
             const qty = parseFloat($(this).data('qty')) || 0;
             const basePrc = parseFloat($(this).data('base-prc')) || 0;
             
-            // input 값을 가져올 때 .val()이 문자열이므로 숫자로 변환
-            const targetPrcVal = $(this).find('.target-prc-input').val();
-            const targetPrc = parseFloat(targetPrcVal) || 0;
+            // 입력 필드 혹은 텍스트(승인후)에서 가격 추출
+            const targetPrcInput = $(this).find('.target-prc-input');
+            const targetPrc = parseFloat(targetPrcInput.val() || targetPrcInput.parent().text().replace(/[^0-9]/g, '')) || 0;
             
-            const targetAmt = qty * targetPrc;
+            const rowTargetAmt = qty * targetPrc; // 이 행의 희망 합계
+            
             totalBase += (qty * basePrc);
-            totalTarget += targetAmt;
+            totalSupply += rowTargetAmt;
 
-            // 각 행의 합계 업데이트
-            $(this).find('.target-amt-display').text(targetAmt.toLocaleString());
+            // 각 행의 [희망 합계] 텍스트 업데이트
+            $(this).find('.target-amt-display').text(rowTargetAmt.toLocaleString());
         });
 
-        // 하단 요약 영역 업데이트 (VAT 계산 로직 포함)
-        const supplyAmt = Math.round(totalTarget / 1.1); // 공급가액
-        const vat = totalTarget - supplyAmt;            // 부가세
+        // B2B 표준 계산 (공급가액 + 부가세 10% = 합계)
+        const vat = Math.floor(totalSupply * 0.1); // 부가세 10%
+        const finalTotal = totalSupply + vat;      // 최종 합계액
 
-        $('#baseTotalVal').text('₩' + totalBase.toLocaleString());
-        $('#supplyAmtVal').text('₩' + supplyAmt.toLocaleString());
-        $('#vatVal').text('₩' + vat.toLocaleString());
-        $('#finalTotalVal').text('₩' + totalTarget.toLocaleString());
+        // 하단 검은색 요약 박스 업데이트
+        $('#baseTotalVal').text('₩' + totalBase.toLocaleString());     // 기존가 총합
+        $('#supplyAmtVal').text('₩' + totalSupply.toLocaleString());   // 희망 공급가액
+        $('#vatVal').text('₩' + vat.toLocaleString());               // 부가세
+        $('#finalTotalVal').text('₩' + finalTotal.toLocaleString());    // 최종 견적가
     }
 
     function fn_confirmOrder() {
@@ -322,6 +284,5 @@
         });
     }
 </script>
->>>>>>> origin/main
 </body>
 </html>

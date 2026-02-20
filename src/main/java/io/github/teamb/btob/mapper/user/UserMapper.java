@@ -19,7 +19,7 @@ public interface UserMapper {
 	void processPendingUser(UserPendingActionDTO upa);
 	
 	// 사원 회원가입 인증 대기 목록
-	List<UserPendingDTO> getPendingUsers();
+	List<UserPendingDTO> getPendingUsers(int userNo);
 	
 	// 사원 상태 수정
 	void modifyUserStatus(UserStatusDTO userStatus);
@@ -27,7 +27,8 @@ public interface UserMapper {
 	// 사원리스트
 	List<UserListDTO> getUserList(
 	        @Param("accStatus") String accStatus, 
-	        @Param("keyword") String keyword
+	        @Param("keyword") String keyword,
+	        int userNo
 	    );
 	
 	// 사원 엑셀 등록
@@ -48,6 +49,8 @@ public interface UserMapper {
 	String selectMasterIdByUserId(String loginUserId);
 	
 	List<String> selectAllAdminIds();
+
+	String getCompanyCdByMasterId(Integer loginUserNo);
 	
 	
 

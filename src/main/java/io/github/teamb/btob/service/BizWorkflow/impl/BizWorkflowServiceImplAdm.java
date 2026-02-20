@@ -147,7 +147,10 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 
 					volDTO.setFuelId(bdto.getFuelId());
 					volDTO.setOrderQty(bdto.getTotalQty());
+
+					// 반품 상태는 UP
 					// 반품 상태는 DOWN
+
 					volDTO.setRequestType("UP");
 					productManagementService.modifyProductCurrVol(volDTO);
 				}
