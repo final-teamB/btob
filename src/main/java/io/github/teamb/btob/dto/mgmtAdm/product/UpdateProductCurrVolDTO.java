@@ -17,5 +17,5 @@ public class UpdateProductCurrVolDTO {
 	private Integer fuelId;		// 상품 식별자
 	private Integer orderQty;	// 주문 및 회수 상품 수량
 	private String orderStatus;	// 주문진행상태
-	private String requestType; // UP, DOWN
+	private String requestType; // UP 재고증가, DOWN 재고감소
 }

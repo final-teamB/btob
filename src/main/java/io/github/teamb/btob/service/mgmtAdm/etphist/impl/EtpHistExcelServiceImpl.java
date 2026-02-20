@@ -44,7 +44,7 @@ public class EtpHistExcelServiceImpl implements EtpHistExcelService {
 				// 2. 엑셀 헤더 설정 (LinkedHashMap을 써야 넣은 순서대로 엑셀 컬럼이 생깁니다)
 				Map<String, String> headerMap = new LinkedHashMap<String, String>();
 				headerMap.put("rownm", "순번");
-				headerMap.put("etpId", "주문번호");
+				headerMap.put("orderNo", "주문번호");
 				headerMap.put("etpSttsNm", "의사결정단계");
 				headerMap.put("requestUserNm", "요청자");
 				headerMap.put("regDtime", "요청일자");

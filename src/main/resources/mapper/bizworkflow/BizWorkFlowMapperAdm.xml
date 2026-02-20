@@ -64,7 +64,7 @@
 	<!-- 견적/주문/구매/결제 현재상태코드의 반려 시스템아이디 및 상태코드 조회 ( 반려 ) -->
 	<select id="selectRejtStatus"
 			parameterType="String"
-			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
+			resultType="String">
 
 				SELECT
 					reject_target_cd
@@ -93,7 +93,7 @@
 
 	<!-- 동적 쿼리 사용 시 식별번호 값 확인 -->
 	<select id="selectRefIds"
-			parameterType="int"
+			parameterType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO"
 			resultType="io.github.teamb.btob.dto.bizworkflow.BizChkParamsDTO">
 
 			SELECT
@@ -136,6 +136,8 @@
 				TB_ORDER_MST
 			SET
 				order_status = #{updateStatus}
+				,upd_dtime = CURRENT_TIMESTAMP
+			    ,upd_id = #{userId}
 			WHERE 1=1
 			AND order_id = #{refId}
 

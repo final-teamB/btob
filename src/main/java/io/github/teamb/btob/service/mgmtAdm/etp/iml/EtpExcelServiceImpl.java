@@ -22,8 +22,20 @@ public class EtpExcelServiceImpl implements EtpExcelService{
 	private final EtpMgmtAdmMapper etpMgmtAdmMapper;
 	private final ExcelService excelService;
 	
+	/**
+	 * 
+	 * 
+	 * @author GD
+	 * @since 2026. 2. 19.
+	 * @param response
+	 * @param params
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 19.  GD       최초 생성
+	 */
 	@Override
-	public void downloadProductExcel(HttpServletResponse response, Map<String, Object> params) throws Exception {
+	public void downloadEtpExcel(HttpServletResponse response, Map<String, Object> params) throws Exception {
 		
 		// 1. DB에서 데이터 조회
 		List<SearchEtpListDTO> dataList = etpMgmtAdmMapper.selectEtpSearchConditioinListAdm(params);
@@ -48,5 +60,4 @@ public class EtpExcelServiceImpl implements EtpExcelService{
 		// 4. 공통 모듈 호출
 		excelService.downloadExcel(response, fileName, headerMap, dataList);
 	}
-
 }

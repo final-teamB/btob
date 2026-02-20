@@ -75,7 +75,9 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 			String nextEtpStatus = nxtDto.getEtpSttsCd();	// 다음 상태코드
 
 			// 권한 체크
-			this.canUseStep(requestUserNo, loginUserId, nextSystemId, nextEtpStatus);
+			if (!this.canUseStep(requestUserNo, loginUserId, nextSystemId, nextEtpStatus)) {
+			    throw new Exception("해당 단계를 승인할 권한이 없습니다. (사용자: " + loginUserId + ")");
+			}
 
 			// 다음 상태코드로 변경할 테이블 서치
 			EtpDynamicParamsDTO edDto = this.getTargetParams(nextSystemId);
@@ -113,11 +115,16 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 			String rejtEtpStatus = bizWorkflowMapperAdm.selectRejtStatus(currentEtpStatus);
 			
 			// 권한 체크
-			this.canUseStep(requestUserNo, loginUserId, currentSystemId, rejtEtpStatus);
+			if (!this.canUseStep(requestUserNo, loginUserId, currentSystemId, rejtEtpStatus)) {
+			    throw new Exception("해당 단계를 반려할 권한이 없습니다. (사용자: " + loginUserId + ")");
+			}
 
 			// 다음 상태코드로 변경할 테이블 서치
 			EtpDynamicParamsDTO edDto = this.getTargetParams(currentSystemId);
-
+			
+			System.out.println("BizWrk 현재 상태코드 확인합니다. : " + currentEtpStatus);
+			System.out.println("BizWrk 현재 시스템 ID 확인합니다. : " + currentSystemId);
+			System.out.println("BizWrk 반려 상태 코드 확인합니다. : " + rejtEtpStatus);
 			approvalDecisionRequestDTO.setRequestEtpStatus(rejtEtpStatus);		// 히스토리 이력때 사용 ( 다음 상태 코드 )
 			approvalDecisionRequestDTO.setApprUserNo(loginUserId);				// 히스토리 이력때 사용 ( 승인자 ) canUseStep 에서 권한체크했음
 
@@ -138,7 +145,7 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 
 				if (bizparamdto == null || bizparamdto.isEmpty()) {
 
-					throw new Exception("회수할 제품이 없습니다.");
+					throw new RuntimeException("회수할 제품이 없습니다.");
 				}
 
 				for ( BizChkParamsDTO bdto : bizparamdto ) {
@@ -147,10 +154,7 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 
 					volDTO.setFuelId(bdto.getFuelId());
 					volDTO.setOrderQty(bdto.getTotalQty());
-
 					// 반품 상태는 UP
-					// 반품 상태는 DOWN
-
 					volDTO.setRequestType("UP");
 					productManagementService.modifyProductCurrVol(volDTO);
 				}
@@ -164,7 +168,7 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 				resultDTO.setRejtRsn(rejtRsn);
 				resultDTO.setUserId(userId);
 			} else {
-				throw new Exception("업데이트 및 히스토리 이력 등록에 실패하였습니다.");
+				throw new RuntimeException("업데이트 및 히스토리 이력 등록에 실패하였습니다.");
 			}
 		}
 
@@ -441,9 +445,12 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 			// 다음 스텝이 1차 결제 요청일때. 체크부분 중요
 			// 코드리뷰가 결과 이때 결제 승인이 되어야지 TB_PAYMENT 테이블이 INSERT가 되는것으로 확인
 			// 따라서 다음 스텝이 1차 결제 요청, 2차 결제 요청으로 변경이 필요한 경우 동적테이블은 업데이트 처리 안합니다.
-			if (!(requestDTO.getRequestEtpStatus().equals("pm001") || 
-					requestDTO.getRequestEtpStatus().equals("pm003"))) {
+			if ( "pm001".equals(requestDTO.getRequestEtpStatus()) || 
+					"pm003".equals(requestDTO.getRequestEtpStatus()) ) {
 				
+				// 다음 주문테이블 업데이트가 필요해서 1 값으로 성공처리로 넘겨준다.
+				updateResult = 1;
+			} else {
 				updateResult =  bizWorkflowMapperAdm.updateEtpStatus(edto);
 			}
 			
@@ -452,7 +459,8 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 
 				// 식별자 주문식별자로 교체
 				edto.setRefId(orderId);
-				updateResult = bizWorkflowMapperAdm.updateEtpStatus(edto);
+				// updateResult = bizWorkflowMapperAdm.updateEtpStatus(edto);
+				updateResult = bizWorkflowMapperAdm.fixUpdateOrderStatus(edto);
 
 				if (updateResult < 1) {
 					throw new Exception("주문 테이블 추가 업데이트에 실패하였습니다.");
