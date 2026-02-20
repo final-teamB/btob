@@ -159,8 +159,8 @@
             rowHeaders: [],
             bodyHeight: 'auto', // 높이를 자동으로 조절하여 차트와 일체감 부여
             columns: [
-                { header: '기준일', name: 'statsDate', align: 'center', formatter: ({value}) => value ? value.split('T')[0] : '-' },
-                { header: '최신화 시간', name: 'executedAt', align: 'center', formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 16) : '-' },
+                { header: '기준일', name: 'statsDate', align: 'center', formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 10) : '-' },
+                { header: '최신화 시간', name: 'executedAt', align: 'center', formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 19) : '-' },
                 { header: '총 주문', name: 'totalOrderCount', align: 'center', formatter: ({value}) => `<span class="font-bold text-gray-900">\${(value || 0).toLocaleString()}건</span>` },
                 { header: '총 매출액', name: 'totalSalesAmount', align: 'center', formatter: ({value}) => `<span class="text-blue-600 font-bold">\${(value || 0).toLocaleString()}원</span>` }
             ],

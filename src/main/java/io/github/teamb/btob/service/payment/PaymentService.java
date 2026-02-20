@@ -16,14 +16,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
+import io.github.teamb.btob.dto.adminDelivery.DeliveryDTO;
+import io.github.teamb.btob.dto.adminDelivery.DeliveryStatus;
 import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
 import io.github.teamb.btob.dto.order.OrderVoDTO;
 import io.github.teamb.btob.dto.payment.PaymentRequestDTO;
 import io.github.teamb.btob.dto.payment.PaymentViewDTO;
+import io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper;
 import io.github.teamb.btob.mapper.cart.CartMapper;
 import io.github.teamb.btob.mapper.order.OrderMapper;
 import io.github.teamb.btob.mapper.payment.PaymentMapper;
 import io.github.teamb.btob.service.BizWorkflow.BizWorkflowService;
+import io.github.teamb.btob.service.adminDelivery.DeliveryService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,6 +39,9 @@ public class PaymentService {
 	private final CartMapper cartMapper;
 	private final BizWorkflowService bizWorkflowService; // 공통 워크플로우 서비스
 	private final LoginUserProvider loginUserProvider;
+	private final DeliveryService deliveryService;
+	private final DeliveryMapper deliveryMapper;
+
 
 	@Value("${toss.secret-key}")
     private String secretKey;
@@ -134,6 +141,32 @@ public class PaymentService {
 	            orderApproval.setUserId(loginUserId);
 	            bizWorkflowService.modifyEtpStatusAndLogHist(orderApproval); // ⭐️ DB 저장 3
 
+	            // 1차 결제 완료 -> 배송 생성
+	            if ("pm002".equals(nextStatus)) {
+
+	                DeliveryDTO delivery = deliveryMapper.selectDeliveryJoinOrder(payment.getDbOrderId());
+
+	                if (delivery == null) {
+	                    DeliveryDTO newDelivery = new DeliveryDTO();
+	                    newDelivery.setOrderId(payment.getDbOrderId());
+	                    newDelivery.setDeliveryStatus(DeliveryStatus.dv001); // 상품준비중
+	                    newDelivery.setRegId(loginUserId);
+
+	                    deliveryMapper.insertDelivery(newDelivery);
+	                }
+	            }
+	            // 2차 결제 완료 -> 배송상태 dv006으로 변경
+	            else if ("pm004".equals(nextStatus)) {
+	                
+	            	DeliveryDTO delivery = deliveryMapper.selectDeliveryJoinOrder(payment.getDbOrderId());
+	            	
+	            	if (delivery != null) {
+	            		delivery.setUpdId(loginUserId);
+	                    // 운송장 번호 생성, 택배사 지정, dv006 변경, 이력 등록, 알림 발송
+	                    deliveryService.modifyDelivery(delivery);
+	                }
+	            }
+	            
 	            // 장바구니 업데이트
 	            if ("FIRST".equals(payStep)) {
 	                Map<String, Object> cartParams = new HashMap<>();

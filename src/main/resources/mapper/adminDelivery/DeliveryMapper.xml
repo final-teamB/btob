@@ -2,39 +2,67 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper">
 	
+	<!-- 배송 생성 -->
+	<insert id="insertDelivery" parameterType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+	    INSERT INTO TB_DELIVERY (
+	        order_id,
+	        delivery_status,
+	        reg_dtime,
+	        reg_id,
+	        use_yn
+	    ) VALUES (
+	        #{orderId},
+	        #{deliveryStatus},
+	        NOW(),
+	        #{regId},
+	        'Y'
+	    )
+	</insert>
+	
+	<!-- 배송상태 변경 -->
+	<update id="updateDeliveryStatus" parameterType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+	    UPDATE TB_DELIVERY
+	    SET 
+	        delivery_status = #{deliveryStatus},
+	        upd_id = #{updId},
+	        upd_dtime = NOW()
+	    WHERE order_id = #{orderId}
+	      AND use_yn = 'Y'
+	</update>
+	
 	<!-- 전체 배송 목록 조회 -->
 	<select id="selectDeliveryList" resultType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
-    SELECT 
-        D.delivery_id deliveryId,
-        D.order_id orderId,
-        	O.order_no orderNo,            
-        	O.reg_id customerId,           
-        	O.order_status orderStatus,    
-        	D.delivery_status deliveryStatus,
-        D.tracking_no trackingNo,
-        D.carrier_name carrierName,
-        D.ship_to_addr shipToAddr,
-        D.reg_dtime regDtime,
-        D.use_yn useYn
-    FROM TB_DELIVERY D
-    INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id WHERE D.use_yn = 'Y'
-    <if test="searchStartDate != null and searchStartDate != ''">
-        AND D.reg_dtime &gt;= STR_TO_DATE(#{searchStartDate}, '%Y-%m-%d')
-    </if>
-    <if test="searchEndDate != null and searchEndDate != ''">
-        AND D.reg_dtime &lt; DATE_ADD(STR_TO_DATE(#{searchEndDate}, '%Y-%m-%d'), INTERVAL 1 DAY)
-    </if>
-    <if test="deliveryStatus != null">
-        AND D.delivery_status = #{deliveryStatus}
-    </if>
-    <if test="searchKeyword != null and searchKeyword != ''">
-        <choose>
-            <when test="searchType == 'orderId'"> AND D.order_id LIKE CONCAT('%', #{searchKeyword}, '%') </when>
-            <when test="searchType == 'trackingNo'"> AND D.tracking_no LIKE CONCAT('%', #{searchKeyword}, '%') </when>
-        </choose>
-    </if>
-    ORDER BY D.reg_dtime DESC
-</select>
+	    SELECT 
+	        D.delivery_id deliveryId,
+	        D.order_id orderId,
+	        	O.order_no orderNo,            
+	        	O.reg_id customerId,           
+	        	O.order_status orderStatus,    
+	        	D.delivery_status deliveryStatus,
+	        D.tracking_no trackingNo,
+	        D.carrier_name carrierName,
+	        D.ship_to_addr shipToAddr,
+	        D.reg_dtime regDtime,
+	        D.use_yn useYn
+	    FROM TB_DELIVERY D
+	    INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id WHERE D.use_yn = 'Y'
+	    <if test="searchStartDate != null and searchStartDate != ''">
+	        AND D.reg_dtime &gt;= STR_TO_DATE(#{searchStartDate}, '%Y-%m-%d')
+	    </if>
+	    <if test="searchEndDate != null and searchEndDate != ''">
+	        AND D.reg_dtime &lt; DATE_ADD(STR_TO_DATE(#{searchEndDate}, '%Y-%m-%d'), INTERVAL 1 DAY)
+	    </if>
+	    <if test="deliveryStatus != null">
+	        AND D.delivery_status = #{deliveryStatus}
+	    </if>
+	    <if test="searchKeyword != null and searchKeyword != ''">
+	        <choose>
+	            <when test="searchType == 'orderId'"> AND D.order_id LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	            <when test="searchType == 'trackingNo'"> AND D.tracking_no LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	        </choose>
+	    </if>
+	    ORDER BY D.reg_dtime DESC
+	</select>
 	
 	<!-- 배송 정보 상세보기 -->
 	<select id="selectDeliveryDetail" parameterType="int" resultType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
@@ -51,9 +79,14 @@
             D.upd_id updId,
             D.use_yn useYn,
             	O.order_status orderStatus,
-            	O.reg_id regId
+            	O.reg_id regId,
+            COALESCE(C.addr_kor, '') as addrKor,
+	        COALESCE(C.zip_code, '') as zipCode,
+	        COALESCE(C.company_name, '') as companyName
         FROM TB_DELIVERY D
-        INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id
+        LEFT JOIN TB_ORDER_MST O ON D.order_id = O.order_id
+        LEFT JOIN TB_USERS U     ON O.reg_id = U.user_id
+        LEFT JOIN TB_COMPANIES C ON U.company_cd = C.company_cd
         WHERE D.delivery_id = #{deliveryId} AND D.use_yn = 'Y'
 	</select>
 	
@@ -71,12 +104,18 @@
         WHERE delivery_id = #{deliveryId}
 	</update>
 	
-	<!-- 주문 상태 조회 -->
-	<select id="getOrderStatusByOrderId" parameterType="int" resultType="String">
-		SELECT O.order_status orderStatus
-		FROM TB_ORDER_MST O
-		JOIN TB_DELIVERY D ON O.order_id = D.order_id
-    	WHERE D.delivery_id = #{deliveryId}
+	<select id="selectDeliveryJoinOrder" parameterType="int" resultType="io.github.teamb.btob.dto.adminDelivery.DeliveryDTO">
+	    SELECT 
+	        D.delivery_id as deliveryId,
+	        D.order_id as orderId,
+	        D.delivery_status as deliveryStatus,
+	        D.tracking_no as trackingNo,
+	        D.carrier_name as carrierName,
+	        O.order_status as orderStatus 
+	    FROM TB_DELIVERY D
+	    INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id
+	    WHERE D.order_id = #{orderId} AND D.use_yn = 'Y'
+	    LIMIT 1
 	</select>
 	
 	<!-- 주문 상태 동기화 -->

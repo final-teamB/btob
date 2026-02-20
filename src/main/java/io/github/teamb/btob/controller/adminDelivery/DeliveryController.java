@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.github.teamb.btob.dto.adminDelivery.DeliveryDTO;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryStatus;
+import io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper;
 import io.github.teamb.btob.service.adminDelivery.DeliveryService;
 import lombok.RequiredArgsConstructor;
 
@@ -29,8 +30,28 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hashRole('ADMIN')")
 public class DeliveryController {
     
+	private final DeliveryMapper deliveryMapper;
     private final DeliveryService deliveryService;
 
+    // test
+    @GetMapping("/test/{orderId}")
+    public String testDelivery(@PathVariable int orderId) {
+        // 억지로 pm002 상황을 만들어서 배송 로직만 테스트
+        try {
+            String loginUserId = "test_user"; // 테스트용 ID
+            
+            DeliveryDTO newDelivery = new DeliveryDTO();
+            newDelivery.setOrderId(orderId);
+            newDelivery.setDeliveryStatus(DeliveryStatus.dv001);
+            newDelivery.setRegId(loginUserId);
+
+            deliveryMapper.insertDelivery(newDelivery);
+            return "배송 생성 성공! orderId: " + orderId;
+        } catch (Exception e) {
+            return "실패: " + e.getMessage();
+        }
+    }
+    
     // 배송관리 목록 조회
     @GetMapping("/list")
     public String deliveryList(DeliveryDTO deliveryDTO, Model model) {
