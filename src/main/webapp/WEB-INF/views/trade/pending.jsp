@@ -67,6 +67,16 @@ document.addEventListener('DOMContentLoaded', function() {
         ],
         data: rawData
     });   
+    pendingGrid.initFilters([
+    	{ 
+    		field: 'docType', 
+    		title: '문서',
+    		options: [
+                { text: '견적 승인대기', value: 'ESTIMATE' },
+                { text: '주문 승인대기', value: 'PURCHASE ORDER' }
+            ]
+    	}
+    ]);
 });
 
 window.handleGridAction = function(rawData, action) {

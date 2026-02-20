@@ -181,7 +181,7 @@
                   formatter: ({value}) => `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">\${value || '-'}</span>`
                 },
                 { header: '지역', name: 'address', align: 'left' },
-                { header: '가입일', name: 'regDate', align: 'center', width: 120 }
+                { header: '가입일', name: 'regDate', align: 'center', width: 180 }
             ],
             pageOptions: { useClient: true, perPage: 10 }
         });

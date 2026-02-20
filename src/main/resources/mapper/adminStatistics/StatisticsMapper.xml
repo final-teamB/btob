@@ -118,7 +118,7 @@
 	        o.order_no as orderNo,
 	        d.ship_to_addr as regionName,
 	        d.delivery_status as statusName,
-	        DATE_FORMAT(d.upd_dtime, '%Y-%m-%d %H:%i') as updateTime
+	        DATE_FORMAT(d.upd_dtime, '%Y-%m-%d %H:%i:%S') as updateTime
 	    FROM TB_DELIVERY d
 	    JOIN TB_ORDER_MST o ON d.order_id = o.order_id
 	    WHERE d.use_yn = 'Y'
@@ -175,7 +175,7 @@
 	        u.acc_status as accStatus,
 	        u.app_status as appStatus,
 	        u.address as address,
-	        DATE_FORMAT(u.reg_dtime, '%Y-%m-%d') as regDate
+	        DATE_FORMAT(u.reg_dtime, '%Y-%m-%d %H:%i:%S') as regDate
 	    FROM TB_USERS u
 	    WHERE u.use_yn = 'Y'
 	    
@@ -241,7 +241,7 @@
 	        u.curr_stock_vol as stockVol,
 	        u.safe_stock_vol as safeStock,
 	        u.item_stts_cd as status,
-	        DATE_FORMAT(u.reg_dtime, '%Y-%m-%d') as regDate
+	        DATE_FORMAT(u.reg_dtime, '%Y-%m-%d %H:%i:%S') as regDate
 	    FROM TB_OIL_MST u
 	    WHERE u.use_yn = 'Y'
 	

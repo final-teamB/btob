@@ -21,6 +21,8 @@ public class EstimateDetailDTO {
     private String companyName;
     private String companyPhone;
     private String addrKor;
+    private String userNo;
+    private String userId;
     private String userName;
     private String phone;
 

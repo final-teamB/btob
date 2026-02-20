@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.cart.CartItemDTO;
 import io.github.teamb.btob.dto.cart.CartItemInsertDTO;
+import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO;
 import io.github.teamb.btob.mapper.cart.CartMapper;
+import io.github.teamb.btob.service.mgmtAdm.product.ProductManagementService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class CartServiceImpl implements CartService {
 	private final CartMapper cartMapper;
 	private final LoginUserProvider loginUserProvider;
+	private final ProductManagementService productManagementService;
 	
 	@Override
 	public List<CartItemDTO> getCartItemList(String orderNo) {
@@ -45,41 +48,95 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	public void addToCart(CartItemInsertDTO dto) { 
-		dto.setUserId(loginUserProvider.getLoginUserId());
-		// 안전장치
-	    if (dto.getTotalQty() < 1) {
+	    dto.setUserId(loginUserProvider.getLoginUserId());
+	    
+	   /* if (dto.getTotalQty() < 1) {
 	        throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
 	    }
-			
-		// 1. 이미 담긴 상품인지 확인
-        CartItemInsertDTO existItem = cartMapper.selectExistingCartItem(dto); // userId + fuelId + PENDING
 
-        if (existItem == null) {
-            // 신규 담기
-        	dto.setTotalPrice(dto.getTotalQty() * dto.getBaseUnitPrc());
-            dto.setCartStatus("PENDING");
-            cartMapper.insertCartItem(dto);
-        } else {
-            // 수량 누적
-            int newQty = existItem.getTotalQty() + dto.getTotalQty();
-            existItem.setTotalQty(newQty);
-            int newPrice = newQty * dto.getBaseUnitPrc();
-            existItem.setTotalPrice(newPrice);
-                    
-            cartMapper.updateCartItem(existItem);
-        }
-		
+	    // [추가] 재고 차감 시도
+	    UpdateProductCurrVolDTO volDTO = new UpdateProductCurrVolDTO();
+	    volDTO.setFuelId(dto.getFuelId());
+	    volDTO.setOrderQty(dto.getTotalQty());
+	    volDTO.setRequestType("DOWN");
+	    try {
+	        productManagementService.modifyProductCurrVol(volDTO);
+	    } catch (Exception e) {
+	        throw new RuntimeException("재고 수정 실패: " + e.getMessage());
+	    }
+	    */
+
+	    // 1. 이미 담긴 상품인지 확인
+	    CartItemInsertDTO existItem = cartMapper.selectExistingCartItem(dto);
+
+	    if (existItem == null) {
+	    	dto.setTotalPrice(dto.getTotalQty() * dto.getBaseUnitPrc());
+	        dto.setCartStatus("PENDING");
+	        cartMapper.insertCartItem(dto);
+	    } else {
+	        // 수량 누적 처리
+	        int newQty = existItem.getTotalQty() + dto.getTotalQty();
+	        existItem.setTotalQty(newQty);
+	        existItem.setTotalPrice(newQty * dto.getBaseUnitPrc());
+	        cartMapper.updateCartItem(existItem);
+	    }
 	}
 
 	@Override
 	public void updateCartItemQty(CartItemInsertDTO dto) {
-		dto.setUserId(loginUserProvider.getLoginUserId());
-	    cartMapper.updateCartItem(dto);	
+	    dto.setUserId(loginUserProvider.getLoginUserId());
+	    
+	    // 1. 기존 장바구니 정보를 조회하여 이전 수량 확인 (Mapper에 해당 메서드 필요)
+	    // 예: selectCartItemOne(cartId)
+	    /*
+	    CartItemDTO currentItem = cartMapper.selectCartItemById(dto.getCartId()); 
+	    int diffQty = dto.getTotalQty() - currentItem.getTotalQty();
+
+	    if (diffQty != 0) {
+	        UpdateProductCurrVolDTO volDTO = new UpdateProductCurrVolDTO();
+	        volDTO.setFuelId(dto.getFuelId());
+	        volDTO.setOrderQty(Math.abs(diffQty)); // 차이값의 절대값만큼 조정
+	        
+	        // 늘어났으면 DOWN(차감), 줄어들었으면 UP(복구)
+	        if (diffQty > 0) {
+	            volDTO.setRequestType("DOWN");
+	        } else {
+	            volDTO.setRequestType("UP");
+	            volDTO.setOrderStatus("pr999"); // [중요] DB에 실존하는 코드로 검증 통과
+	        }
+
+	        try {
+	            productManagementService.modifyProductCurrVol(volDTO);
+	        } catch (Exception e) {
+	            throw new RuntimeException("재고 수정 중 오류 발생: " + e.getMessage());
+	        }
+	    }
+        */
+	    cartMapper.updateCartItem(dto);    
 	}
-	
+
 	@Override
 	public void deleteCartItem(int cartId) {
-		cartMapper.deleteCartItem(cartId, loginUserProvider.getLoginUserId());		
+	    // 1. 삭제 전 수량을 알아야 재고를 복구하므로 먼저 조회
+		/*
+	    CartItemDTO item = cartMapper.selectCartItemById(cartId);
+	    
+	    if (item != null) {
+	        UpdateProductCurrVolDTO volDTO = new UpdateProductCurrVolDTO();
+	        volDTO.setFuelId(item.getFuelId());
+	        volDTO.setOrderQty(item.getTotalQty());
+	        volDTO.setRequestType("UP"); // 장바구니 삭제이므로 재고 다시 증가
+	        volDTO.setOrderStatus("pr999");
+
+	        try {
+	            productManagementService.modifyProductCurrVol(volDTO);
+	        } catch (Exception e) {
+	        	throw new RuntimeException("재고 복구 실패: " + e.getMessage());
+	        }
+	    }
+	    */
+
+	    cartMapper.deleteCartItem(cartId, loginUserProvider.getLoginUserId());        
 	}
 	
 	// ordered 카트 목록 비우기

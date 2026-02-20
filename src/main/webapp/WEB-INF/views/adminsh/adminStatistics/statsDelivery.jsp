@@ -169,7 +169,12 @@
                 { header: '상태', name: 'statusName', align: 'center', width: 150,
                   formatter: ({value}) => `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">\${value}</span>` 
                 },
-                { header: '업데이트 일시', name: 'updateTime', align: 'center', width: 180 }
+                { header: '업데이트 일시', name: 'updateTime', align: 'center', width: 200,
+                	 formatter: ({value}) => {
+                	      if (!value) return '-';
+                	      return value.replace('T', ' ').substring(0, 19);
+                	  }	
+                }
             ],
             pageOptions: { useClient: true, perPage: 10 }
         });
