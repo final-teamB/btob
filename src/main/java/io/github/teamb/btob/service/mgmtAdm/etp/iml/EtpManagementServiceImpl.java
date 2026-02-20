@@ -122,10 +122,14 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 		approvalDecisionRequestDTO.setRequestUserNo(userId);
 		approvalDecisionRequestDTO.setRejtRsn(rejtRsn);
 		
-		SearchEtpListDTO param = etpMgmtAdmMapper.selectEtpParamsChk();
+		System.out.println("ETPMANAGEMNET 관리자 주문서비스 현재 시스템 아이디 : " + currentSystemId);
+		System.out.println("ETPMANAGEMNET 현재 주문 식별자 : " + ordId);
+		
+		SearchEtpListDTO param = etpMgmtAdmMapper.selectEtpParamsChk(ordId);
 		String paramOrderStatus = param.getOrderStatus();
+		System.out.println("ETPMANAGEMNET 현재 주문 상태코드 : " + paramOrderStatus);
 		String paramUserType = param.getUserType();
-
+		System.out.println("ETPMANAGEMNET 해당 주문 요청자의 권한 상태 : " + paramUserType);
 		int result = 1;
 
 		// 단건 고정
@@ -136,21 +140,20 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 		// 견적요청(현재상태) -> 견적승인 -> 주문요청 -> 주문승인
 		if ( approvalStatus.equals("APPROVED") &&
 				paramUserType.equals("MASTER") &&
-				paramOrderStatus.equals("et001") ) {
+				paramOrderStatus.equals("et002") ) {
 			loopCnt = 3;
+			System.out.println("요청한 사람이 마스터 이고 현재 견적요청상태이면 여기 탑니다.");
 		// 구매요청(현재상태) -> 구매승인 -> 1차결제요청
 		} else if ( approvalStatus.equals("APPROVED") && paramOrderStatus.equals("pr001") ) {
 			loopCnt = 2;
+			System.out.println("요청한 사람이 마스터 이고 현재 구매요청상태이면 여기 탑니다.");
 		}
 
-		try {
-			ApprovalDecisionResultDTO resultDto = null;
+		ApprovalDecisionResultDTO resultDto = null;
 
-			for (int i = 0; i < loopCnt; i++) {
-				resultDto = modifyAndUpdateSystemId(approvalDecisionRequestDTO);
-			}
-		} catch (Exception e) {
-			result = 0;
+		for (int i = 0; i < loopCnt; i++) {
+			resultDto = modifyAndUpdateSystemId(approvalDecisionRequestDTO);
+			System.out.println("루프 몇 번 도는지 확인 합니다. : " + i + " 번");
 		}
 
 		return result;

@@ -21,6 +21,7 @@ import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.EtpApprovRejctRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO;
 import io.github.teamb.btob.dto.mgmtAdm.hist.SearchEtpHistListDTO;
+import io.github.teamb.btob.service.mgmtAdm.etp.EtpExcelService;
 import io.github.teamb.btob.service.mgmtAdm.etp.EtpManagementService;
 import io.github.teamb.btob.service.mgmtAdm.etphist.EtpHistManagementService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,6 +36,7 @@ public class EtpMgmtAdmController {
 	
 	private final EtpManagementService etpManagementService;
 	private final EtpHistManagementService etpHistManagementService;
+	private final EtpExcelService etpExcelService;
 	
 	/**
      * 
@@ -145,7 +147,7 @@ public class EtpMgmtAdmController {
         
         try {
 
-            // 서비스 호출 (상태 변경 + 히스토리 등록 + 필요시 빅스탭 + 필요시 자이언트스탭까지)
+            // 서비스 호출 (상태 변경 + 히스토리 등록)
             Integer finalResult = etpManagementService.handleApprovalRejctButton(etpApprovRejctRequestDTO);
             
             if (finalResult > 0) {
@@ -166,6 +168,21 @@ public class EtpMgmtAdmController {
             
         } catch (Exception e) {
             log.error("승인/반려 처리 중 서버 오류 발생", e);
+            
+            // 기본 메시지 설정
+            String displayMsg = e.getMessage();
+            
+            // 트랜잭션 롤백 관련 내부 메시지인 경우, 더 구체적인 원인을 탐색
+            if (displayMsg != null && displayMsg.contains("Transaction silently rolled back")) {
+                
+            	// e.getCause()가 있으면 그 메시지를 쓰고, 없으면 사용자 친화적인 문구로 대체
+                if (e.getCause() != null && e.getCause().getMessage() != null) {
+                    displayMsg = e.getCause().getMessage();
+                } else {
+                    displayMsg = "재고 확인 또는 권한 문제로 인해 처리가 취소되었습니다.";
+                }
+            }
+            
             result.put("success", false);
             result.put("message", "처리 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
@@ -195,7 +212,7 @@ public class EtpMgmtAdmController {
         // 프론트에서 isExcel='Y'를 던져주겠지만, 안전하게 한 번 더 체크
         params.put("isExcel", "Y");
         
-        //etpHistExcelService.downloadProductExcel(response, params);
+        etpExcelService.downloadEtpExcel(response, params);
     }
 
 }

@@ -2,32 +2,49 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="cp" value="${pageContext.request.contextPath}" />
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<style>
-    /* 상태별 배지 스타일 */
-    .stts-badge { padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
-    .stts-ready { background-color: #f3f4f6; color: #374151; }    /* 대기 */
-    .stts-ing { background-color: #eff6ff; color: #1d4ed8; }      /* 진행중 */
-    .stts-complete { background-color: #ecfdf5; color: #059669; } /* 완료 */
-    .stts-reject { background-color: #fef2f2; color: #dc2626; }   /* 반려 */
 
-    .btn-action { transition: all 0.2s; }
-    .btn-action:hover { transform: translateY(-1px); shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+<style>
+    .stts-badge { padding: 3px 10px !important; border-radius: 9999px !important; font-size: 11px !important; font-weight: 700 !important; display: inline-block !important; text-align: center !important; min-width: 95px !important; }
+
+    /* [견적: et] 보라색 */
+    .stts-et { background-color: #f5f3ff !important; color: #7c3aed !important; border: 1px solid #ddd6fe !important; } 
+    
+    /* [주문: od] 파란색 */
+    .stts-od { background-color: #eff6ff !important; color: #2563eb !important; border: 1px solid #bfdbfe !important; }
+
+    /* [구매: pr] 청록색 (Teal) - 추가 분리 */
+    .stts-pr { background-color: #ecfeff !important; color: #0891b2 !important; border: 1px solid #a5f3fc !important; }
+    
+    /* [결제: pm] 에메랄드색 */
+    .stts-pm { background-color: #ecfdf5 !important; color: #059669 !important; border: 1px solid #a7f3d0 !important; } 
+
+    /* [배송: dv] 주황/노랑색 */
+    .stts-dv { background-color: #fffbeb !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
+
+    /* [반려: 999] 붉은색 */
+    .stts-reject { background-color: #fef2f2 !important; color: #dc2626 !important; border: 1px solid #fecaca !important; }
+
+    /* [기본] 회색 */
+    .stts-default { background-color: #f9fafb !important; color: #4b5563 !important; border: 1px solid #e5e7eb !important; }
+
+    /* 그리드 영역 보호 */
+    .grid-relative-wrapper { min-height: 400px; position: relative; }
 </style>
 
 <div class="max-w-screen-2xl mx-auto">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-700">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
                 <div class="flex items-center gap-3">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">견적/주문/구매/결제 관리</h2>
-                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
                         전체 <span id="total-count-display">0</span>건
                     </span>
                 </div>
                 <p class="text-sm text-gray-500 mt-1">단계별 프로세스를 모니터링하고 관리자 승인/반려 처리를 수행합니다.</p>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="EtpExcelHandler.downloadExcel()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                <button type="button" onclick="EtpExcelHandler.downloadExcel()" class="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
                     <i class="fas fa-file-excel mr-1 text-green-600"></i> 엑셀 다운로드
                 </button>
             </div>
@@ -43,24 +60,39 @@
 </div>
 
 <jsp:include page="etpApprovRejctModal.jsp" />
+<jsp:include page="etpHistModal.jsp" />
 
 <script>
     const cp = window.location.origin + ( '${pageContext.request.contextPath}' === '/' ? '' : '${pageContext.request.contextPath}' );
     let etpGrid, approvModal;
 
     document.addEventListener('DOMContentLoaded', function() {
-        // 모달 초기화
+        // [수정] 모달 초기화 시 backdrop 옵션 명확화
         if (typeof Modal !== 'undefined') {
-            approvModal = new Modal(document.getElementById('approvModal'), { backdrop: 'static' });
+            const modalEl = document.getElementById('approvModal');
+            if (modalEl) {
+                approvModal = new Modal(modalEl, { 
+                    backdrop: 'static',
+                    closable: true,
+                    onHide: () => {
+                        // 모달이 닫힐 때 강제로 body 잠금 해제 (클릭 안됨 방지)
+                        document.body.classList.remove('overflow-hidden');
+                        $('.modal-backdrop').remove();
+                    }
+                });
+            }
         }
 
-     	// [추가] 실시간 검색 및 필터 변경 이벤트 감지 (이벤트 위임)
+        // 검색 및 필터 이벤트 리스너
+        initEventListeners();
+        window.fetchData();
+    });
+
+    function initEventListeners() {
         const filterWrapper = document.getElementById('dg-common-filter-wrapper');
         if (filterWrapper) {
-            filterWrapper.addEventListener('change', function(e) {
-                if (e.target.tagName === 'SELECT') {
-                    window.fetchData();
-                }
+            filterWrapper.addEventListener('change', (e) => {
+                if (e.target.tagName === 'SELECT') window.fetchData();
             });
         }
 
@@ -72,19 +104,13 @@
                 debounceTimer = setTimeout(() => window.fetchData(), 300);
             });
         }
+    }
 
-        window.fetchData();
-    });
-
- 	// --- 데이터 조회 함수 ---
     window.fetchData = function() {
         const searchInput = document.getElementById('dg-search-input');
-        const searchCondition = searchInput && searchInput.value ? encodeURIComponent(searchInput.value) : '';
-
-        // [수정 포인트] 필터 셀렉트 박스 값 수집
+        const searchCondition = searchInput?.value ? encodeURIComponent(searchInput.value) : '';
         const etpSttsCd = document.getElementById('filter-etpSttsCd')?.value || '';
         const ordYear = document.getElementById('filter-ordYear')?.value || '';
-        
         const perPageEl = document.getElementById('dg-per-page');
         const currentPerPage = perPageEl ? parseInt(perPageEl.value) : 10;
 
@@ -96,44 +122,48 @@
         fetch(url)
             .then(res => res.json())
             .then(data => {
-                const totalCountEl = document.getElementById('total-count-display');
-                if (totalCountEl) {
-                    totalCountEl.innerText = (data.totalCnt || 0).toLocaleString();
-                }
+                document.getElementById('total-count-display').innerText = (data.totalCnt || 0).toLocaleString();
                 
-                // [핵심 수정] 로컬 필터링을 위해 서버 데이터의 키값을 매핑합니다.
-                // datagrid.js는 'etpSttsCd' 필터를 돌릴 때 데이터의 'etpSttsCd' 속성을 검사합니다.
                 const mappedList = (data.list || []).map(item => ({
                     ...item,
-                    etpSttsCd: item.orderStatus, // 서버의 orderStatus 값을 필터가 사용하는 키값으로 복사
-                    ordYear: item.orderDate ? item.orderDate.substring(0, 4) : '' // 연도 필터 대응
+                    etpSttsCd: item.orderStatus,
+                    ordYear: item.orderDate ? item.orderDate.substring(0, 4) : ''
                 }));
 
                 initGrid(mappedList, currentPerPage);
-            });
+            })
+            .catch(err => console.error("Data fetch error:", err));
     };
 
     function initGrid(data, perPage) {
         const container = document.getElementById('dg-container');
         if (!container) return;
 
-        // 기존 그리드가 있을 경우 데이터만 업데이트
+        // [핵심 수정] 기존 그리드가 있으면 innerHTML을 비우지 않고 데이터만 교체합니다.
         if (etpGrid && etpGrid.grid) {
-            etpGrid.allData = data.map(item => {
-                const newItem = { ...item };
-                if (newItem.regDtime && typeof newItem.regDtime === 'string') {
-                    newItem.regDtime = newItem.regDtime.replace('T', ' ').split('.')[0];
-                }
-                return newItem;
-            });
-            etpGrid.perPage = perPage;
-            etpGrid.currentPage = 1;
-            etpGrid.executeFiltering(true);
-            setTimeout(() => etpGrid.grid.refreshLayout(), 50);
+            const cleanData = data.map(item => ({
+                ...item,
+                orderDate: item.orderDate ? item.orderDate.replace('T', ' ').split('.')[0] : '-',
+                regDtime: item.regDtime ? item.regDtime.replace('T', ' ').split('.')[0] : '-'
+            }));
+            
+            etpGrid.allData = cleanData;
+            // resetData 사용 시 페이징 유지를 위해 기존 인스턴스 활용
+            etpGrid.grid.resetData(cleanData);
+            
+        	 // [추가] 페이징 영역이 혹시라도 사라졌는지 체크하여 강제로 다시 그리기 지시
+            if (typeof etpGrid.renderPagination === 'function') {
+                etpGrid.renderPagination(); 
+            }
+            
+            etpGrid.executeFiltering(true); 
+            
+            // 레이아웃이 깨지지 않게 보정
+            setTimeout(() => etpGrid.grid.refreshLayout(), 100);
             return;
         }
 
-        // --- 그리드 최초 생성 ---
+        // 그리드 최초 생성 시에만 컨테이너 비우기
         container.innerHTML = '';
         etpGrid = new DataGrid({
             containerId: 'dg-container',
@@ -152,12 +182,13 @@
                     renderer: {
                         type: class {
                             constructor(props) {
-                                const el = document.createElement('span');
-                                this.el = el;
+                                this.el = document.createElement('span');
                                 this.render(props);
                             }
                             getElement() { return this.el; }
                             render(props) {
+                                const rowData = props.grid.getRow(props.rowKey);
+                                if(!rowData) return;
                                 this.el.className = 'stts-badge ' + getSttsClass(props.rowKey, props.grid);
                                 this.el.innerText = props.value || '-';
                             }
@@ -167,36 +198,44 @@
                 { header: '회사명', name: 'companyName', width: 150, align: 'left' },
                 { header: '직급', name: 'userType', width: 100, align: 'center' },
                 { header: '요청자', name: 'userName', width: 120, align: 'center' },
-                { header: '주문일자', name: 'orderDate', width: 110, align: 'center', formatter: (v) => v.value ? v.value.split('T')[0] : '-' },
+                { header: '주문일자', name: 'orderDate', width: 110, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },
                 { header: '등록일시', name: 'regDtime', width: 160, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },
                 {
                     header: '관리', name: 'manage', width: 220, align: 'center',
                     renderer: {
                         type: class {
                             constructor(props) {
-                                const row = props.grid.getRow(props.rowKey);
                                 const container = document.createElement('div');
                                 container.className = 'flex gap-2 justify-center';
-                                
-                            	 // [수정 포인트] 승인 혹은 반려 권한이 하나라도 있으면 통합 버튼 노출
-                                if (row.approveBtn === 'Y' || row.rejectBtn === 'Y') {
-                                    const btnManage = document.createElement('button');
-                                    btnManage.className = 'px-3 py-1 text-xs font-bold text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition-colors';
-                                    btnManage.innerText = '승인/반려';
-                                    btnManage.onclick = () => openApproveModal(row);
-                                    container.appendChild(btnManage);
-                                }
-                                
-                             	// 이력 버튼 (항시 노출)
-                                const btnHist = document.createElement('button');
-                                btnHist.className = 'px-3 py-1 text-xs font-bold text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition-colors';
-                                btnHist.innerText = '이력';
-                                btnHist.onclick = () => viewHistory(row.orderId);
-                                container.appendChild(btnHist);
-
                                 this.el = container;
+                                this.render(props);
                             }
                             getElement() { return this.el; }
+                            render(props) {
+                                this.el.innerHTML = '';
+                                const row = props.grid.getRow(props.rowKey);
+                                if (!row) return;
+
+                                if (row.approveBtn === 'Y' || row.rejectBtn === 'Y') {
+                                    const btnManage = document.createElement('button');
+                                    btnManage.className = 'px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50 transition-colors';
+                                    btnManage.innerText = '승인/반려';
+                                    btnManage.onclick = (e) => {
+                                        e.stopPropagation();
+                                        openApproveModal(props.grid.getRow(props.rowKey));
+                                    };
+                                    this.el.appendChild(btnManage);
+                                }
+                                
+                                const btnHist = document.createElement('button');
+                                btnHist.className = 'px-3 py-1 text-xs font-bold text-gray-700 border border-gray-400 rounded-md hover:bg-gray-100 transition-colors';
+                                btnHist.innerText = '이력';
+                                btnHist.onclick = (e) => {
+                                    e.stopPropagation();
+                                    viewHistory(props.grid.getRow(props.rowKey).orderId);
+                                };
+                                this.el.appendChild(btnHist);
+                            }
                         }
                     }
                 }
@@ -230,61 +269,76 @@
 
     function getSttsClass(rowKey, grid) {
         const row = grid.getRow(rowKey);
-        // 행 데이터가 없거나 orderStatus가 없는 경우 대비
-        if (!row || !row.orderStatus) return 'stts-ready';
-        
-        const code = row.orderStatus; 
+        if (!row) return 'stts-default';
 
-        // 1. 반려 (999 또는 rej 포함)
-        if (code.includes('999') || code.toLowerCase().includes('rej')) {
+        // etpSttsCd(매핑값) 또는 orderStatus(원천값) 참조
+        const rawCode = row.etpSttsCd || row.orderStatus || '';
+        const code = String(rawCode).toLowerCase().trim(); 
+
+        // 1. 반려 (999 포함 시 최우선)
+        if (code.includes('999')) {
             return 'stts-reject';
         }
-        
-        // 2. 대기 (끝자리가 001)
-        if (code.endsWith('001')) {
-            return 'stts-ready';
+
+        // 2. 견적 (et)
+        if (code.startsWith('et')) {
+            return 'stts-et';
+        }
+
+        // 3. 주문 (od) - 파란색
+        if (code.startsWith('od')) {
+            return 'stts-od';
+        }
+
+        // 4. 구매 (pr) - 청록색
+        if (code.startsWith('pr')) {
+            return 'stts-pr';
+        }
+
+        // 5. 결제 (pm)
+        if (code.startsWith('pm')) {
+            return 'stts-pm';
+        }
+
+        // 6. 배송 (dv)
+        if (code.startsWith('dv')) {
+            return 'stts-dv';
         }
         
-        // 3. 완료 (끝자리가 002, 003, 004 또는 complete 포함)
-        // pm002: 주문요청완료, pm003: 1차결제완료, pm004: 2차결제완료 등
-        if (code.endsWith('002') || code.endsWith('003') || code.endsWith('004') || code.toLowerCase().includes('complete')) {
-            return 'stts-complete';
-        }
-        
-        // 4. 그 외 나머지는 진행중 (stts-ing)
-        return 'stts-ing';
+        return 'stts-default';
     }
 
-	 // 모달 오픈 함수 (하나의 모달에서 처리하므로 mode 파라미터 제거)
     function openApproveModal(rowData) {
         if(!rowData) return;
         
-     // jQuery를 사용하므로 $('#id') 방식으로 값 세팅 가능
+        // 폼 초기화
         $('#modalOrderId').val(rowData.orderId || '');
-        $('#modalEstId').val(rowData.estId || '');       // 버그 해결을 위한 estId 추가
+        $('#modalEstId').val(rowData.estId || '');
         $('#modalSystemId').val(rowData.systemId || '');
-        $('#modalUserId').val(rowData.userId || '');    
-        $('#modalUserType').val(rowData.userType || ''); 
-        
-        // 텍스트 출력
+        $('#modalUserId').val(rowData.userId || '');
+        $('#modalUserType').val(rowData.userType || '');
         $('#modalRequestUser').text((rowData.userName || '') + ' (' + (rowData.userId || '-') + ')');
         $('#modalCtrtNm').text(rowData.ctrtNm || '-');
-        
-        // 반려 사유 영역 초기화
         $('#rejtRsnArea').hide();
         $('#rejtRsn').val('');
-        
-        // 승인 버튼 기본 체크
         $('input[name="apprStatus"][value="APPROVED"]').prop('checked', true);
         
+        // [중요] 모달 표시 전 배경잠김 해제 확인
+        document.body.classList.add('overflow-hidden');
         if(approvModal) approvModal.show();
     }
 
-    // 엑셀 핸들러
     const EtpExcelHandler = {
         downloadExcel: function() {
             const searchCondition = document.getElementById('dg-search-input')?.value || '';
-            location.href = cp + '/admin/etp/download/excel?searchCondition=' + encodeURIComponent(searchCondition) + '&isExcel=Y';
+            const etpSttsCd = document.getElementById('filter-etpSttsCd')?.value || '';
+            const ordYear = document.getElementById('filter-ordYear')?.value || '';
+
+            let url = cp + '/admin/etp/download/excel?isExcel=Y'
+                    + '&searchCondition=' + encodeURIComponent(searchCondition)
+                    + '&etpSttsCd=' + encodeURIComponent(etpSttsCd)
+                    + '&ordYear=' + encodeURIComponent(ordYear);
+            location.href = url;
         }
     };
 </script>
