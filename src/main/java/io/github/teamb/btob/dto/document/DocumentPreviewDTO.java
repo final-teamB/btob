@@ -19,8 +19,8 @@ import lombok.Setter;
 public class DocumentPreviewDTO {
 	private int docId;              // doc_id
     private String docNo;			// doc_no
-    private String docType;			// doc_type  QUOTE / CONTRACT / TRANSACTION
-    private int ownerUserId;        // owner_user_id내부 로직용
+    private String docType;			// doc_type  ESTIMATE / CONTRACT / TRANSACTION / PURCAHSE ORDER
+    private String ownerUserId;        // owner_user_id내부 로직용
     private String userName;        // ownerUserName 화면 표시용
     private String memo;  			// memo
     private LocalDateTime regDtime; // reg_dtime

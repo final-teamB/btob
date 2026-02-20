@@ -48,7 +48,21 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	public void addToCart(CartItemInsertDTO dto) { 
-	    dto.setUserId(loginUserProvider.getLoginUserId());
+		String userId = loginUserProvider.getLoginUserId();
+	    dto.setUserId(userId);
+	    
+	    int reqCount = cartMapper.checkAnyRequestStatus(userId, "REQ");
+	    if (reqCount > 0) {
+	        throw new RuntimeException("이미 처리 중인 주문/견적 요청이 있습니다. 완료 후 이용해주세요.");
+	    }
+
+	    // [추가 로직 2] 바로 주문/견적('Y') 시 장바구니에 이미 상품(use_yn='Y')이 있는지 체크
+	    if ("Y".equals(dto.getIsDirect())) {
+	        int activeCartCount = cartMapper.checkActiveCartCount(userId);
+	        if (activeCartCount > 0) {
+	            throw new RuntimeException("거래바구니에 상품이 있습니다. 거래바구니를 비우고 다시 진행해주세요.");
+	        }
+	    }
 	    
 	   /* if (dto.getTotalQty() < 1) {
 	        throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");

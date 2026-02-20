@@ -299,7 +299,8 @@ function changeQty(amount) {
 	    const unitPrice = Number(currentUnitPrice) || 0;
 	    const qty = Number(document.getElementById('orderQtyInput').value) || 1;
 	    const totalPrice = unitPrice * qty;
-
+	    var actionName = "장바구니 담기";
+	    
 		 // [확인용] 여기서 0이 나오면 애초에 currentUnitPrice가 세팅이 안 된 것입니다.
 	    console.log("계산 결과 -> 단가:", unitPrice, "수량:", qty, "총액:", totalPrice);
 
@@ -328,8 +329,8 @@ function changeQty(amount) {
 	                location.href = "${pageContext.request.contextPath}/cart/cart";
 	            }
 	        } else {
-	            // 여전히 "재고 수정 실패"가 뜬다면 서버 Service 로직 확인 필요
-	            alert("장바구니 담기 실패: " + (data.message || "오류 발생"));
+	        
+	            alert(actionName + " 실패\n사유: " + (data.message || "오류 발생"));
 	        }
 	    })
 	    .catch(function(err) {
@@ -397,8 +398,16 @@ function changeQty(amount) {
 	             document.body.appendChild(form);
 	             form.submit();
 	             document.body.removeChild(form);
+	         	             
 	         } else {
-	             alert(actionName + ' 실패: ' + (data.message || '오류 발생'));
+	        	 alert(actionName + " 처리 불가\n사유: " + (data.message || "오류 발생"));
+
+	        	    // 2. 메시지에 "비우고"가 들어있을 때만 이동 여부를 물어봄
+	        	    if (data.message && data.message.includes("비우고")) {
+	        	        if (confirm("장바구니를 비우기 위해 장바구니 페이지로 이동하시겠습니까?")) {
+	        	            location.href = "${pageContext.request.contextPath}/cart/cart";
+	        	        }
+	        	    }
 	         }
 	     })
 	     .catch(function(err) {

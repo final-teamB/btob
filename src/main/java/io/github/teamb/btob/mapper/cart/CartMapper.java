@@ -36,5 +36,9 @@ public interface CartMapper {
     void updateCartEstInfo(Map<String, Object> cartParams);
 
 	CartItemDTO selectCartItemById(int cartId);
+
+	int checkAnyRequestStatus(String userId, String status);
+
+	int checkActiveCartCount(String userId);
 	
 }

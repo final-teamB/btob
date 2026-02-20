@@ -32,7 +32,49 @@
 	    ORDER BY C.cart_id ASC
 		</select>
 		-->
-		
+	
+	<select id="selectFormattedDocNo" resultType="string">
+       SELECT 
+           CONCAT(UPPER(#{typePrefix}), '-', T1.company_cd, '-', T1.curr_date, '-', T1.next_seq) AS docNo
+       FROM (
+           SELECT 
+               IFNULL((SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}), 'GFT') AS company_cd,
+               DATE_FORMAT(NOW(), '%Y%m%d') AS curr_date,
+               LPAD(
+                   IFNULL(
+                       (SELECT MAX(CAST(SUBSTRING_INDEX(doc_no, '-', -1) AS UNSIGNED))
+                        FROM TB_DOCUMENT_MST
+                        WHERE reg_dtime >= CURDATE() 
+                          AND doc_no LIKE CONCAT(UPPER(#{typePrefix}), '-%')
+                       ), 0) + 1, 3, '0'
+               ) AS next_seq
+       ) T1
+    </select>
+
+    <insert id="insertDocument" parameterType="io.github.teamb.btob.dto.document.DocumentInsertDTO">
+        INSERT INTO TB_DOCUMENT_MST (
+            doc_no,
+            doc_title,
+            doc_type,
+            order_id,
+            owner_user_id,
+            doc_content,
+            total_amt,
+            due_date,
+            reg_id
+        ) VALUES (
+            #{docNo},
+            #{docTitle},
+            #{docType},
+            #{orderId},
+            #{ownerUserId},
+            #{docContent},
+            #{totalAmt},
+            #{dueDate},
+            #{regId}
+        )
+    </insert>
+	
 		<update id="modifyMemo">
 			UPDATE TB_DOCUMENT_MST
 			SET memo = #{memo}
@@ -57,9 +99,9 @@
 			    u.user_name
 			FROM TB_DOCUMENT_MST d
 			LEFT JOIN TB_ORDER_MST o ON d.order_id = o.order_id
-			LEFT JOIN TB_CART c ON o.cart_id = c.cart_id
+			LEFT JOIN TB_CART c ON o.order_no = c.order_no
 			LEFT JOIN TB_OIL_MST f ON c.fuel_id = f.fuel_id
-			LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_name
+			LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_id
 			WHERE d.doc_id = #{docId}
 			ORDER BY d.doc_id DESC
 		</select>
@@ -68,12 +110,13 @@
 		    SELECT 
 		        d.doc_id,
 		        d.doc_no,
+		        d.doc_title,
 		        d.doc_type,
 		        IFNULL(d.memo, '') AS memo,
 		        d.reg_dtime,
 		        u.user_name 
 		    FROM TB_DOCUMENT_MST d
-		    LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_no
+		    LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_id
 		    <where>
 		    	<if test="docType != null and docType != ''">
 			        AND doc_type = #{docType}

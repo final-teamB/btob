@@ -49,22 +49,46 @@ public class TradeDocController {
 	
 	// 문서 미리보기(PDF)
 	@GetMapping("/previewPDF")
-	public String previewPDF(
-			@RequestParam int docId,
-	        Model model) {
-
-	    // 단건 조회
-		DocumentPreviewDTO doc = tradeDocService.getDocumentById(docId);
-		System.out.println("========== 요청받은 문서 ID: " + docId);
-	    model.addAttribute("doc", doc);
+	public String previewPDF(@RequestParam int docId, Model model) {
+	    // 1. 문서 마스터 정보 조회
+	    DocumentPreviewDTO doc = tradeDocService.getDocumentById(docId);
+	    model.addAttribute("doc", doc); // 문서 자체 정보 (doc_no 등)
+	    model.addAttribute("mode", "preview");
 	    
+	    Integer orderId = doc.getOrderId();
+	    String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+	    model.addAttribute("userType", userType);
+
+	    // 2. 문서 타입에 따른 데이터 바인딩 및 분기
 	    switch(doc.getDocType()) {
-	    case "ESTIMATE": return "/document/previewEst"; 				// 견적서
-	    case "CONTRACT": return "document/previewContract";		// 계약서
-	    case "TRANSACTION": return "document/previewTransaction";	// 거래내역서
-	    default: return "document/previewDefault";					// 예외 처리용 기본 화면
+	        case "ESTIMATE":
+	            EstimateDetailDTO estDetail = tradeDocService.getEstimateDetail(orderId);
+	            if (estDetail != null) {
+	                model.addAttribute("info", estDetail);
+	                model.addAttribute("itemList", estDetail.getItemList());
+	            }
+	            return "document/previewEst";
+
+	        case "PURCHASE ORDER":
+	            OrderDetailDTO ordDetail = tradeDocService.getOrderDetail(orderId);
+	            if (ordDetail != null) {
+	                model.addAttribute("info", ordDetail);
+	                model.addAttribute("itemList", ordDetail.getItemList());
+	            }
+	            return "document/previewOrder";
+
+	        case "CONTRACT":
+	            // 계약서 전용 데이터가 있다면 여기서 추가 조회
+	            // 예: DocumentDTO에 추가한 doc_content, due_date 등 활용
+	            return "document/previewContract";
+
+	        case "TRANSACTION":
+	            // 거래내역서 전용 데이터 조회
+	            return "document/previewTransaction";
+
+	        default:
+	            return "document/previewDefault";
 	    }
-	    	 
 	}
 	
 	@GetMapping("/previewEst")

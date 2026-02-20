@@ -273,8 +273,12 @@
                 "companyPhone": "${info.companyPhone}" // 값 추가
             }),
             success: function() { 
-                alert("요청되었습니다."); 
-                if(window.opener) window.opener.location.reload(); 
+                alert("견적 요청이 완료되었습니다.\n거래바구니 목록으로 이동합니다."); // 목적지 안내
+                
+                if(window.opener && !window.opener.closed) {
+                    // 부모 창 이동
+                    window.opener.location.href = "${pageContext.request.contextPath}/cart/cart";
+                }
                 window.close(); 
             },
             error: function(e) {

@@ -1,14 +1,17 @@
 package io.github.teamb.btob.service.document;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.options.LoadState;
 
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
 import jakarta.servlet.RequestDispatcher;
@@ -17,126 +20,112 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 
 @Service
-public class DocumentPdfServiceImpl implements DocumentPdfService{
-	private final TradeDocService tradeDocService;	
-	
-	
-	public DocumentPdfServiceImpl(TradeDocService tradeDocService) {
-		super();
-		this.tradeDocService = tradeDocService;
-	}
+public class DocumentPdfServiceImpl implements DocumentPdfService {
 
+    private final TradeDocService tradeDocService;
 
-	@Override
-	public void exportPdf(int docId, HttpServletRequest request, HttpServletResponse response) {
-		try {
-            // 1. 문서 조회
-            DocumentPreviewDTO doc =
-            		tradeDocService.getDocumentById(docId);
+    public DocumentPdfServiceImpl(TradeDocService tradeDocService) {
+        this.tradeDocService = tradeDocService;
+    }
 
-            // 2. JSP 경로 결정
+    @Override
+    public void exportPdf(int docId, Object detailData, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            // 1. 문서 데이터 조회
+            DocumentPreviewDTO doc = tradeDocService.getDocumentById(docId);
+            
+            // 2. 문서 타입에 따른 JSP 경로 결정
             String jspPath = resolveJspPath(doc.getDocType());
 
-            // 3. JSP → HTML
-            String html = renderJspToHtml(
-                    request, response, jspPath, doc);
+            // 3. JSP를 HTML 문자열로 렌더링
+            String html = renderJspToHtml(request, response, jspPath, detailData, doc);
 
-            // 4. HTML → PDF
-            generatePdf(html, request, response, doc);
+            // 4. Playwright를 사용하여 HTML을 PDF로 변환 및 응답 전송
+            generatePdfWithPlaywright(html, response, doc);
 
         } catch (Exception e) {
-            throw new RuntimeException("PDF 변환 실패", e);
+            e.printStackTrace();
+            throw new RuntimeException("PDF 변환 및 다운로드 실패", e);
         }
-		
-	}
+    }
 
-		
-	private String resolveJspPath(String docType) {
-	    switch (docType) {
-	        case "ESTIMATE":
-	            return "/WEB-INF/views/document/previewEst.jsp";
-	        case "CONTRACT":
-	            return "/WEB-INF/views/document/previewContract.jsp";
-	        case "TRANSACTION":
-	            return "/WEB-INF/views/document/previewTransaction.jsp";
-	        default:
-	            return "/WEB-INF/views/document/previewDefault.jsp";
-	    }
-	}
-	
-	private String renderJspToHtml(
-	        HttpServletRequest request,
-	        HttpServletResponse response,
-	        String jspPath,
-	        DocumentPreviewDTO doc) throws Exception {
+    private String resolveJspPath(String docType) {
+        switch (docType) {
+            case "ESTIMATE":       return "/WEB-INF/views/document/previewEst.jsp";
+            case "PURCHASE ORDER": return "/WEB-INF/views/document/previewOrder.jsp";
+            case "CONTRACT":       return "/WEB-INF/views/document/previewContract.jsp";
+            case "TRANSACTION":    return "/WEB-INF/views/document/previewTransaction.jsp";
+            default:               return "/WEB-INF/views/document/previewDefault.jsp";
+        }
+    }
 
-		request.setAttribute("doc", doc);
+    private String renderJspToHtml(HttpServletRequest request, HttpServletResponse response, 
+                                   String jspPath, Object detailData, DocumentPreviewDTO doc) throws Exception {
+    	request.setAttribute("info", detailData);
+        request.setAttribute("doc", doc); // 문서 번호 등을 위해 유지
+        request.setAttribute("mode", "preview");
 
-	    // 응답 인코딩 설정
-	    response.setCharacterEncoding("UTF-8");
-	    
-	    StringWriter sw = new StringWriter();
-	    HttpServletResponseWrapper wrapper = new HttpServletResponseWrapper(response) {
-	        @Override
-	        public PrintWriter getWriter() {
-	            // 인코딩이 보장된 PrintWriter 반환
-	            return new PrintWriter(sw);
-	        }
-	    };
+        // Reflection을 이용해 itemList 추출 (가장 편한 방법)
+        try {
+            java.lang.reflect.Method getItems = detailData.getClass().getMethod("getItemList");
+            request.setAttribute("itemList", getItems.invoke(detailData));
+        } catch (Exception e) {
+        	throw new RuntimeException("문서 상세 품목(itemList)을 불러오는 데 실패했습니다.", e);
+        }
 
-	    RequestDispatcher dispatcher = request.getRequestDispatcher(jspPath);
-	    dispatcher.include(request, wrapper);
+        response.setCharacterEncoding("UTF-8");
+        StringWriter sw = new StringWriter();
+        
+        HttpServletResponseWrapper wrapper = new HttpServletResponseWrapper(response) {
+            @Override
+            public PrintWriter getWriter() {
+                return new PrintWriter(sw);
+            }
+        };
 
-	    String result = sw.toString();
-	    if (result == null || result.trim().isEmpty()) {
-	        throw new RuntimeException("JSP 렌더링 결과가 비어있습니다. 경로를 확인하세요: " + jspPath);
-	    }
-	    return result;
-	}
-	
-	private void generatePdf(
-	        String html,
-	        HttpServletRequest request,
-	        HttpServletResponse response, 
-	        DocumentPreviewDTO doc) throws Exception {
+        RequestDispatcher dispatcher = request.getRequestDispatcher(jspPath);
+        dispatcher.include(request, wrapper);
 
-		String fileName = String.format(
-		        "%s_%s.pdf",
-		        doc.getDocType(),
-		        doc.getDocNo()
-		    );
+        return sw.toString();
+    }
 
-		    response.setContentType("application/pdf");
-		    response.setHeader(
-		        "Content-Disposition",
-		        "attachment; filename=\"" + fileName + "\""
-		    );
+    private void generatePdfWithPlaywright(String html, HttpServletResponse response, DocumentPreviewDTO doc) throws Exception {
+        String fileName = String.format("%s_%s.pdf", doc.getDocType(), doc.getDocNo());
 
-	    PdfRendererBuilder builder = new PdfRendererBuilder();
-	    builder.withHtmlContent(html, request.getRequestURL().toString());
+        // HTTP 헤더 설정
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
 
-	    builder.useDefaultPageSize(
-	    	    210, 297,
-	    	    PdfRendererBuilder.PageSizeUnits.MM
-	    	);
-	    
-	    // 한글 폰트
-	    ClassPathResource font = new ClassPathResource("fonts/NanumGothic.ttf");
-	    builder.useFont(
-	        () -> {
-				try {
-					return font.getInputStream();
-				} catch (IOException e) {
-					 throw new RuntimeException("NanumGothic 폰트 로드 실패", e);
-				}
-			},
-	        "NanumGothic"
-	    );
+        // Playwright 엔진 구동
+        try (Playwright playwright = Playwright.create()) {
+            // 브라우저 실행 (Headless 모드)
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+            BrowserContext context = browser.newContext();
+            Page page = context.newPage();
 
-	    try (OutputStream os = response.getOutputStream()) {
-	        builder.toStream(os);
-	        builder.run();
-	    }
-	}
-	
+            // 1. HTML 주입
+            page.setContent(html);
+
+            // 2. Tailwind CSS 및 리소스 로딩 대기 (네트워크 활동이 없을 때까지)
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+
+            // 3. PDF 옵션 설정 (A4, 배경색 포함, 여백 설정)
+            Page.PdfOptions pdfOptions = new Page.PdfOptions()
+                .setFormat("A4")
+                .setPrintBackground(true)
+                .setScale(0.9)
+                .setMargin(new com.microsoft.playwright.options.Margin()
+                    .setTop("10mm").setBottom("10mm").setLeft("10mm").setRight("10mm"));
+
+            byte[] pdfBytes = page.pdf(pdfOptions);
+
+            // 4. 결과 출력
+            try (OutputStream os = response.getOutputStream()) {
+                os.write(pdfBytes);
+                os.flush();
+            }
+
+            browser.close();
+        }
+    }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
+import io.github.teamb.btob.dto.document.DocumentInsertDTO;
 import io.github.teamb.btob.dto.document.DocumentListDTO;
 import io.github.teamb.btob.dto.document.DocumentMemoActionDTO;
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
@@ -22,5 +23,9 @@ public interface TradeDocMapper {
 	
 	// 문서 미리보기(PDF변환)
 	DocumentPreviewDTO getDocumentById(int docId);
+
+	String selectFormattedDocNo(String typePrefix, String userId);
+
+	void insertDocument(DocumentInsertDTO docDto);
 
 }

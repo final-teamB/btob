@@ -1,141 +1,186 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
-<c:if test="${empty dto}">
-    <jsp:useBean id="ctrtDto" class="java.util.HashMap" scope="request"/>
-    <c:set target="${ctrtDto}" property="ctrtNo" value="CT-2026-OIL-7721"/>
-    <c:set target="${ctrtDto}" property="ctrtNm" value="유류 매매 및 공급에 관한 기본 계약서"/>
-    <c:set target="${ctrtDto}" property="sellerNm" value="(주)글로벌 유류 트레이딩"/>
-    <c:set target="${ctrtDto}" property="buyerNm" value="(주)대한물류네트웍스"/>
-    <c:set target="${ctrtDto}" property="totalAmount" value="154700000"/>
-    <c:set var="dto" value="${ctrtDto}" scope="request"/>
-</c:if>
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>계약서 - ${dto.ctrtNo}</title>
+<title>CONTRACT | (주)글로벌 유류 트레이딩</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-    @media print { .no-print { display: none !important; } body { background: white !important; } }
-    body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; color: #1f2937; }
-    .line-title { border-left: 4px solid #111827; padding-left: 12px; margin-bottom: 16px; font-weight: 800; }
-    .contract-table th, .contract-table td { border: 1px solid #d1d5db; padding: 12px; font-size: 14px; }
+    @media print {
+        .no-print { display: none !important; }
+        body { background: white !important; margin: 0; padding: 0; }
+        .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+    }
+    body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; }
 </style>
 </head>
-<body class="py-12">
+<body class="py-10">
 
-    <div class="max-w-4xl mx-auto bg-white shadow-2xl p-16 border-t-[12px] border-gray-900 relative">
-        
-        <%-- 상단 헤더 --%>
-        <div class="text-center mb-16">
-            <h1 class="text-4xl font-black tracking-widest underline underline-offset-8 mb-6">${dto.ctrtNm}</h1>
-            <p class="text-sm font-mono text-gray-400">계약번호: ${dto.ctrtNo}</p>
-        </div>
-
-        <%-- 당사자 표시 --%>
-        <div class="mb-12 leading-loose text-justify">
-            <p class="text-lg">
-                매도인 <strong>${dto.sellerNm}</strong> (이하 "갑")와 매수인 <strong>${dto.buyerNm}</strong> (이하 "을")은 
-                합의된 조건에 따라 유류 매매 계약을 체결하며, 신의성실의 원칙에 따라 본 계약상의 의무를 이행할 것을 확약한다.
-            </p>
-        </div>
-
-        <%-- 제1조 목적물 명세 (견적/주문서 연동) --%>
-        <div class="mb-12">
-            <h3 class="line-title text-xl uppercase italic">제 1 조 (계약 목적물 및 대금)</h3>
-            <table class="w-full contract-table mb-4">
-                <thead>
-                    <tr class="bg-gray-50 text-xs">
-                        <th>품명 및 규격</th>
-                        <th>수량 (BBL)</th>
-                        <th>단가 (KRW)</th>
-                        <th class="bg-gray-100">공급가액 (VAT별도)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach var="item" items="${detailList}">
-                        <tr class="text-center">
-                            <td class="font-bold text-left">${item.productNm}</td>
-                            <td class="font-mono"><fmt:formatNumber value="${item.productQty}" pattern="#,###"/></td>
-                            <td class="text-right font-mono">₩<fmt:formatNumber value="${item.productPrc}" pattern="#,###"/></td>
-                            <td class="text-right font-black bg-gray-50/50">₩<fmt:formatNumber value="${item.productAmt}" pattern="#,###"/></td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-                <tfoot>
-                    <tr class="bg-gray-900 text-white font-bold">
-                        <td colspan="3" class="text-right py-4 px-6">총 합계 금액 (VAT 포함)</td>
-                        <td class="text-right py-4 px-6 text-xl">
-                            ₩<fmt:formatNumber value="${dto.totalAmount}" pattern="#,###"/>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <%-- 실무 조항 --%>
-        <div class="space-y-10 text-sm leading-relaxed mb-20 text-gray-700">
-            <div>
-                <h4 class="font-black text-gray-900 mb-2">제 2 조 (인도 및 검수)</h4>
-                <p>1. "갑"은 "을"이 지정한 장소 및 납기에 맞춰 목적물을 인도하여야 한다.</p>
-                <p>2. 품질 및 수량의 검수는 검사기관(SGS 또는 이에 준하는 공인기관)의 성적서를 기준으로 하며, 인도 완료 시점으로 한다.</p>
-            </div>
-            <div>
-                <h4 class="font-black text-gray-900 mb-2">제 3 조 (대금 결제)</h4>
-                <p>1. "을"은 목적물 인수 후 7일 이내에 현금 또는 "갑"이 승인한 결제 수단으로 대금을 지급하여야 한다.</p>
-                <p>2. 대금 지급 지연 시 연 12%의 지연 배상금을 가산하여 지급한다.</p>
-            </div>
-            <div>
-                <h4 class="font-black text-gray-900 mb-2">제 4 조 (비밀유지)</h4>
-                <p>양 당사자는 본 계약과 관련하여 취득한 상대방의 영업비밀을 제3자에게 누설하여서는 아니 된다.</p>
-            </div>
-        </div>
-
-        <%-- 서명 날인 --%>
-        <div class="grid grid-cols-2 gap-16 pt-12 border-t-2 border-gray-200">
-            <%-- 갑 --%>
-            <div class="relative">
-                <p class="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest">매도인 (갑)</p>
-                <div class="space-y-2">
-                    <p class="text-xl font-black">${dto.sellerNm}</p>
-                    <p class="text-xs text-gray-500">주소: 서울특별시 중구 세종대로 110</p>
-                    <p class="text-sm font-bold mt-4">대표이사: 홍 길 동 (인)</p>
+    <div class="max-w-screen-2xl mx-auto px-4">
+        <div class="bg-white p-16 rounded-sm shadow-2xl border-t-[12px] border-gray-900 print-shadow-none relative">
+            
+            <%-- 1. 상단 헤더: 계약서의 엄중함을 위해 Serif 느낌의 폰트 효과 --%>
+            <div class="flex justify-between items-end border-b-2 border-gray-200 pb-8 mb-10">
+                <div>
+                    <h2 class="text-5xl font-serif font-black text-gray-900 tracking-tight uppercase">Contract</h2>
+                    <p class="mt-4 text-sm text-gray-500 font-mono">계약번호: 
+                        <span class="font-bold text-gray-800 tracking-widest uppercase">
+                            <c:out value="${not empty doc.docNo ? doc.docNo : 'CON-PENDING-000'}" />
+                        </span>
+                    </p>
                 </div>
-                <%-- 법인인감 이미지 --%>
-                <div class="absolute -right-4 -bottom-2 opacity-70">
-                    <div class="w-20 h-20 border-4 border-red-600 rounded-full flex items-center justify-center text-red-600 font-black text-sm rotate-12 border-double">
-                        글로벌<br>트레이딩
+                <div class="text-right">
+                    <h3 class="text-2xl font-bold text-gray-900">(주)글로벌 유류 트레이딩</h3>
+                    <p class="text-gray-500 mt-1 text-sm italic font-medium">B2B Energy Solution & Trading</p>
+                    <div class="mt-2 inline-block px-3 py-1 border border-gray-900 text-[10px] font-bold uppercase tracking-widest text-gray-900">
+                        Official Document
                     </div>
                 </div>
             </div>
 
-            <%-- 을 --%>
-            <div class="relative">
-                <p class="text-xs font-bold text-gray-400 mb-6 uppercase tracking-widest">매수인 (을)</p>
-                <div class="space-y-2 text-gray-300">
-                    <p class="text-xl font-black">${dto.buyerNm}</p>
-                    <p class="text-xs">주소: 서울특별시 강남구 테헤란로 456</p>
-                    <p class="text-sm font-bold mt-4">대표이사: 이 몽 룡 (인)</p>
+            <%-- 2. 계약 기본 정보 --%>
+            <div class="mb-10 p-8 bg-gray-50 border border-gray-200 rounded-lg">
+                <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-8">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Contract Title</label>
+                        <h4 class="text-2xl font-bold text-gray-900 leading-tight">
+						    <c:choose>
+						        <c:when test="${not empty doc.docTitle}">
+						            <c:out value="${doc.docTitle}" />
+						        </c:when>
+						        <c:otherwise>
+						            <c:out value="${itemList[0].fuelNm}" /> <c:if test="${itemList.size() > 1}">외 ${itemList.size()-1}건</c:if> 물품 공급 계약의 건
+						        </c:otherwise>
+						    </c:choose>
+						</h4>
+                    </div>
+                    <div class="col-span-4 text-right">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Total Contract Amount</label>
+                        <p class="text-3xl font-black text-gray-900 font-mono italic">
+                            ₩<fmt:formatNumber value="${doc.totalAmt}" pattern="#,###"/>
+                        </p>
+                        <p class="text-[10px] text-gray-400 mt-1">VAT 포함 총액</p>
+                    </div>
                 </div>
-                <div class="absolute right-4 bottom-0 w-20 h-20 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center text-[10px] text-gray-300 font-bold">
-                    서명 날인
+                
+                <div class="mt-8 pt-6 border-t border-gray-200 grid grid-cols-2 gap-10">
+                    <div>
+                        <h5 class="text-xs font-bold text-gray-500 uppercase mb-3">Party A (Seller)</h5>
+                        <p class="text-sm font-bold text-gray-800">(주)글로벌 유류 트레이딩</p>
+                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">서울특별시 중구 세종대로 110 (02-1234-5678)</p>
+                    </div>
+                    <div>
+                        <h5 class="text-xs font-bold text-gray-500 uppercase mb-3">Party B (Buyer)</h5>
+                        <p class="text-sm font-bold text-gray-800">${info.companyName}</p>
+                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">${info.addrKor} (${info.phone})</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <%-- 하단 날짜 --%>
-        <div class="text-center mt-24">
-            <p class="text-2xl font-serif tracking-[0.5em] text-gray-800">2026년 02월 05일</p>
-        </div>
-    </div>
+            <%-- 3. 계약 세부 내역 --%>
+            <div class="mb-10">
+                <div class="flex items-center mb-4 border-b border-gray-900 pb-2">
+                    <h3 class="text-lg font-bold text-gray-900 uppercase tracking-tighter">Article 1. Product Specification</h3>
+                </div>
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 border-b border-gray-300">
+                            <th class="py-3 px-4 text-left">Description</th>
+                            <th class="py-3 px-4 text-center">Quantity</th>
+                            <th class="py-3 px-4 text-right">Unit Price</th>
+                            <th class="py-3 px-4 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                     <c:forEach var="item" items="${itemList}">
+						    <tr>
+						        <td class="py-4 px-4 font-bold text-gray-800">${item.fuelNm}</td>
+						        <td class="py-4 px-4 text-center font-mono">${item.totalQty}</td>
+						        <%-- 품목별 단가: 어느 테이블에서 왔든 doc_id 조회 시점에 mapper에서 별칭(alias)을 맞춰주면 편합니다 --%>
+						        <td class="py-4 px-4 text-right font-mono text-gray-500">
+						            <fmt:formatNumber value="${not empty item.targetProductPrc ? item.targetProductPrc : item.baseUnitPrc}" pattern="#,###"/>
+						        </td>
+						        <td class="py-4 px-4 text-right font-mono font-bold text-gray-900">
+						            <fmt:formatNumber value="${not empty item.targetProductAmt ? item.targetProductAmt : item.totalPrice}" pattern="#,###"/>
+						        </td>
+						    </tr>
+						</c:forEach>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="p-8 border border-gray-200 bg-gray-50 text-sm leading-8 text-gray-700">
+			    <h5 class="font-bold text-gray-900 mb-2 underline">[제 2조. 대금 지급 및 인도]</h5>
+			    <ul class="space-y-2">
+			        <li>
+			            <strong>1. 1차 물품 대금:</strong> ₩<fmt:formatNumber value="${doc.totalAmt - 7500000}" pattern="#,###"/> 
+			            <span class="text-xs text-gray-400">(계약 체결 시 즉시 납부)</span>
+			        </li>
+			        <li>
+			            <strong>2. 2차 제세공과금 및 물류비:</strong> ₩7,500,000 
+			            <span class="text-xs text-gray-400">(통관 완료 후 실비 정산액)</span>
+			        </li>
+			        <li class="pt-2 border-t border-gray-200">
+			            <strong>3. 총 계약 합계액:</strong> 
+			            <span class="text-lg font-black text-amber-700">₩<fmt:formatNumber value="${doc.totalAmt}" pattern="#,###"/></span>
+			        </li>
+			    </ul>
+			</div>
 
-    <%-- 버튼 --%>
-    <div class="max-w-4xl mx-auto mt-10 flex justify-end gap-3 no-print">
-        <button type="button" onclick="window.print()" class="px-6 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 transition">인쇄 및 PDF 저장</button>
-        <button type="button" class="px-10 py-2 text-sm font-bold text-white bg-gray-900 rounded shadow-xl hover:bg-black transition ring-2 ring-gray-600 ring-offset-2">전자계약 서명완료</button>
+            <%-- 4. 계약 세부 조항 (doc_content & due_date 활용) --%>
+            <div class="grid grid-cols-12 gap-8 mb-10">
+                <div class="col-span-12">
+                    <div class="flex items-center mb-4 border-b border-gray-900 pb-2">
+                        <h3 class="text-lg font-bold text-gray-900 uppercase tracking-tighter">Article 2. Terms and Conditions</h3>
+                    </div>
+                    <div class="p-8 border border-gray-200 bg-gray-50 text-sm leading-8 text-gray-700">
+                        <ul class="list-decimal list-inside space-y-2">
+                            <li><strong>납기 기한:</strong> 본 물품의 인도 및 대금 결제는 <span class="text-red-600 font-bold underline"><fmt:formatDate value="${doc.dueDate}" pattern="yyyy년 MM월 dd일"/></span>까지 완료하여야 한다.</li>
+                            <c:choose>
+                                <c:when test="${not empty doc.docContent}">
+                                    <li><strong>특약 사항:</strong> <c:out value="${doc.docContent}" /></li>
+                                </c:when>
+                                <c:otherwise>
+                                    <li><strong>대금 지급:</strong> 매입인은 계약 체결 후 지정된 계좌로 총액의 100%를 입금하여야 발주가 확정된다.</li>
+                                    <li><strong>분쟁 해결:</strong> 본 계약에 명시되지 않은 사항은 상관례에 따르며 관할법원은 매도인 주소지 법원으로 한다.</li>
+                                </c:otherwise>
+                            </c:choose>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <%-- 하단 직인 영역 --%>
+            <div class="flex justify-between items-center mt-12 py-10 border-t border-gray-200 relative">
+                <div class="text-gray-400 text-[10px] font-mono italic">
+                    Digitally Signed and Secured by Global Fuel Trading System<br>
+                    Generated on <fmt:formatDate value="${doc.regDtime}" pattern="yyyy-MM-dd HH:mm:ss"/>
+                </div>
+                <div class="flex gap-20">
+                    <div class="text-center relative">
+                        <p class="text-xs text-gray-500 mb-8">(갑) 매도인</p>
+                        <p class="font-bold text-gray-900">(주)글로벌 유류 트레이딩 (인)</p>
+                        <%-- 도장 이미지 (가상) --%>
+                        <div class="absolute -right-4 -bottom-2 w-16 h-16 border-4 border-red-600 rounded-full flex items-center justify-center text-red-600 font-bold text-xs rotate-12 opacity-50">
+                            계약인
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 mb-8">(을) 매입인</p>
+                        <p class="font-bold text-gray-900">${info.companyName} (인)</p>
+                    </div>
+                </div>
+            </div>
+
+            <%-- 5. 하단 버튼 영역 --%>
+            <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-end gap-2">
+                <button type="button" onclick="window.print()" class="px-6 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-black transition shadow-lg">프린트 / PDF 다운로드</button>
+                <button type="button" onclick="window.close()" class="px-6 py-2 text-sm font-bold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">닫기</button>
+            </div>
+        </div>
     </div>
 
 </body>

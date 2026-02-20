@@ -44,24 +44,24 @@ public class CartController {
 	
 	@PostMapping("/add")
 	@ResponseBody
-	public Map<String, Object> addToCart(
-	        CartItemInsertDTO dto
-	        // @AuthenticationPrincipal CustomUserDetails user
-	) {
-		// dto.setUserId(user.getUserId());
-	    cartService.addToCart(dto);
-
+	public Map<String, Object> addToCart(CartItemInsertDTO dto) {
 	    Map<String, Object> res = new HashMap<>();
-	    res.put("result", "success");
+	    try {
+	        cartService.addToCart(dto);
+	        res.put("result", "success");
+	        res.put("newCartId", dto.getCartId());
+	    } catch (RuntimeException e) {
+	        // Service에서 던진 메시지를 그대로 화면으로 전달
+	        res.put("result", "fail");
+	        res.put("message", e.getMessage());
+	    }
 	    return res;
 	}
 	
 	// 수량 변경
 	@PostMapping("/update")
 	@ResponseBody
-	public Map<String, Object> updateCartQty(
-			CartItemInsertDTO dto
-	) {
+	public Map<String, Object> updateCartQty(CartItemInsertDTO dto) {
 	    cartService.updateCartItemQty(dto);
 
 	    Map<String, Object> res = new HashMap<>();

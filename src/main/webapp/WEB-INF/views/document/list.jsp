@@ -92,6 +92,7 @@ class MemoCellRenderer {
 		{
 			docId: "${d.docId}",
 			docNo: "${d.docNo}",
+			docTitle: "${d.docTitle}",
 			userName: "${d.userName}",
 			docType: "${d.docType}",
 			regDtime: "${d.regDtime}",
@@ -103,7 +104,7 @@ class MemoCellRenderer {
 	document.addEventListener('DOMContentLoaded', function() {
 		const filteredData = rawData.filter(item => {
 		    // 우리가 정의한 3가지 타입 중 하나인 경우만 남김
-		    return ['QUOTE', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
+		    return ['ESTIMATE', 'PURCHASE ORDER', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
 		});
 		
    		const docGrid = new DataGrid({
@@ -115,9 +116,9 @@ class MemoCellRenderer {
             filterSelectId: 'dg-common-filter',
             
 			columns: [
-				{ header: '담당자', name: 'userName'},
+				{ header: '담당자', name: 'userName', width: 100},
 				{ header: '문서번호', name: 'docNo'},
-				{ header: '문서유형', name: 'docType'},
+				{ header: '문서제목', name: 'docTitle', width: 300},
 				{ header: '등록일', name: 'regDtime', align: 'center'},
 				{ 
 			        header: '특이사항', 
@@ -148,9 +149,10 @@ class MemoCellRenderer {
 					  field: 'docType',
 					  title: '문서',
 					  options:  [ 
-						  { value: "QUOTE", text: "견적서" },
-		                  { value: "TRANSATION", text: "거래내역서" },
+						  { value: "ESTIMATE", text: "견적서" },
+		                  { value: "PURCHASE ORDER", text: "발주서" },
 		                  { value: "CONTRACT", text: "계약서" },
+		                  { value: "TRANSATION", text: "거래내역서" },
 					]
 			    }					  
 			])
