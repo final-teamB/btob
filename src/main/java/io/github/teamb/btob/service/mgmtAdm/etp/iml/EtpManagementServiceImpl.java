@@ -1,20 +1,24 @@
 package io.github.teamb.btob.service.mgmtAdm.etp.iml;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionResultDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
+import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionResultDTO;
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
+import io.github.teamb.btob.dto.document.DocumentInsertDTO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.EtpApprovRejctRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO;
+import io.github.teamb.btob.mapper.document.TradeDocMapper;
 import io.github.teamb.btob.mapper.mgmtAdm.EtpMgmtAdmMapper;
 import io.github.teamb.btob.service.BizWorkflow.BizWorkflowServiceAdm;
 import io.github.teamb.btob.service.common.CommonService;
@@ -31,6 +35,8 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 	private final EtpMgmtAdmMapper etpMgmtAdmMapper;
 	private final CommonService commonService;
 	private final BizWorkflowServiceAdm bizWorkflowServiceAdm;
+	private final TradeDocMapper tradeDocMapper;
+	private final LoginUserProvider loginUserProvider;
 
 	/**
 	 * 
@@ -134,7 +140,11 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 
 		// 단건 고정
 		int loopCnt = 1;
-
+		
+		// [문서 생성 제어 플래그]
+		boolean isEstimateTarget = false; 
+		boolean isContractTarget = false;
+		
 		// 연속 승인 처리가 필요할때
 		// 견적요청을 마스터 직급 사용자가 했을 경우
 		// 견적요청(현재상태) -> 견적승인 -> 주문요청 -> 주문승인
@@ -142,20 +152,70 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 				paramUserType.equals("MASTER") &&
 				paramOrderStatus.equals("et002") ) {
 			loopCnt = 3;
+			isEstimateTarget = true; // 견적서 생성
+			isContractTarget = true; // 계약서 생성
 			System.out.println("요청한 사람이 마스터 이고 현재 견적요청상태이면 여기 탑니다.");
 		// 구매요청(현재상태) -> 구매승인 -> 1차결제요청
 		} else if ( approvalStatus.equals("APPROVED") && paramOrderStatus.equals("pr001") ) {
 			loopCnt = 2;
+			isContractTarget = true;
 			System.out.println("요청한 사람이 마스터 이고 현재 구매요청상태이면 여기 탑니다.");
-		}
+		} else if (approvalStatus.equals("APPROVED") && paramOrderStatus.equals("et002") ) {
+            // [추가] 일반 USER의 견적요청 건 대응
+            isEstimateTarget = true; 
+            System.out.println("일반 유저의 견적요청 승인 시 견적서 플래그를 켭니다.");
+        }
 
-		ApprovalDecisionResultDTO resultDto = null;
+		ApprovalDecisionResultDTO resultDto = null;	
 
 		for (int i = 0; i < loopCnt; i++) {
 			resultDto = modifyAndUpdateSystemId(approvalDecisionRequestDTO);
 			System.out.println("루프 몇 번 도는지 확인 합니다. : " + i + " 번");
 		}
+		
+		// [추가 부분] 문서 자동 생성 로직 (try-catch로 감싸서 안전하게 추가)
+		try {
+			if (resultDto != null) {
+				String orderNo = tradeDocMapper.selectOrderNo(ordId);
+				Integer totalAmt = tradeDocMapper.selectOrderTotalAmt(orderNo);
+				String LoginUserId = loginUserProvider.getLoginUserId();
+				
+				DocumentInsertDTO docDto = new DocumentInsertDTO();
+				docDto.setOrderId(ordId);
+				docDto.setOwnerUserId(userId);
+				docDto.setRegId(LoginUserId);
+	
+				// 1. 견적서 생성 (isEstimateTarget이 true일 때만)
+				if (isEstimateTarget) {
+					String docNo = tradeDocMapper.selectFormattedDocNo("EST", userId);
+					docDto.setDocNo(docNo);
+					docDto.setDocType("ESTIMATE");
+					docDto.setDocTitle("[" + orderNo + "] 물품 공급 견적서");
+					tradeDocMapper.insertDocument(docDto);
+				}
 
+				// 2. 계약서 생성 (isContractTarget이 true일 때만)
+				if (isContractTarget) {
+					String docNo = tradeDocMapper.selectFormattedDocNo("CT", userId);
+					LocalDateTime deliveryDeadline = LocalDateTime.now().plusDays(14);
+					String formattedDate = deliveryDeadline.format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"));
+					docDto.setDocNo(docNo);
+					docDto.setDocType("CONTRACT");
+					docDto.setDocTitle("[" + orderNo + "] 물품 공급 거래계약서");
+				    String autoContent = "1. 본 계약은 귀하의 주문 내역을 바탕으로 체결된 정식 유류 공급 계약입니다.\n"
+                           + "2. 공급자는 결제 확인 후 [14일 이내]인 " + formattedDate + "까지 배송을 완료해야 합니다.";
+				    docDto.setDocContent(autoContent);
+				    docDto.setTotalAmt(totalAmt);
+				    docDto.setDueDate(deliveryDeadline);
+				    				    
+					tradeDocMapper.insertDocument(docDto);
+					log.info("▶ 유류 계약서 자동 생성 완료: {} (14일 배송 조건 포함)", docNo);
+				}
+			}
+		} catch (Exception e) {
+			log.error("▶ 문서 자동 생성 실패: {}", e.getMessage());
+		}
+		
 		return result;
 	}
 

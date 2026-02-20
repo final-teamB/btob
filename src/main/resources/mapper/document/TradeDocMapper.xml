@@ -32,7 +32,18 @@
 	    ORDER BY C.cart_id ASC
 		</select>
 		-->
-	
+	<select id="selectOrderNo">
+		SELECT order_no
+			FROM TB_ORDER_MST
+		WHERE order_id = #{orderId}
+	</select>
+		
+	<select id="selectOrderTotalAmt" resultType="int">
+	    SELECT IFNULL(SUM(total_price), 0)
+	   		 FROM TB_CART
+	    WHERE order_no = #{orderNo}
+	</select>
+		
 	<select id="selectFormattedDocNo" resultType="string">
        SELECT 
            CONCAT(UPPER(#{typePrefix}), '-', T1.company_cd, '-', T1.curr_date, '-', T1.next_seq) AS docNo

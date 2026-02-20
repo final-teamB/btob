@@ -69,7 +69,7 @@ public class TradeDocController {
 	            }
 	            return "document/previewEst";
 
-	        case "PURCHASE ORDER":
+	        case "PURCHASE_ORDER":
 	            OrderDetailDTO ordDetail = tradeDocService.getOrderDetail(orderId);
 	            if (ordDetail != null) {
 	                model.addAttribute("info", ordDetail);

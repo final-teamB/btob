@@ -72,9 +72,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100 border-b-2 border-gray-800">
                         <tr>
-                            <td class="py-5 px-4 font-bold text-gray-800">
-                                1차 물품 공급 대금 (${itemList[0].fuelNm} <c:if test="${itemList.size() > 1}">외 ${itemList.size()-1}건</c:if>)
-                            </td>
+                            <td class="py-5 px-4 font-bold text-gray-800"><c:out value="${doc.docTitle}" /></td>
                             <td class="py-5 px-4 text-right font-mono text-gray-700">
                                 ₩<fmt:formatNumber value="${doc.totalAmt - 7500000}" pattern="#,###"/>
                             </td>

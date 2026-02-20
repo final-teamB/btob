@@ -52,7 +52,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
     private String resolveJspPath(String docType) {
         switch (docType) {
             case "ESTIMATE":       return "/WEB-INF/views/document/previewEst.jsp";
-            case "PURCHASE ORDER": return "/WEB-INF/views/document/previewOrder.jsp";
+            case "PURCHASE_ORDER": return "/WEB-INF/views/document/previewOrder.jsp";
             case "CONTRACT":       return "/WEB-INF/views/document/previewContract.jsp";
             case "TRANSACTION":    return "/WEB-INF/views/document/previewTransaction.jsp";
             default:               return "/WEB-INF/views/document/previewDefault.jsp";
@@ -61,10 +61,18 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
 
     private String renderJspToHtml(HttpServletRequest request, HttpServletResponse response, 
                                    String jspPath, Object detailData, DocumentPreviewDTO doc) throws Exception {
-    	request.setAttribute("info", detailData);
+    	//request.setAttribute("info", detailData);
         request.setAttribute("doc", doc); // 문서 번호 등을 위해 유지
         request.setAttribute("mode", "preview");
 
+        if (detailData == null) {
+            // null일 경우 에러를 던지거나 빈 객체를 넣어 렌더링 에러 방지
+            throw new RuntimeException("상세 데이터를 찾을 수 없습니다. (docId: " + doc.getDocId() + ")");
+        }
+        
+        // 이제 안전하게 getClass() 사용 가능
+        request.setAttribute("info", detailData);
+        
         // Reflection을 이용해 itemList 추출 (가장 편한 방법)
         try {
             java.lang.reflect.Method getItems = detailData.getClass().getMethod("getItemList");
@@ -113,7 +121,7 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
             Page.PdfOptions pdfOptions = new Page.PdfOptions()
                 .setFormat("A4")
                 .setPrintBackground(true)
-                .setScale(0.9)
+                .setScale(0.85)
                 .setMargin(new com.microsoft.playwright.options.Margin()
                     .setTop("10mm").setBottom("10mm").setLeft("10mm").setRight("10mm"));
 

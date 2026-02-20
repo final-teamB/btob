@@ -5,7 +5,9 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,11 +21,13 @@ import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryDTO;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryStatus;
 import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
+import io.github.teamb.btob.dto.document.DocumentInsertDTO;
 import io.github.teamb.btob.dto.order.OrderVoDTO;
 import io.github.teamb.btob.dto.payment.PaymentRequestDTO;
 import io.github.teamb.btob.dto.payment.PaymentViewDTO;
 import io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper;
 import io.github.teamb.btob.mapper.cart.CartMapper;
+import io.github.teamb.btob.mapper.document.TradeDocMapper;
 import io.github.teamb.btob.mapper.order.OrderMapper;
 import io.github.teamb.btob.mapper.payment.PaymentMapper;
 import io.github.teamb.btob.service.BizWorkflow.BizWorkflowService;
@@ -39,9 +43,11 @@ public class PaymentService {
 	private final CartMapper cartMapper;
 	private final BizWorkflowService bizWorkflowService; // 공통 워크플로우 서비스
 	private final LoginUserProvider loginUserProvider;
-	private final DeliveryService deliveryService;
 	private final DeliveryMapper deliveryMapper;
-
+	private final TradeDocMapper tradeDocMapper;
+	@Autowired
+    @Lazy
+    private DeliveryService deliveryService;
 
 	@Value("${toss.secret-key}")
     private String secretKey;
@@ -140,7 +146,46 @@ public class PaymentService {
 	            orderApproval.setRequestUserNo(loginUserId);
 	            orderApproval.setUserId(loginUserId);
 	            bizWorkflowService.modifyEtpStatusAndLogHist(orderApproval); // ⭐️ DB 저장 3
+	            
+	            // 거래내역서 생성
+	            if ("pm004".equals(nextStatus)) {
+	    	        try {
+	    	        	Integer firstAmount = paymentMapper.selectFirstPaymentAmount(dbOrderId); 
+	    	            if (firstAmount == null) firstAmount = 0;
 
+	    	            // 2. 현재 승인된 2차 결제 금액(amount)과 합산
+	    	            int totalAmount = firstAmount + amount;
+	    	        	
+	    	            // 1. 문서 번호 생성 (PO-회사코드-날짜-순번)
+	    	            String docNo = tradeDocMapper.selectFormattedDocNo("TR", loginUserId);
+	    	            
+	    	            // 2. DTO 객체 생성 및 데이터 빌드
+	    	            DocumentInsertDTO docDto = new DocumentInsertDTO();
+	    	            
+	    	            docDto.setDocNo(docNo);
+	    	            docDto.setDocType("TRANSACTION");
+	    	            
+	    	            // [선택하신 제목 형식] [주문번호] 물품 공급 발주서
+	    	            docDto.setDocTitle("[" + orderNo + "] 물품 공급 거래명세서");
+	    	            
+	    	            docDto.setOrderId(dbOrderId);
+	    	            docDto.setOwnerUserId(loginUserId); // 문서를 조회할 권한을 가진 유저(발주자)
+	    	            
+	    	            docDto.setTotalAmt(totalAmount);
+	    	            docDto.setRegId(loginUserId);
+	    	            
+	    	            // 3. Mapper 호출 (TB_DOCUMENT_MST에 최종 인서트)
+	    	            tradeDocMapper.insertDocument(docDto);
+	    	            
+	    	            System.out.println("거래명세서 생성 완료: " + docNo);
+	    	            
+	    	        } catch (Exception e) {
+	    	            // 예외 로그 남기기 (필요 시 RuntimeException으로 던져 트랜잭션 롤백)
+	    	            System.err.println("거래명세서(TR) 자동 생성 중 오류 발생: " + e.getMessage());
+	    	            e.printStackTrace();
+	    	        }
+	    	    }
+	            
 	            // 1차 결제 완료 -> 배송 생성
 	            if ("pm002".equals(nextStatus)) {
 
@@ -157,13 +202,24 @@ public class PaymentService {
 	            }
 	            // 2차 결제 완료 -> 배송상태 dv006으로 변경
 	            else if ("pm004".equals(nextStatus)) {
-	                
-	            	DeliveryDTO delivery = deliveryMapper.selectDeliveryJoinOrder(payment.getDbOrderId());
-	            	
-	            	if (delivery != null) {
-	            		delivery.setUpdId(loginUserId);
-	                    // 운송장 번호 생성, 택배사 지정, dv006 변경, 이력 등록, 알림 발송
-	                    deliveryService.modifyDelivery(delivery);
+	                try {
+	                    DeliveryDTO delivery = deliveryMapper.selectDeliveryJoinOrder(payment.getDbOrderId());
+	                    if (delivery != null) {
+	                        // 중요: modifyDelivery 내부 로직이 복잡하므로, 
+	                        // 여기서는 상태 코드만 명확히 세팅해서 넘깁니다.
+	                        delivery.setUpdId(loginUserId);
+	                        delivery.setDeliveryStatus(DeliveryStatus.dv006); 
+	                        
+	                        // 만약 modifyDelivery에서 에러가 난다면, 
+	                        // 결제 전체를 롤백할 것인지 결정해야 합니다.
+	                        // 일단은 배송 상태 변경 실패가 결제 취소로 이어지지 않게 별도 try-catch 권장
+	                        // 운송장 번호 생성, 택배사 지정, dv006 변경, 이력 등록, 알림 발송
+	                        deliveryService.modifyDelivery(delivery);
+	                    }
+	                } catch (Exception de) {
+	                    // 배송 상태 변경 실패 시 로그만 남기고 결제는 유지하고 싶다면 여기서 catch
+	                    System.err.println("🚨 배송 상태 변경 중 오류 발생 (결제는 성공): " + de.getMessage());
+	                    // 만약 배송 상태 변경 실패 시 결제도 취소해야 한다면 throw de; 를 하시면 됩니다.
 	                }
 	            }
 	            
@@ -235,6 +291,7 @@ public class PaymentService {
 	    orderApproval.setRequestUserNo(userId);
 	    
 	    bizWorkflowService.modifyEtpStatusAndLogHist(orderApproval);
+	  
 	}
 	
 	// 🔄 취소 로직 전용 메서드 추가

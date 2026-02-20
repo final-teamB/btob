@@ -28,4 +28,8 @@ public interface TradeDocMapper {
 
 	void insertDocument(DocumentInsertDTO docDto);
 
+	Integer selectOrderTotalAmt(String orderNo);
+
+	String selectOrderNo(Integer orderId);
+
 }

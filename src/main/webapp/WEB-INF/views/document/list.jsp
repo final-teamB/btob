@@ -104,7 +104,7 @@ class MemoCellRenderer {
 	document.addEventListener('DOMContentLoaded', function() {
 		const filteredData = rawData.filter(item => {
 		    // 우리가 정의한 3가지 타입 중 하나인 경우만 남김
-		    return ['ESTIMATE', 'PURCHASE ORDER', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
+		    return ['ESTIMATE', 'PURCHASE_ORDER', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
 		});
 		
    		const docGrid = new DataGrid({
@@ -118,7 +118,7 @@ class MemoCellRenderer {
 			columns: [
 				{ header: '담당자', name: 'userName', width: 100},
 				{ header: '문서번호', name: 'docNo'},
-				{ header: '문서제목', name: 'docTitle', width: 300},
+				{ header: '문서제목', name: 'docTitle', width: 350},
 				{ header: '등록일', name: 'regDtime', align: 'center'},
 				{ 
 			        header: '특이사항', 
@@ -150,7 +150,7 @@ class MemoCellRenderer {
 					  title: '문서',
 					  options:  [ 
 						  { value: "ESTIMATE", text: "견적서" },
-		                  { value: "PURCHASE ORDER", text: "발주서" },
+		                  { value: "PURCHASE_ORDER", text: "발주서" },
 		                  { value: "CONTRACT", text: "계약서" },
 		                  { value: "TRANSATION", text: "거래내역서" },
 					]
