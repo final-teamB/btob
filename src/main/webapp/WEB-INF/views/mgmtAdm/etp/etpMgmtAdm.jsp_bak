@@ -143,6 +143,7 @@
         if (etpGrid && etpGrid.grid) {
             const cleanData = data.map(item => ({
                 ...item,
+                orderDate: item.orderDate ? item.orderDate.replace('T', ' ').split('.')[0] : '-',
                 regDtime: item.regDtime ? item.regDtime.replace('T', ' ').split('.')[0] : '-'
             }));
             
@@ -197,7 +198,7 @@
                 { header: '회사명', name: 'companyName', width: 150, align: 'left' },
                 { header: '직급', name: 'userType', width: 100, align: 'center' },
                 { header: '요청자', name: 'userName', width: 120, align: 'center' },
-                { header: '주문일자', name: 'orderDate', width: 110, align: 'center', formatter: (v) => v.value ? v.value.split('T')[0] : '-' },
+                { header: '주문일자', name: 'orderDate', width: 110, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },
                 { header: '등록일시', name: 'regDtime', width: 160, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },
                 {
                     header: '관리', name: 'manage', width: 220, align: 'center',
