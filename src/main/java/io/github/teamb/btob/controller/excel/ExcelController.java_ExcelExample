@@ -1,4 +1,4 @@
-package io.github.teamb.btob.jprtest.controller;
+package io.github.teamb.btob.controller.excel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/jjjtest")
-public class ExcelController {
+public class ExcelExample {
 	
 	private final ExcelTestService excelTestService;
 	private final FileService fileService;

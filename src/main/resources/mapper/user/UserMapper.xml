@@ -44,7 +44,7 @@
 	
 	<!-- 사원 회원가입 인증 대기 목록 --> 
 	<select id="getPendingUsers" resultType="io.github.teamb.btob.dto.user.UserPendingDTO">
-		 SELECT
+	     SELECT
 	        user_no,        
 	        user_id,      
 	        user_name,     
@@ -52,18 +52,21 @@
 	        app_status, 
 	        reg_dtime
 	    FROM TB_USERS
-	    WHERE use_yn = 'Y' AND app_status = 'PENDING'
+	    WHERE use_yn = 'Y' 
+	      AND app_status = 'PENDING'
+	      AND company_cd = (SELECT company_cd FROM TB_USERS WHERE user_no = #{userNo})
 	    ORDER BY user_no ASC
 	</select>
 	
 	<!-- 사원 관리 --> 
 	<update id="modifyUserStatus">
-		UPDATE TB_USERS
-		SET acc_status = #{accStatus},
-			upd_id = #{updId},
-			use_yn = #{useYn},
-			upd_dtime = NOW()
-		WHERE user_no = #{userNo}
+	    UPDATE TB_USERS
+	    SET acc_status = #{accStatus},
+	        upd_id = #{updId},
+	        use_yn = #{useYn},
+	        upd_dtime = NOW()
+	    WHERE user_no = #{userNo}
+	      AND company_cd = (SELECT company_cd FROM (SELECT company_cd FROM TB_USERS WHERE user_no = #{userNo}) AS temp)
 	</update>
 	
 	<!-- 사원 목록 --> 
@@ -77,6 +80,7 @@
 	        reg_dtime
 	    FROM TB_USERS
 	    WHERE use_yn = 'Y'
+	    	 AND company_cd = (SELECT company_cd FROM TB_USERS WHERE user_no = #{userNo})
 	    <if test="accStatus != null and accStatus != ''">
 	        AND acc_status = #{accStatus}
 	    </if>
@@ -86,8 +90,7 @@
 	            user_name LIKE CONCAT('%', #{keyword}, '%')
 	            OR user_id LIKE CONCAT('%', #{keyword}, '%')
 	        )
-	    </if>
-	    
+	    </if>	    
 	    ORDER BY user_no DESC
 	</select>
 	
@@ -118,12 +121,16 @@
 
 	<!-- 사원등록 아이디체크 --> 
     <select id="checkUserId" parameterType="string" resultType="int">
-        SELECT COUNT(*) FROM TB_USERS WHERE user_id = #{userId}
+        SELECT COUNT(*) 
+       	 	FROM TB_USERS
+        	WHERE user_id = #{userId}
     </select>
 
-	<!-- 사원등록 회사체크 --> 
-    <select id="checkCompanyCd" parameterType="string" resultType="int">
-        SELECT COUNT(*) FROM TB_COMPANIES WHERE company_cd = #{companyCd}
-    </select>
+	<!-- 대표아이디 회사코드찾기 -->
+	<select id="getCompanyCdByMasterId">
+		SELECT company_cd
+			FROM TB_USERS
+			WHERE user_no = #{userNo}
+	</select>
 	
 </mapper>

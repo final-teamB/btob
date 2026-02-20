@@ -40,5 +40,118 @@
 	    ORDER BY O.reg_dtime DESC
 	</select>
 
-
+	<resultMap id="estimateDetailMap" type="io.github.teamb.btob.dto.trade.EstimateDetailDTO">
+	    <id property="orderId" column="order_id" />
+	    <result property="orderNo" column="order_no" />
+	    <result property="estDocId" column="est_doc_id" />
+	    <result property="estNo" column="est_no" />
+	    <result property="ctrtNm" column="ctrt_nm" />
+	    <result property="estdtMemo" column="estdt_memo" />
+	    <result property="baseTotalAmount" column="base_total_amount" />
+	    <result property="targetTotalAmount" column="target_total_amount" />
+	    <result property="orderStatus" column="order_status" />
+	    
+	    <result property="companyName" column="company_name" />
+	    <result property="companyPhone" column="company_phone" />
+	    <result property="addrKor" column="addr_kor" />
+	    <result property="userNo" column="user_no" />
+	    <result property="userId" column="user_id" />
+	    <result property="userName" column="user_name" />
+	    <result property="phone" column="phone" />
+	
+	   <collection property="itemList" ofType="io.github.teamb.btob.dto.trade.EstimateDetailDTO$EstimateItemDTO">
+	        <result property="cartId" column="cart_id" />
+	        <result property="fuelNm" column="fuel_nm" />
+	        <result property="totalQty" column="total_qty" />
+	        <result property="baseUnitPrc" column="base_unit_prc" />
+	        <result property="targetProductPrc" column="target_product_prc" />
+	        <result property="targetProductAmt" column="target_product_amt" />
+	    </collection>
+	</resultMap>
+		<select id="getEstimateDetail" resultMap="estimateDetailMap">
+		    SELECT 
+		        O.order_id,
+		        O.order_no,
+		        O.order_status,
+		        E.est_doc_id,
+		        E.est_no,
+		        E.ctrt_nm,
+		        E.estdt_memo,
+		        E.base_total_amount,
+		        E.target_total_amount,
+		        U.user_no,
+	      		U.user_id,
+		        U.user_name,
+		        U.phone,
+		        C_MP.company_name,
+		        C_MP.company_phone,
+		        C_MP.addr_kor,
+		        CT.cart_id,
+		        CT.total_qty,
+		        CT.target_product_prc,
+		        CT.target_product_amt,
+		        OIL.fuel_nm,
+		        OIL.base_unit_prc
+		        
+		    FROM TB_ORDER_MST O
+		    INNER JOIN TB_EST_DOC E ON O.est_id = E.est_doc_id
+		    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+		    INNER JOIN TB_COMPANIES C_MP ON U.company_cd = C_MP.company_cd
+		    INNER JOIN TB_CART CT ON O.order_no = CT.order_no
+		    INNER JOIN TB_OIL_MST OIL ON CT.fuel_id = OIL.fuel_id
+		    
+		    WHERE O.order_id = #{orderId}
+		      AND O.use_yn = 'Y'
+		</select>
+		
+	<resultMap id="orderDetailMap" type="io.github.teamb.btob.dto.trade.OrderDetailDTO">
+	    <id property="orderId" column="order_id" />
+	    <result property="orderNo" column="order_no" />
+	    <result property="orderStatus" column="order_status" />
+	    <result property="regDtime" column="reg_dtime" />
+	    
+	    <result property="companyName" column="company_name" />
+	    <result property="companyPhone" column="company_phone" />
+	    <result property="addrKor" column="addr_kor" />
+	    <result property="userNo" column="user_no" />
+	    <result property="userId" column="user_id" />
+	    <result property="userName" column="user_name" />
+	    <result property="phone" column="phone" />
+	
+	    <collection property="itemList" ofType="io.github.teamb.btob.dto.trade.OrderDetailDTO$OrderItemDTO">
+	        <result property="cartId" column="cart_id" />
+	        <result property="fuelNm" column="fuel_nm" />
+	        <result property="totalQty" column="total_qty" />
+	        <result property="totalPrice" column="total_price" />
+	        <result property="baseUnitPrc" column="base_unit_prc" />
+	    </collection>
+	</resultMap>
+	
+	<select id="getOrderDetail" resultMap="orderDetailMap">
+	    SELECT 
+	        O.order_id,
+	        O.order_no,
+	        O.order_status,
+	        O.reg_dtime,
+	        U.user_no,
+	        U.user_id,
+	        U.user_name,
+	        U.phone,
+	        CO.company_name,
+	        CO.company_phone,
+	        CO.addr_kor,
+	        CT.cart_id,
+	        CT.total_qty,
+	        CT.total_price,
+	        OIL.fuel_nm,
+	        OIL.base_unit_prc
+	    FROM TB_ORDER_MST O
+	    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+	    INNER JOIN TB_COMPANIES CO ON U.company_cd = CO.company_cd
+	    INNER JOIN TB_CART CT ON O.order_no = CT.order_no
+	    INNER JOIN TB_OIL_MST OIL ON CT.fuel_id = OIL.fuel_id
+	    WHERE O.order_id = #{orderId}
+	</select>
+	
+	
 </mapper>

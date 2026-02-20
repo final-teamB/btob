@@ -76,7 +76,31 @@
                                 <div id="detailStts" class="mt-1"></div>
                             </div>
                         </div>
-
+							
+						<div class="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-700/30 rounded-[1.5rem] mb-10 border border-gray-200 dark:border-gray-600 shadow-sm">
+						    <p class="text-sm font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest italic">주문 수량 설정</p>
+						    
+						    <div class="flex items-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-sm transition-all focus-within:border-gray-400">
+						        <button onclick="changeQty(-1)" 
+						                class="px-5 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border-r border-gray-200 dark:border-gray-600 active:bg-gray-200">
+						            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4" />
+						            </svg>
+						        </button>
+						        
+						        <input type="number" id="orderQtyInput" value="1" min="1" 
+						               class="w-20 text-center font-black text-gray-900 dark:text-white bg-transparent focus:outline-none text-lg"
+						               onchange="if(this.value < 1) this.value = 1;">
+						        
+						        <button onclick="changeQty(1)" 
+						                class="px-5 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors border-l border-gray-200 dark:border-gray-600 active:bg-gray-200">
+						            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+						            </svg>
+						        </button>
+						    </div>
+						</div>
+							
                         <div class="mb-10">
                             <h3 class="flex items-center text-sm font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-5">
                                 <span class="w-8 h-[2px] bg-gray-400 mr-3"></span>
@@ -129,7 +153,7 @@
 						            장바구니
 						        </button>
 						
-						        <button onclick="requestQuote()" 
+						        <button onclick="processDirectAction('EST')" 
 						                class="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl border-2 border-gray-200 dark:border-gray-600 hover:border-slate-300 transition-all shadow-sm whitespace-nowrap">
 						            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2-2z" />
@@ -137,7 +161,7 @@
 						            견적 요청
 						        </button>
 						
-						        <button onclick="directOrder()" 
+						        <button onclick="processDirectAction('ORD')" 
 						                class="flex-[1.2] flex items-center justify-center gap-2 px-4 py-4 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-md shadow-blue-100 dark:shadow-none transform active:scale-95 whitespace-nowrap">
 						            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -162,16 +186,23 @@
 </div>
 
 <script>
+let currentFuelId = null;
+let currentUnitPrice = 0;
+
 function openProductDetail(fuelId) {
     if(!fuelId) return;
-
+    currentFuelId = fuelId;
+    
     fetch('/usr/productView/api/' + fuelId)
         .then(response => response.json())
         .then(data => {
+        	currentUnitPrice = data.baseUnitPrc || 0;
+        	
             // 1. 기본 텍스트 정보
             document.getElementById('detailFuelNm').innerText = data.fuelNm;
             document.getElementById('detailFuelCat').innerText = data.fuelCatNm;
             document.getElementById('detailOrigin').innerText = data.originCntryNm;
+            document.getElementById('detailPrice').innerText = '₩' + new Intl.NumberFormat().format(currentUnitPrice);            
             
             // 2. 숫자 포맷팅
             const price = data.baseUnitPrc || 0;
@@ -211,14 +242,14 @@ function openProductDetail(fuelId) {
                 // [핵심] 판매 불가 상태 처리 (SO002:품절, EX003:판매만료, DC004:단종 등)
                 btnGroup.classList.add('hidden'); // 버튼 숨김
                 statusNotice.classList.remove('hidden'); // 안내창 표시
-                noticeMsg.innerText = `\${sttsText} 상태로 현재 주문이 불가합니다.`; // 문구 동적 세팅
+                noticeMsg.innerText = sttsText + " 상태로 현재 주문이 불가합니다."; // 문구 동적 세팅
 
                 if (sCode === 'SO002') sttsClass = 'bg-red-100 text-red-700 border border-red-200';
                 else if (sCode === 'EX003') sttsClass = 'bg-gray-100 text-gray-600 border border-gray-200';
                 else if (sCode === 'DC004') sttsClass = 'bg-orange-100 text-orange-700 border border-orange-200';
             }
 
-            sttsEl.innerHTML = `<span class="px-3 py-1.5 rounded-lg font-bold text-xs \${sttsClass}">\${sttsText}</span>`;
+            sttsEl.innerHTML = '<span class="px-3 py-1.5 rounded-lg font-bold text-xs ' + sttsClass + '">' + sttsText + '</span>';
 
             // 6. 이미지 처리
             let mainImgUrl = contextPath + '/images/no-image.png';
@@ -241,27 +272,139 @@ function openProductDetail(fuelId) {
 function closeProductDetail() {
     document.getElementById('productDetailModal').classList.add('hidden');
     document.body.style.overflow = 'auto'; 
+    currentFuelId = null;
+}
+
+//1. 수량 변경 함수
+function changeQty(amount) {
+    const qtyInput = document.getElementById('orderQtyInput');
+    let currentQty = parseInt(qtyInput.value);
+    if(isNaN(currentQty)) currentQty = 1;
+    
+    const newQty = currentQty + amount;
+    if(newQty >= 1) {
+        qtyInput.value = newQty;
+    }
 }
 
 /**
  * 액션 함수 정의
  */
-function addToCart() {
-    const fuelNm = document.getElementById('detailFuelNm').innerText;
-    alert(fuelNm + ' 상품을 장바구니에 담았습니다.');
-}
+ function addToCart() {
+	    if(!currentFuelId) {
+	        alert("상품 정보를 불러오지 못했습니다.");
+	        return;
+	    }
+	    
+	    const unitPrice = Number(currentUnitPrice) || 0;
+	    const qty = Number(document.getElementById('orderQtyInput').value) || 1;
+	    const totalPrice = unitPrice * qty;
 
-function requestQuote() {
-    const fuelNm = document.getElementById('detailFuelNm').innerText;
-    if(confirm(fuelNm + ' 상품에 대한 견적서를 요청하시겠습니까?')) {
-        // 실제 로직 연동 시 fuelId 등을 파라미터로 넘겨야 합니다.
-    }
-}
+		 // [확인용] 여기서 0이 나오면 애초에 currentUnitPrice가 세팅이 안 된 것입니다.
+	    console.log("계산 결과 -> 단가:", unitPrice, "수량:", qty, "총액:", totalPrice);
 
-function directOrder() {
-    const fuelNm = document.getElementById('detailFuelNm').innerText;
-    alert(fuelNm + ' 주문 페이지로 이동합니다.');
-}
+	    if(totalPrice <= 0) {
+	        alert("금액이 0원입니다. 단가와 수량을 확인해주세요.");
+	        return;
+	    }
+
+	    // 4. 전송 데이터 생성
+	    var formData = new URLSearchParams();
+	    formData.append('fuelId', currentFuelId);
+	    formData.append('totalQty', qty);
+	    formData.append('totalPrice', totalPrice);
+	    formData.append('baseUnitPrc', currentUnitPrice);
+
+	    fetch('${pageContext.request.contextPath}/cart/add', {
+	        method: 'POST',
+	        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+	        body: formData
+	    })
+	    .then(function(res) { return res.json(); })
+	    .then(function(data) {
+	        if(data.result === 'success') {
+	            var fuelNm = document.getElementById('detailFuelNm').innerText;
+	            if(confirm(fuelNm + ' 상품을 담았습니다.\n장바구니로 이동하시겠습니까?')) {
+	                location.href = "${pageContext.request.contextPath}/cart/cart";
+	            }
+	        } else {
+	            // 여전히 "재고 수정 실패"가 뜬다면 서버 Service 로직 확인 필요
+	            alert("장바구니 담기 실패: " + (data.message || "오류 발생"));
+	        }
+	    })
+	    .catch(function(err) {
+	        console.error("Error:", err);
+	    });
+	}
+ 
+ /**
+  * 통합 처리 함수 (견적/주문 공통)
+  * @param {string} type - 'EST' (견적) 또는 'ORD' (주문)
+  */
+  function processDirectAction(type) {
+	     if (!currentFuelId) return;
+
+	     var qtyStr = document.getElementById('orderQtyInput').value;
+	     var qty = parseInt(qtyStr);
+	     var actionName = (type === 'EST') ? '견적 요청' : '바로 주문';
+	     var targetUrl = (type === 'EST') ? '/cart/estimateReq' : '/cart/orderReq';
+
+	     if (!confirm(actionName + '을(를) 진행하시겠습니까?')) return;
+
+	     // [추가] 단가 및 총액 계산 로직
+	     var priceText = document.getElementById('detailPrice').innerText;
+	     var unitPrice = parseInt(priceText.replace(/[^0-9]/g, '')); 
+	     if(isNaN(unitPrice)) unitPrice = 0;
+	     var totalPrice = unitPrice * qty;
+
+	     // 1. 장바구니 담기 (파라미터 추가)
+	     var formData = new URLSearchParams();
+	     formData.append('fuelId', currentFuelId);
+	     formData.append('totalQty', qty);
+	     formData.append('totalPrice', totalPrice); // DTO 매핑을 위해 추가
+	     formData.append('baseUnitPrc', unitPrice);  // DTO 매핑을 위해 추가
+	     formData.append('isDirect', 'Y');
+
+	     fetch('${pageContext.request.contextPath}/cart/add', {
+	         method: 'POST',
+	         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+	         body: formData
+	     })
+	     .then(function(res) { return res.json(); })
+	     .then(function(data) {
+	         if (data.result === 'success') {
+	             var cartId = data.newCartId; 
+
+	             if (!cartId) {
+	                 alert('데이터 생성에 실패했습니다. (서버 응답 ID 누락)');
+	                 return;
+	             }
+
+	             var popupName = 'previewWindow_' + type;
+	             window.open('', popupName, 'width=1200, height=900, scrollbars=yes');
+
+	             var form = document.createElement('form');
+	             form.method = 'POST';
+	             form.target = popupName;
+	             form.action = '${pageContext.request.contextPath}' + targetUrl;
+
+	             var input = document.createElement('input');
+	             input.type = 'hidden';
+	             input.name = 'cartIds'; 
+	             input.value = cartId;
+	             form.appendChild(input);
+
+	             document.body.appendChild(form);
+	             form.submit();
+	             document.body.removeChild(form);
+	         } else {
+	             alert(actionName + ' 실패: ' + (data.message || '오류 발생'));
+	         }
+	     })
+	     .catch(function(err) {
+	         alert('서버와 통신 중 오류가 발생했습니다.');
+	     });
+	 }
 
 /**
  * [추가] ESC 키를 누르면 모달 닫기

@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
 	private final UserMapper userMapper;
+	private final LoginUserProvider loginUserProvider;
 
 	
 	// 사원 회원가입 인증
@@ -38,7 +39,7 @@ public class UserService {
 	
 	// 사원 회원가입 인증 대기 목록
 	public List<UserPendingDTO> getPendingUsers() {
-		return userMapper.getPendingUsers();
+		return userMapper.getPendingUsers(loginUserProvider.getLoginUserNo());
 	}
 
 	
@@ -61,7 +62,7 @@ public class UserService {
 	
 	// 사원리스트
 	public List<UserListDTO> getUserList(String accStatus, String keyword) {
-		return userMapper.getUserList(accStatus, keyword);			
+		return userMapper.getUserList(accStatus, keyword, loginUserProvider.getLoginUserNo());			
 	}
 	
 	
@@ -102,26 +103,29 @@ public class UserService {
 
 
     private UserDTO buildUserDTO(Row row) {
-    	//Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        //CustomUserDetails loginUser = (CustomUserDetails) auth.getPrincipal();
     	BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     	
-		String regId = null; //loginUser.getUserId();
-    	
-        return UserDTO.builder()
-                .userId(getCellValue(row.getCell(0)))
-                .userName(getCellValue(row.getCell(1)))
-                .phone(getCellValue(row.getCell(2)))
-                .email(getCellValue(row.getCell(3)))
-                .companyCd(Optional.ofNullable(getCellValue(row.getCell(4)))
-                                   .filter(s -> !s.isBlank())
-                                   .orElse(null))
-                .password(passwordEncoder.encode("1234"))       // 초기 비밀번호
-                .userType("USER")
-                .appStatus("APPROVED")
-                .accStatus("ACTIVE")
-                .regId(regId)
-                .build();
+    	String MasterCompanyCd = userMapper.getCompanyCdByMasterId(loginUserProvider.getLoginUserNo());
+		String regId = loginUserProvider.getLoginUserId();
+		
+		String emailId = getCellValue(row.getCell(0));
+	    String userName = getCellValue(row.getCell(1));
+	    String phone = getCellValue(row.getCell(2));
+	    String formattedPhone = formatPhoneNumber(phone);
+		
+		return UserDTO.builder()
+				.userId(emailId)
+	            .userName(userName)
+	            .phone(formattedPhone)
+	            .email(emailId)
+	            // 2. 엑셀에서 읽지 않고 서버 데이터를 바로 세팅!
+	            .companyCd(MasterCompanyCd)               
+	            .password(passwordEncoder.encode("1234"))
+	            .userType("USER")
+	            .appStatus("APPROVED")
+	            .accStatus("ACTIVE")
+	            .regId(regId)
+	            .build();
     }
 
     private ExcelUploadResult.FailItem validateUserDTO(int row, UserDTO user) {
@@ -131,10 +135,7 @@ public class UserService {
         if (userMapper.checkUserId(user.getUserId()) > 0) {
             return createFail(row, user.getUserId(), "중복된 ID");
         }
-        if (user.getCompanyCd() != null && userMapper.checkCompanyCd(user.getCompanyCd()) == 0) {
-            return createFail(row, user.getUserId(), "존재하지 않는 회사코드");
-        }
-        
+              
         return null;
     }
 
@@ -154,6 +155,22 @@ public class UserService {
             default -> null;
         };
     }
+    
+    private String formatPhoneNumber(String phone) {
+        if (phone == null || phone.isBlank()) return null;
 
+        // 1. 숫자 이외의 문자 제거 (혹시 이미 -가 있어도 중복 방지)
+        String cleanPhone = phone.replaceAll("[^0-9]", "");
+
+        // 2. 길이에 따른 포맷팅 (01012345678 -> 010-1234-5678)
+        if (cleanPhone.length() == 11) {
+            return cleanPhone.replaceFirst("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3");
+        } else if (cleanPhone.length() == 10) {
+            // 서울 지역번호 등 10자리 대응 (02-123-4567 등)
+            return cleanPhone.replaceFirst("(\\d{2,3})(\\d{3,4})(\\d{4})", "$1-$2-$3");
+        }
+        
+        return cleanPhone; // 형식이 맞지 않으면 숫자만이라도 반환
+    }
 	
 }

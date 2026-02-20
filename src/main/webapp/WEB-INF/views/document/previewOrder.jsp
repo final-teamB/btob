@@ -1,9 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
-<c:set var="info" value="${itemList[0]}" />
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -62,7 +59,6 @@
                        <div>
 						    <p class="text-xs text-emerald-600 font-bold uppercase tracking-tighter mb-1">Contract Name</p>
 						    <p class="text-xl font-bold text-gray-800 leading-tight">
-							    <c:out value="${info.fuelNm}" /> 
 							    <c:if test="${itemList.size() > 1}">
 							        외 <c:out value="${itemList.size() - 1}" />건 
 							    </c:if>

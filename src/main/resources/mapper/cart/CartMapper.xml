@@ -2,7 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.cart.CartMapper">
 	
-	
+	<!-- 장바구니 재고 변경 시 Id로 조회 -->
+	<select id="selectCartItemById" parameterType="int" resultType="io.github.teamb.btob.dto.cart.CartItemDTO">
+	    SELECT 
+	        cart_id,
+	        fuel_id,
+	        total_qty,
+	        user_id,
+	        cart_status
+	    FROM TB_CART
+	    WHERE cart_id = #{cartId}
+	</select>
 	
 	<!-- 주문/견적서 요청 시 cartId로 정보 -->
 	<select id="selectCartItemListByIds" resultType="io.github.teamb.btob.dto.cart.CartItemDTO">
@@ -93,7 +103,10 @@
     </select>
     
     <!-- 거래바구니 인서트 -->
-    <insert id="insertCartItem">
+    <insert id="insertCartItem"
+    	useGeneratedKeys="true" 
+        keyProperty="cartId" 
+        keyColumn="cart_id">
         INSERT INTO TB_CART (
             user_id,
             fuel_id,
@@ -173,6 +186,7 @@
 	      AND user_id = #{userId}
 	</update>
 	
+	<!-- 희망단가 변경 -->
 	<update id="updateCartEstInfo" parameterType="map">
 	    UPDATE TB_CART
 	       SET 
