@@ -97,7 +97,7 @@
             	{ header: '번호', name: 'noticeId', width: 80, align: 'center', sortable: true },
                 { header: '제목', name: 'title', align: 'left', sortable: true },
                 { header: '작성자', name: 'displayRegId', width: 120, align: 'center' },
-                { header: '등록일', name: 'regDtime', width: 150, align: 'center', sortable: true },
+                { header: '등록일', name: 'regDtime', width: 180, align: 'center', sortable: true },
                 { header: '조회수', name: 'viewCount', width: 100, align: 'center', sortable: true },
                 {
                     header: '관리', name: 'editBtn', width: 90, align: 'center',

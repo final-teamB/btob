@@ -68,7 +68,7 @@ const rawData = [
         bizNumber: "${u.biz_number != null ? u.biz_number : '-'}",
         email: "${u.email != null ? u.email : '-'}", phone: "${u.phone != null ? u.phone : '-'}",
         appStatus: "${u.app_status}", accStatus: "${u.acc_status}",
-        regDtime: "${u.reg_dtime}", position: "${u.position != null ? u.position : '-'}",
+        regDtime: "${u.reg_dtime}".replace('.0', ''), position: "${u.position != null ? u.position : '-'}",
         address: "${u.address != null ? u.address : '-'}", customsNum: "${u.customs_num != null ? u.customs_num : '-'}"
     }${!st.last ? ',' : ''}
     </c:forEach>
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { header: '관리자ID', name: 'userId', align: 'center' },
             { header: '관리자명', name: 'userName', align: 'center' },
             { header: '연락처', name: 'phone', align: 'center' },
-            { header: '등록일', name: 'regDtime', align: 'center' }
+            { header: '등록일', name: 'regDtime', align: 'center'}
         );
     } else {
         columns.push(
@@ -194,6 +194,15 @@ document.addEventListener('DOMContentLoaded', () => {
         pageOptions: { useClient: true, perPage: 10 }
     });
     
+    const initialPerPage = 10;
+    const initialPageData = tabFilteredData.slice(0, initialPerPage);
+    window.userGrid.grid.resetData(initialPageData);
+
+    const initialPaginationEl = document.querySelector('.tui-pagination');
+    if (initialPaginationEl) {
+        initialPaginationEl.style.display = (tabFilteredData.length <= initialPerPage) ? 'none' : 'block';
+    }
+    
     const filterOptions = [
         { 
             field: 'accStatus', 
@@ -216,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
         });
     }
-
+    
     window.userGrid.initFilters(filterOptions);
 
     // 실시간 필터링 
@@ -227,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const accFilter = document.getElementById('filter-accStatus')?.value;
     const appFilter = document.getElementById('filter-appStatus')?.value;
 
-    let filtered = [...tabFilteredData];  // ★ 이거 추가
+    let filtered = [...tabFilteredData];  
 
     // 계정 상태
     if (accFilter) {
@@ -254,10 +263,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.userGrid.grid.resetData(filtered);
+    const perPage = 10; // 페이지당 10개
+    const pageData = filtered.slice(0, perPage);
+    
+    window.userGrid.grid.resetData(pageData);
+    
+    const paginationEl = document.querySelector('.tui-pagination');
+    if (paginationEl) {
+        paginationEl.style.display = (filtered.length <= perPage) ? 'none' : 'block';
+    }
 };
 
-    
     // 1. 검색어 입력 시 (키보드 칠 때마다)
     document.getElementById('dg-search-input').addEventListener('input', performFilter);
     

@@ -85,7 +85,6 @@
 </div>
 
 <script>
-/* 1. 커스텀 렌더러 정의 - ID 부여 방식 */
 class DirectInputRenderer {
     constructor(props) {
         const el = document.createElement('input');
@@ -119,10 +118,10 @@ class DirectSelectRenderer {
         
         // 주문 상태별 선택 옵션 제한 로직
         if (rowData.orderStatus === 'pm004') {
-            // 1차결제완료(pm004) -> 국내배송중, 배송완료만
-            allowedStatus = list.filter(s => s.v === 'dv006' || s.v === 'dv007');
+            // 2차결제완료(pm004) -> 통관완료, 국내배송중, 배송완료만
+            allowedStatus = list.filter(s => s.v === 'dv005' || s.v === 'dv006' || s.v === 'dv007');
         } else if (rowData.orderStatus === 'pm002') {
-            // 2차결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
+            // 1차결제완료(pm002) -> 상품준비중 ~ 통관완료 (5가지)
             allowedStatus = list.filter(s => ['dv001', 'dv002', 'dv003', 'dv004', 'dv005'].includes(s.v));
         }
         
@@ -137,14 +136,14 @@ class DirectSelectRenderer {
     }
     getElement() { return this.el; }
 }
-/* 2. 데이터 바인딩 */
+
 let deliveryGrid;
 const gridData = [];
 
 <c:forEach var="item" items="${deliveryList}">
 gridData.push({
     deliveryId: "${item.deliveryId}",
-    regDtime: "${item.regDtime}",
+    regDtime: "${item.regDtime}".replace('T',' '),
     orderId: "${item.orderId}",
     orderStatus: "${item.orderStatus}",
     statusDisplay: '<strong>${item.statusName}</strong><br><small>(${item.deliveryStatus})</small>',
@@ -177,6 +176,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const dateHtml = `<div class="flex flex-col gap-1.5 ml-4"><label class="text-sm font-bold text-gray-700 dark:text-white">주문일시</label><div class="flex items-center gap-2"><input type="date" id="searchStartDate" class="rounded-lg border border-gray-300 py-2 px-3 text-sm h-[40px]"><span class="dark:text-white">~</span><input type="date" id="searchEndDate" class="rounded-lg border border-gray-300 py-2 px-3 text-sm h-[40px]"></div></div>`;
         document.getElementById('dg-search-input').parentElement.insertAdjacentHTML('beforebegin', dateHtml);
+        ['searchStartDate', 'searchEndDate'].forEach(id => {
+            const dateInput = document.getElementById(id);
+            if (dateInput) {
+                dateInput.addEventListener('change', () => {
+                    document.getElementById('dg-btn-search').click();
+                });
+            }
+        });
+        
+        // 필터박스 변경 즉시 검색
+        filterSelect.addEventListener('change', () => {
+            document.getElementById('dg-btn-search').click();
+        });
+    }
+    // 검색어 입력 실시간 검색
+    const searchInput = document.getElementById('dg-search-input');
+    if (searchInput) {
+        // 입력할 때마다 300ms 후에 검색 (debounce)
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                document.getElementById('dg-btn-search').click();
+            }, 300);
+        });
     }
 
     // [B] 그리드 초기화 (정렬 옵션 및 페이징)
@@ -215,23 +239,42 @@ document.addEventListener('DOMContentLoaded', () => {
         pageOptions: { useClient: true, perPage: 10 }
     });
 
+ // [C] 조회 버튼 로직
     // [C] 조회 버튼 로직
-    document.getElementById('dg-btn-search').addEventListener('click', () => {
-        const statusVal = document.getElementById('dg-common-filter').value;
-        const startDate = document.getElementById('searchStartDate').value;
-        const endDate = document.getElementById('searchEndDate').value;
-        const keyword = document.getElementById('dg-search-input').value.toLowerCase();
+document.getElementById('dg-btn-search').addEventListener('click', () => {
+    const statusVal = document.getElementById('dg-common-filter').value;
+    const startDate = document.getElementById('searchStartDate').value;
+    const endDate = document.getElementById('searchEndDate').value;
+    const keyword = document.getElementById('dg-search-input').value.toLowerCase();
 
-        const filtered = gridData.filter(item => {
-            const itemDate = item.regDtime.substring(0, 10); 
-            const matchDate = (!startDate || itemDate >= startDate) && (!endDate || itemDate <= endDate);
-            const matchStatus = !statusVal || item.deliveryStatus === statusVal;
-            const matchKey = !keyword || item.orderId.includes(keyword) || item.trackingNo.includes(keyword);
-            return matchDate && matchStatus && matchKey;
-        });
-        deliveryGrid.grid.resetData(filtered);
+    const filtered = gridData.filter(item => {
+        const itemDate = item.regDtime.substring(0, 10);
+        const matchDate = (!startDate || itemDate >= startDate) && (!endDate || itemDate <= endDate);
+        const matchStatus = !statusVal || item.deliveryStatus === statusVal;
+        
+        // 검색어 부분 완전 개선: 공백 제거 + optional chaining + trim()
+        const keywordTrim = keyword.trim();
+        const matchKey = !keywordTrim || 
+                         (item.orderId && item.orderId.toLowerCase().includes(keywordTrim)) || 
+                         (item.trackingNo && item.trackingNo.trim().toLowerCase().includes(keywordTrim));
+        
+        return matchDate && matchStatus && matchKey;
     });
+
+    const perPage = deliveryGrid.perPage || 10;
+    const pageData = filtered.slice(0, perPage);
+
+    deliveryGrid.filteredData = filtered;
+    deliveryGrid.currentPage = 1;
+    deliveryGrid.grid.resetData(pageData);
     
+    // 페이징 보이기/숨기기
+    const paginationEl = document.querySelector('.tui-pagination');
+    if (paginationEl) {
+        paginationEl.style.display = (filtered.length <= perPage) ? 'none' : 'block';
+    }
+});
+
  // [D] 행 클릭 시 상세 페이지 이동
     deliveryGrid.grid.on('click', (ev) => {
         // 클릭된 대상이 '관리(save)' 버튼이나 'input/select'인 경우는 제외하고 행 이동
@@ -244,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* 저장 처리 (ID 참조 방식) */
+// 저장 처리
 window.handleGridAction = function(rowData) {
     const rowKey = rowData.rowKey;
     const deliveryId = rowData.deliveryId;
@@ -275,17 +318,12 @@ window.handleGridAction = function(rowData) {
         if (res.success) {
             alert('저장되었습니다.');
             
-            // 1. 원본 데이터(gridData)에서 해당 행을 찾아 값을 업데이트합니다.
             const targetRow = gridData.find(item => item.deliveryId == deliveryId);
             if (targetRow) {
                 targetRow.deliveryStatus = currentCode;
                 targetRow.trackingNo = trackingNo;
                 targetRow.statusDisplay = '<strong>' + currentText + '</strong><br><small>(' + currentCode + ')</small>';
             }
-
-            // 2. 그리드에 변경된 데이터를 다시 밀어 넣습니다. 
-            // 이렇게 하면 새로고침 없이 해당 행만 자연스럽게 바뀝니다.
-            deliveryGrid.grid.resetData(gridData); 
             
         } else {
             alert('실패: ' + res.message);

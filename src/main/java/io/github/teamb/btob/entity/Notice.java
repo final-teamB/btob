@@ -56,7 +56,7 @@ public class Notice {
     
     public String getFormattedRegDate() {
         if (this.regDtime == null) return "";
-        return this.regDtime.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return this.regDtime.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
     
     public String getDisplayRegId() {

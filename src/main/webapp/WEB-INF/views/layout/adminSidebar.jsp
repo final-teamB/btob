@@ -5,81 +5,75 @@
       <div class="flex-1 px-3 space-y-1 bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
         <ul class="pb-2 space-y-2">
 
-          <!-- 사용자관리 -->
-          <li>
-            <a href="/admin/user/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-              <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 10a4 4 0 100-8 4 4 0 000 8z"></path>
-                <path fill-rule="evenodd" d="M2 16a6 6 0 1112 0H2z" clip-rule="evenodd"></path>
-              </svg>
-              <span class="ml-3" sidebar-toggle-item>사용자관리</span>
-            </a>
-          </li>
+          <!-- 사용자관리: 👥 Users 아이콘 -->
+<li>
+  <a href="/admin/user/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>사용자관리</span>
+  </a>
+</li>
 
-          <!-- 상품관리 -->
-          <li>
-            <a href="/admin/products" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-              <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 3a2 2 0 00-2 2v2a2 2 0 002 2v6a1 1 0 001.447.894L10 14.618l4.553 2.276A1 1 0 0016 15V9a2 2 0 002-2V5a2 2 0 00-2-2H4z"></path>
-              </svg>
-              <span class="ml-3" sidebar-toggle-item>상품관리</span>
-            </a>
-          </li>
+<!-- 상품관리: 📦 Package 아이콘 -->
+<li>
+  <a href="/admin/products" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-4L4 7m8 4v10M4 7v10l8 4"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>상품관리</span>
+  </a>
+</li>
 
-          <!-- 주문관리 -->
-          <li>
-            <a href="/admin/orders" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-              <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 3a2 2 0 00-2 2v1a1 1 0 001 1h14a1 1 0 001-1V5a2 2 0 00-2-2H4z"></path>
-                <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm4 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
-              </svg>
-              <span class="ml-3" sidebar-toggle-item>주문관리</span>
-            </a>
-          </li>
+<!-- 주문관리: 📋 Clipboard 아이콘 -->
+<li>
+  <a href="/admin/orders" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>주문관리</span>
+  </a>
+</li>
 
-          <!-- 배송관리 -->
-          <li>
-            <a href="/admin/delivery/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-              <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 3a1 1 0 000 2h1l1 3h9l1-3h1a1 1 0 100-2H3z"></path>
-                <path d="M5 9h10v5a2 2 0 01-2 2h-1a2 2 0 11-4 0H7a2 2 0 01-2-2V9z"></path>
-              </svg>
-              <span class="ml-3" sidebar-toggle-item>배송관리</span>
-            </a>
-          </li>
-          </li>
+<!-- 배송관리: 🚚 Truck 아이콘 -->
+<li>
+  <a href="/admin/delivery/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>배송관리</span>
+  </a>
+</li>
 
-          <!-- 공지사항관리 -->
-          <li>
-            <a href="/notice" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-              <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 2a2 2 0 00-2 2v1H5v2h1v7h2v-7h2v7h2v-7h1V5h-3V4a2 2 0 00-2-2z"></path>
-              </svg>
-              <span class="ml-3" sidebar-toggle-item>공지사항관리</span>
-            </a>
-          </li>
+<!-- 공지사항관리: 📢 Megaphone 아이콘 -->
+<li>
+  <a href="/notice" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3.7a2 2 0 001.856-.586l1.828-1.828A2 2 0 0123 14.3V11a3 3 0 00-6 0v3a1 1 0 001 1zM8 17H6a2 2 0 01-2-2V7a2 2 0 012-2h2m0 0V3a2 2 0 012-2h4a2 2 0 012 2v2M8 17h4"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>공지사항관리</span>
+  </a>
+</li>
 
-          <!-- 문의관리 -->
-          <li>
-		  <a href="/support/admin/faqList" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-		    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-		      <path d="M18 10c0 3.866-3.582 7-8 7a8.96 8.96 0 01-3.258-.606L2 17l.879-3.516A6.718 6.718 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"></path>
-		    </svg>
-		    <span class="ml-3" sidebar-toggle-item>문의관리</span>
-		  </a>
-		</li>
+<!-- 문의관리: 💬 Chat 아이콘 -->
+<li>
+  <a href="/support/admin/faqList" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 4.03 9 8z"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>문의관리</span>
+  </a>
+</li>
 
-          <!-- 통계관리 -->
-          <li>
-		  <a href="/admin/stats/main" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-		    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-		      <path d="M4 13a1 1 0 011-1h1v3H4v-2z"></path>
-		      <path d="M9 9a1 1 0 011-1h1v7H9V9z"></path>
-		      <path d="M14 5a1 1 0 011-1h1v11h-2V5z"></path>
-		    </svg>
-		    <span class="ml-3" sidebar-toggle-item>통계관리</span>
-		  </a>
-		</li>
+<!-- 통계관리: 📊 Chart 아이콘 -->
+<li>
+  <a href="/admin/stats/main" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+    <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2-2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    <span class="ml-3" sidebar-toggle-item>통계관리</span>
+  </a>
+</li>
 
         </ul>
       </div>

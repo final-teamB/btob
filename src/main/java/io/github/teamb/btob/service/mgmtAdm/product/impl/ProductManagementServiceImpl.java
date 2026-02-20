@@ -490,7 +490,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		
 		int result = 0;
 		
-		if ( type.equals("UP")) {
+		if ( type.equals("DOWN")) {
 			
 			if((currvol - orderQty) <= 0) {
 				throw new Exception("주문 수량이 재고량보다 많습니다.");
@@ -511,7 +511,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 					throw new Exception("재고량 업데이트시 오류가 발생했습니다.");
 				}
 			}
-		} else if ( type.equals("DOWN") ) {
+		} else if ( type.equals("UP") ) {
 			
 			Integer statusChk = productMgmtAdmMapper.chkOrderStatusCd(updateProductCurrVolDTO.getOrderStatus());
 			
