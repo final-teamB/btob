@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -128,12 +127,14 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
 
         // 1. 회사 기본 정보 등록
         // 회사코드 자동생성
-        String companyNm = requestDTO.getCompyBase().getCompanyName();
-
-        Integer objId = compyMgmtAdmMapper.selectAutoObjId();
-        int year = LocalDate.now().getYear();
-        String companyCd = year + "-" + companyNm + "-" + objId;
-        requestDTO.getCompyBase().setCompanyCd(companyCd);
+    	// 자동생성 안합니다.
+		/*
+		 * String companyNm = requestDTO.getCompyBase().getCompanyName();
+		 * 
+		 * Integer objId = compyMgmtAdmMapper.selectAutoObjId(); int year =
+		 * LocalDate.now().getYear(); String companyCd = year + "-" + companyNm + "-" +
+		 * objId; requestDTO.getCompyBase().setCompanyCd(companyCd);
+		 */
 
 
         // Insert 후 Mybatis의 selectKey 등을 통해 requestDTO.getCompyBase().getCompanySeq에 값이 채워져야 합니다.

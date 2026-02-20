@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.account.LoginMapper">
+		
+		<!--  로그인 시도 사용자 검증 항목 -->
+	    <!-- 단 이 쿼리는 회원가입 시 권한이 확실하게 부여되어야함-->
+	    <select id="findLoginValidationUser"
+	         parameterType="String"
+	         resultType="io.github.teamb.btob.dto.account.LoginValidateDTO">
+	
+			        SELECT
+			            a.user_id,
+			            a.user_pw,
+			            a.acc_status,
+			            b.comm_name AS accSttsNm,
+			            a.app_status,
+			            c.comm_name AS appSttsNm,
+			            a.user_login_fail_cnt,
+			            a.user_expired_date,
+			            a.pw_expired_date,
+			        FROM
+			            TB_USERS a
+			            LEFT OUTER JOIN COMM_TBL b
+			            ON a.acc_status = b.comm_no
+			            AND b.system_id = 'LOGIN'
+			            AND b.param_value = 'ACC_STATUS'
+			            LEFT OUTER JOIN COMM_TBL c
+			            ON a.acc_status = c.comm_no
+			            AND c.system_id = 'LOGIN'
+			            AND c.param_value = 'APP_STATUS'
+			        WHERE 1 = 1
+			        AND a.user_id = #{userId}
+	
+	    </select>
+	    
+	    <!-- 로그인 성공 시 누적 카운트 초기화 -->
+	    <update id="resetLoginFailCnt" 
+	    	parameterType="String">
+	
+		        UPDATE
+		            TB_USERS
+		        SET
+		            user_login_fail_cnt = 0
+		        WHERE 1=1
+		        AND user_id = #{userId}
+	
+	    </update>
+	
+	    <!-- 로그인 실패 시 횟수 증가 및 5회이상 시 계정 잠금 처리-->
+	    <update id="increaseLoginFailCntAndLockMemberId" 
+	    	parameterType="String">
+	
+		        UPDATE 
+		        	TB_USERS
+		        SET
+			        user_login_fail_cnt = user_login_fail_cnt + 1,
+			        user_status = CASE
+			                        WHEN user_login_fail_cnt + 1 >= 5 THEN 'LOCKED'
+			                        ELSE acc_status END
+		        WHERE 1 = 1
+		        AND user_id = #{userId}
+	
+	    </update>
+	    
+	    <update id="lockMemberId"
+	    	parameterType="String">
+	    	
+	    	
+	    		UPDATE
+		            TB_USERS
+		        SET
+		            acc_status = 'LOCKED'
+		        WHERE 1=1
+		        AND user_id = #{userId}
+		        AND user_login_fail_cnt >= 5
+	    
+	    </update>
+	
+	    <!-- 계정 잠금 해제 처리 -->
+	    <update id="unlockMemberId" 
+	    	parameterType="String">
+	
+		        UPDATE
+		            TB_USERS
+		        SET
+		            acc_status = 'ACTIVE',
+		            user_login_fail_cnt = 0
+		        WHERE 1=1
+		        AND user_id = #{userId}
+		        AND user_status = 'LOCKED'
+		        AND user_login_fail_cnt >= 5
+	
+	    </update>
+	
+	    
+
+</mapper>

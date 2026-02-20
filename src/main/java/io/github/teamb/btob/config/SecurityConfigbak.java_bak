@@ -2,28 +2,21 @@ package io.github.teamb.btob.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import io.github.teamb.btob.security.CustomAuthenticationFailureHandler;
-import io.github.teamb.btob.security.CustomAuthenticationSuccessHandler;
-import io.github.teamb.btob.security.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
-public class SecurityConfig {
+public class SecurityConfigbak {
 
-	private final CustomUserDetailsService customUserDetailsService;
-    // 성공핸들러
-    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-    // 실패핸들러
-    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
-	
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -38,31 +31,21 @@ public class SecurityConfig {
                 .requestMatchers("/admin/user/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
-            // 사용자 인증 설정
-            .userDetailsService(customUserDetailsService)
             .headers(headers -> headers
                     .frameOptions(frame -> frame.sameOrigin())
              )
             .formLogin(form -> form
-                    .loginPage("/login")
-                    .loginProcessingUrl("/loginProc")
-                    .usernameParameter("userId")
-                    .passwordParameter("password")
-                    .successHandler(customAuthenticationSuccessHandler)
-                    .failureHandler(customAuthenticationFailureHandler)
-                    .permitAll()
+                .loginPage("/login")	
+                .usernameParameter("email")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/main", true)
+                .failureUrl("/login?error=true")
+                .permitAll()
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("/home/index")
+                .logoutSuccessUrl("/login")
                 .invalidateHttpSession(true)
             );
         return http.build();
-    }
-    
-    // AuthenticationManager 등록 ( 비밀번호 비교에 필수 )
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-
-        return configuration.getAuthenticationManager();
     }
 }
