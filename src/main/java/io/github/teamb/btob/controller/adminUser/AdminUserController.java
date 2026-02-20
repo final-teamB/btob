@@ -44,6 +44,22 @@ public class AdminUserController {
 		return adminUserService.approveCompany(userId, adminId) ? "OK" : "FAIL";
 	}
 	
+	// 대표 가입 반려 처리
+	@PostMapping("/rejectCompany")
+	@ResponseBody
+	public String rejectCompany(@RequestParam String userId, 
+								@RequestParam String rejectReason,
+								@AuthenticationPrincipal UserDetails userDetails) {
+		try {
+			String adminId = userDetails.getUsername();
+			
+	        boolean result = adminUserService.rejectCompany(userId, rejectReason, adminId);
+	        return result ? "OK" : "FAIL";
+	    } catch (Exception e) {
+	        return "ERROR: " + e.getMessage();
+	    }
+	}
+	
 	// 계정 상태 변경
 	@PostMapping("/modifyUserStatus")
 	@ResponseBody

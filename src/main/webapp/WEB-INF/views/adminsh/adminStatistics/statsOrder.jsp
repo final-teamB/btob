@@ -5,41 +5,45 @@
 <c:set var="showAddBtn" value="false" scope="request" />
 
 <style>
-    /* 10개씩 보기 완전히 숨기기 */
-    .dg-per-page-wrapper, 
-    #dg-per-page,
-    #dg-container + div .w-32 { 
+    /* [기능 유지] 10개씩 보기 및 페이징 영역 스타일 초기화 */
+    .dg-per-page-wrapper, #dg-per-page, #dg-container + div .w-32 { 
         display: none !important; 
     }
 
-    /* 하단 페이징 영역 박스 스타일 초기화 */
     #dg-container + div {
         border-top: none !important;
-        padding: 0 !important;
+        padding: 10px 0 20px 0 !important;
         background-color: transparent !important;
+        display: flex !important;
         justify-content: center !important; 
     }
 
-    /* 상세 내역 타이틀 전용 스타일 */
+    /* 상세 내역 타이틀 (다크모드 대응) */
     .stats-detail-header {
         border-top: 1px solid #f3f4f6;
         padding: 24px 32px 12px 32px;
         background-color: #ffffff;
     }
+    .dark .stats-detail-header {
+        border-top: 1px solid #374151;
+        background-color: #374151;
+    }
+
+    .btn-tab { transition: all 0.2s; }
 </style>
 
-<div class="mx-4 my-6 space-y-6">
+<div class="my-6 space-y-6">
     <%-- [1. 타이틀 영역] --%>
-    <div class="px-8 py-4 flex flex-col md:flex-row justify-between items-center">
+    <div class="px-9 py-4 flex flex-col md:flex-row justify-between items-center">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">주문 통계 분석</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">주문 건수 및 매출 추이를 한눈에 분석합니다.</p>
         </div>
         <div class="flex items-center space-x-3 mt-4 md:mt-0">
-            <button type="button" id="btnRefresh" class="px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg shadow-md hover:bg-gray-800 transition-all active:scale-95">
+            <button type="button" id="btnRefresh" class="px-4 py-2 text-sm font-semibold text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded-lg shadow-md hover:bg-gray-800 transition-all active:scale-95">
                 데이터 최신화
             </button>
-            <button type="button" onclick="location.href='/admin/stats/order/excel'" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm">
+            <button type="button" onclick="location.href='/admin/stats/order/excel'" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm">
                 엑셀 다운로드
             </button>
         </div>
@@ -48,12 +52,12 @@
     <%@ include file="statsNav.jsp" %>
 
     <%-- [2. 차트 + 그리드 통합 섹션] --%>
-    <section class="mx-5 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <section class="mx-5 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         
         <%-- 차트 영역 --%>
         <div class="p-8 pb-4">
             <div class="flex justify-between items-center mb-8 w-full">
-                <h4 id="chartTitle" class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">
+                <h4 id="chartTitle" class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 dark:border-white pl-3">
                     최근 주문 건수 추이
                 </h4>
                 <div class="flex space-x-1" id="orderTabGroup">
@@ -75,101 +79,110 @@
             </div>
         </div>
 
-        <%-- 그리드 영역 --%>
-		<div class="stats-detail-header">
-            <div class="flex items-center space-x-2">
-                <div class="w-1 h-4 bg-gray-900 rounded-full"></div>
-                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-tight">주문 통계 상세 리포트</h3>
+        <%-- 그리드 영역 헤더 --%>
+        <div class="stats-detail-header">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-1 h-4 bg-gray-900 dark:bg-white rounded-full"></div>
+                    <h3 id="dg-title" class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-tight">주문 통계 상세 리포트 (전체)</h3>
+                </div>
+                <button type="button" onclick="resetFilter()" class="text-xs text-blue-500 dark:text-blue-400 hover:underline font-medium">
+                    필터 초기화
+                </button>
             </div>
         </div>
         
         <div class="px-5 pb-6"> 
+            <div id="dg-container"></div>
             <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
         </div>
     </section>
-
-    <%-- 그리드 설정 --%>
-    <c:set var="showSearchArea" value="false" scope="request" />
-    <c:set var="showPerPage" value="false" scope="request" />
-    <c:set var="showAddBtn" value="false" scope="request" />
-    <c:set var="showDownloadBtn" value="false" scope="request" />
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     let deliveryGrid, orderChart, chartRawData = []; 
+    let currentMode = 'count';
 
     document.addEventListener('DOMContentLoaded', function() {
+        refreshData();
+        
+        // 데이터 최신화 버튼 이벤트
+        document.getElementById('btnRefresh').addEventListener('click', function() {
+            refreshData();
+        });
+    });
+
+    /**
+     * 전체 데이터 비동기 로드
+     */
+    function refreshData() {
+        const isDark = document.documentElement.classList.contains('dark');
         fetch('${pageContext.request.contextPath}/admin/stats/data')
             .then(res => res.json())
             .then(data => {
                 const stats = data.orderStats || [];
-                // 차트: 시간순 정렬
+                // 차트용: 과거 -> 현재순 (최근 7개)
                 chartRawData = [...stats].sort((a, b) => new Date(a.executedAt) - new Date(b.executedAt)).slice(-7);
-                createOrderChart(chartRawData);
                 
-                // 그리드: 최신순 정렬 (7건 고정)
+                createOrderChart(chartRawData, isDark);
+                
+                // 그리드용: 최신순 (최근 7개)
                 const gridData = [...stats].sort((a, b) => new Date(b.executedAt) - new Date(a.executedAt)).slice(0, 7);
-                initStatsGrid(gridData);
+                initStatsGrid(gridData, isDark);
             });
-        
-        // 데이터 최신화 로직
-        const btnRefresh = document.getElementById('btnRefresh');
-        if (btnRefresh) {
-            btnRefresh.addEventListener('click', function() {
-                if (!confirm('최신 데이터로 통계를 갱신하시겠습니까? (수 분이 소요될 수 있습니다)')) return;
+    }
 
-                // 버튼 비활성화 (중복 클릭 방지)
-                btnRefresh.disabled = true;
-                btnRefresh.innerText = '갱신 중...';
+    function initStatsGrid(gridData, isDark) {
+        const container = document.getElementById('dg-container');
+        if(!container) return;
+        container.innerHTML = '';
 
-                // 컨트롤러 @PutMapping("/refresh") 호출
-                fetch('${pageContext.request.contextPath}/admin/stats/refresh', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(res => res.text())
-                .then(result => {
-                    if (result === 'success') {
-                        alert('데이터 최신화 배치가 실행되었습니다. 잠시 후 새로고침 해주세요.');
-                        location.reload(); 
-                    } else {
-                        alert('최신화 중 오류가 발생했습니다.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error:', err);
-                    alert('서버 통신 오류가 발생했습니다.');
-                })
-                .finally(() => {
-                    btnRefresh.disabled = false;
-                    btnRefresh.innerText = '데이터 최신화';
-                });
-            });
-        }
-    });
-
-    function initStatsGrid(gridData) {
         deliveryGrid = new DataGrid({
             containerId: 'dg-container',
             data: gridData,
             rowHeaders: [],
-            bodyHeight: 'auto', // 높이를 자동으로 조절하여 차트와 일체감 부여
+            bodyHeight: 'auto',
             columns: [
-                { header: '기준일', name: 'statsDate', align: 'center', formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 10) : '-' },
-                { header: '최신화 시간', name: 'executedAt', align: 'center', formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 19) : '-' },
-                { header: '총 주문', name: 'totalOrderCount', align: 'center', formatter: ({value}) => `<span class="font-bold text-gray-900">\${(value || 0).toLocaleString()}건</span>` },
-                { header: '총 매출액', name: 'totalSalesAmount', align: 'center', formatter: ({value}) => `<span class="text-blue-600 font-bold">\${(value || 0).toLocaleString()}원</span>` }
+                { header: '기준일', name: 'statsDate', align: 'center', 
+                  formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 10) : '-' },
+                { header: '최신화 시간', name: 'executedAt', align: 'center', 
+                  formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 19) : '-' },
+                { header: '총 주문', name: 'totalOrderCount', align: 'center', 
+                  formatter: ({value}) => `<span class="font-bold text-gray-900 dark:text-gray-100">\${(value || 0).toLocaleString()}건</span>` },
+                { header: '총 매출액', name: 'totalSalesAmount', align: 'center', 
+                  formatter: ({value}) => `<span class="text-blue-600 dark:text-blue-400 font-bold">\${(value || 0).toLocaleString()}원</span>` }
             ],
             pageOptions: { useClient: true, perPage: 7 }
         });
     }
 
-    function createOrderChart(stats) {
+    /**
+     * 비동기 필터 초기화
+     */
+    function resetFilter() {
+        const titleEl = document.getElementById('dg-title');
+        if (titleEl) titleEl.innerText = "주문 통계 상세 리포트 (전체)";
+        
+        // 탭 버튼 초기화
+        const btnCount = document.getElementById('btnCount');
+        if(btnCount) updateChart('count', btnCount);
+        
+        refreshData();
+    }
+
+    function createOrderChart(stats, isDark) {
         const ctx = document.getElementById('orderChart').getContext('2d');
+        if(orderChart) orderChart.destroy();
+
+        const theme = {
+            line: isDark ? '#F3F4F6' : '#111827',
+            area: isDark ? 'rgba(243, 244, 246, 0.1)' : 'rgba(17, 24, 39, 0.05)',
+            text: isDark ? '#9CA3AF' : '#6B7280',
+            grid: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F3F4F6'
+        };
+
         orderChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -180,37 +193,60 @@
                 datasets: [{
                     label: '주문 건수(건)',
                     data: stats.map(s => s.totalOrderCount),
-                    borderColor: '#111827',
-                    backgroundColor: 'rgba(17, 24, 39, 0.05)',
-                    fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#111827'
+                    borderColor: theme.line,
+                    backgroundColor: theme.area,
+                    fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: theme.line,
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Pretendard' }, padding: 20 } } },
+                plugins: { 
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { color: theme.text, font: { family: 'Pretendard' }, padding: 20 } 
+                    } 
+                },
                 scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString() + '건' } }
+                    x: { grid: { display: false }, ticks: { color: theme.text } },
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: theme.grid }, 
+                        ticks: { color: theme.text, callback: v => v.toLocaleString() + '건' } 
+                    }
                 }
             }
         });
     }
 
     function updateChart(mode, btn) {
+        currentMode = mode;
         if (!orderChart) return;
+        const isDark = document.documentElement.classList.contains('dark');
+
+        // 탭 버튼 스타일 전환
         document.querySelectorAll('.btn-tab').forEach(tab => {
-            tab.className = "btn-tab px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all ml-1";
+            tab.className = isDark 
+                ? "btn-tab px-4 py-2 text-sm font-medium text-gray-400 bg-gray-700 rounded-lg hover:bg-gray-600 transition-all ml-1"
+                : "btn-tab px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all ml-1";
         });
-        btn.className = "btn-tab px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg shadow-sm transition-all";
+        
+        btn.className = isDark
+            ? "btn-tab px-4 py-2 text-sm font-bold text-gray-900 bg-gray-100 rounded-lg shadow-sm transition-all"
+            : "btn-tab px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg shadow-sm transition-all";
+
+        const titleEl = document.getElementById('dg-title');
 
         if (mode === 'amount') {
             document.getElementById('chartTitle').innerText = '최근 매출 금액 추이';
+            if(titleEl) titleEl.innerText = "주문 통계 상세 리포트 (매출 기준)";
             orderChart.data.datasets[0].label = '매출 금액(원)';
             orderChart.data.datasets[0].data = chartRawData.map(s => s.totalSalesAmount || 0);
             orderChart.options.scales.y.ticks.callback = v => v.toLocaleString() + '원';
         } else {
             document.getElementById('chartTitle').innerText = '최근 주문 건수 추이';
+            if(titleEl) titleEl.innerText = "주문 통계 상세 리포트 (건수 기준)";
             orderChart.data.datasets[0].label = '주문 건수(건)';
             orderChart.data.datasets[0].data = chartRawData.map(s => s.totalOrderCount);
             orderChart.options.scales.y.ticks.callback = v => v.toLocaleString() + '건';

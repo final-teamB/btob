@@ -17,6 +17,10 @@ public interface AdminUserMapper {
 	// 대표 가입 승인
 	int updateCompanyApproval(@Param("userId") String userId, @Param("updId") String updId);
 	
+	// 대표 가입 반려
+	int updateCompanyReject(@Param("userId") String userId, 
+						   @Param("rejectReason") String rejectReason, String adminId);
+	
 	// 계정 상태 변경
 	int updateUserStatus(@Param("userId") String userId, 
 						 @Param("accStatus") String accStatus,

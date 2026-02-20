@@ -14,7 +14,7 @@ public interface DeliveryService {
 	DeliveryDTO getDeliveryDetail(int deliveryId);
 	
 	// 통합 수정 (수정, 주문 상태 동기화, 배송이력 등록)
-	void modifyDelivery(DeliveryDTO deliveryDTO);
+	DeliveryDTO modifyDelivery(DeliveryDTO deliveryDTO);
 
 	// 삭제 (비활성화)
 	boolean removeDelivery(int deliveryId, String updId);

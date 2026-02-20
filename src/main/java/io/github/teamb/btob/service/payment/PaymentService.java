@@ -155,17 +155,6 @@ public class PaymentService {
 	                    deliveryMapper.insertDelivery(newDelivery);
 	                }
 	            }
-	            // 2차 결제 완료 -> 배송상태 dv006으로 변경
-	            else if ("pm004".equals(nextStatus)) {
-	                
-	            	DeliveryDTO delivery = deliveryMapper.selectDeliveryJoinOrder(payment.getDbOrderId());
-	            	
-	            	if (delivery != null) {
-	            		delivery.setUpdId(loginUserId);
-	                    // 운송장 번호 생성, 택배사 지정, dv006 변경, 이력 등록, 알림 발송
-	                    deliveryService.modifyDelivery(delivery);
-	                }
-	            }
 	            
 	            // 장바구니 업데이트
 	            if ("FIRST".equals(payStep)) {

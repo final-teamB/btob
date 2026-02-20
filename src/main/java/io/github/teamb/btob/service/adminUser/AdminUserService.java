@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 
 import io.github.teamb.btob.dto.user.UserDTO;
 import io.github.teamb.btob.mapper.adminUser.AdminUserMapper;
+import io.github.teamb.btob.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class AdminUserService {
 
+    private final NotificationService notificationService;
 	private final AdminUserMapper adminUserMapper;
 	
 	// 전체 사용자 목록 조회
@@ -25,6 +27,17 @@ public class AdminUserService {
 	public boolean approveCompany(String userId, String updId) {
 		
 		return adminUserMapper.updateCompanyApproval(userId, updId) > 0;
+	}
+	
+	// 대표 가입 반려
+	public boolean rejectCompany(String userId, String rejectReason, String adminId) {
+		
+		int count = adminUserMapper.updateCompanyReject(userId, rejectReason, adminId);
+		
+		// 알림
+		// notificationService.send(userId, rejectReason, count, rejectReason, userId);
+		
+		return count > 0;
 	}
 	
 	// 계정 상태 변경

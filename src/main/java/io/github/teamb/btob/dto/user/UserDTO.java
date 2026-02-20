@@ -36,5 +36,7 @@ public class UserDTO {
     private String position;          // position
     private String businessNumber;    // business_number
     private String isRepresentative;  // is_representative
+    private String rejectReason;
+    private LocalDateTime rejectDtime;
 
 }

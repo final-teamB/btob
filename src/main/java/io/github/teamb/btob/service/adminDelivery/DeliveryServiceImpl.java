@@ -40,7 +40,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 	// 통합 수정 (수정, 주문 상태 동기화, 배송이력 등록)
 	@Override
 	@Transactional
-    public void modifyDelivery(DeliveryDTO deliveryDTO) {
+    public DeliveryDTO modifyDelivery(DeliveryDTO deliveryDTO) {
 		
 		// 이전 데이터 조회
 		DeliveryDTO oldData = deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
@@ -51,10 +51,9 @@ public class DeliveryServiceImpl implements DeliveryService {
         String orderStatus = oldData.getOrderStatus();
         
         // 2차결제완료(pm004) 시 자동 설정 로직
-        if ("pm004".equals(orderStatus)) {
-            
-        	// 배송상태 dv006(국내배송중)으로 강제 변경
-            deliveryDTO.setDeliveryStatus(DeliveryStatus.dv006);
+        if ("pm004".equals(orderStatus)
+                && deliveryDTO.getDeliveryStatus() == DeliveryStatus.dv006
+                && oldData.getDeliveryStatus() != DeliveryStatus.dv006) {
             
             // 운송장번호 자동 생성 
             if (deliveryDTO.getTrackingNo() == null || deliveryDTO.getTrackingNo().trim().isEmpty()) {
@@ -78,7 +77,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             
             Map<String, List<String>> rule = Map.of(
                 "pm002", List.of("dv001", "dv002", "dv003", "dv004", "dv005"),
-                "pm004", List.of("dv005", "dv006", "dv007")
+                "pm004", List.of("dv006", "dv007")
             );
 
             List<String> allowed = rule.get(orderStatus);
@@ -115,6 +114,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         		notificationService.send(receiverUserId, "DELIVERY", deliveryDTO.getDeliveryId(), msg, deliveryDTO.getUpdId());
         	}
         }
+        
+        return deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
 	}
 	
 	// 삭제 (비활성화)

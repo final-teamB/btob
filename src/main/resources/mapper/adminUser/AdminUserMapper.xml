@@ -7,8 +7,8 @@
 		SELECT
 			U.user_no, U.user_id, U.user_name, U.user_type, 
             U.app_status, U.acc_status, U.company_cd,
-            U.email, U.phone, U.address, U.business_number, U.position,
-            C.company_name, U.reg_dtime
+            U.email, U.phone, U.address, C.biz_number, U.position,
+            C.company_name, C.company_phone, C.customs_num, U.reg_dtime
 		FROM TB_USERS U
 		LEFT JOIN TB_COMPANIES C ON U.company_cd = C.company_cd
 		ORDER BY U.reg_dtime DESC
@@ -20,6 +20,18 @@
 		SET app_status = 'APPROVED', acc_status = 'ACTIVE',
 			upd_id = #{updId}, upd_dtime = NOW()
 		WHERE user_id = #{userId} AND user_type = 'MASTER'
+	</update>
+	
+	<!-- 대표 가입 반려 -->
+	<update id="updateCompanyReject">
+	    UPDATE TB_USERS
+	    SET app_status = 'REJECTED',
+	        <!-- acc_status = 'STOP',      반려 시 접속 차단 -->
+	        reject_reason = #{rejectReason},
+	        reject_dtime = NOW(),
+	        upd_id = #{adminId},
+	        upd_dtime = NOW()
+	    WHERE user_id = #{userId}
 	</update>
 	
 	<!-- 계정 상태 변경 -->
