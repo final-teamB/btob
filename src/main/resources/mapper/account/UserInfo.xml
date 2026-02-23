@@ -21,8 +21,8 @@
 						acc_status,
 						reg_id,
 						is_representative,
-						position,
-			        VALUES (
+						position
+			       ) VALUES (
 			            #{userId},
 					    #{password},
 					    #{userName},
@@ -43,7 +43,7 @@
 	    <insert id="insertCompany"
 	    	parameterType="io.github.teamb.btob.dto.account.CompanyInfoDTO"
 	    	useGeneratedKeys="true"
-            keyProperty="companySeq">>
+            keyProperty="companySeq">
 	    
 		    	INSERT INTO TB_COMPANIES (
 	                    company_seq,
@@ -105,9 +105,9 @@
 					,b.biz_number
 					,b.customs_num
 					,b.master_id
-				FROM 
-					TB_USERS a,
-					TB_COMPANIES b
+				FROM TB_USERS a
+  				LEFT OUTER JOIN TB_COMPANIES b 
+  				ON a.company_cd = b.company_cd
 				WHERE 1=1
 				AND a.company_cd = b.company_cd
 				AND a.user_id = #{userId}
@@ -165,6 +165,7 @@
 	    			zip_code = #{zipCode},
 	    			biz_number = #{bizNumber},
 	    			customs_num = #{customsNum},
+	    			master_id = #{masterId},
 	    			upd_dtime = CURRENT_TIMESTAMP,
 	    			upd_id = #{updId}
 	    		WHERE 1=1

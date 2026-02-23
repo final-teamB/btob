@@ -1,8 +1,11 @@
 package io.github.teamb.btob.mapper.account;
 
+import org.apache.ibatis.annotations.Mapper;
+
 import io.github.teamb.btob.dto.account.CompanyInfoDTO;
 import io.github.teamb.btob.dto.account.UserInfoDTO;
 
+@Mapper
 public interface UserInfoMapper {
 	
 	// 1.1 회원가입 USER 테이블

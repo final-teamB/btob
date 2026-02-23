@@ -45,6 +45,8 @@ public class UserInfoDTO {
     private String newPassword;			// 변경할 비밀번호
     private String previousPassword;	// 이전 비밀번호
     
+    private String assignee;			// 권한 양도 받는 사람
+    
     //TB_COMPANIES
     private Integer companySeq;             // 식별자
     private String companyName;             // 회사명

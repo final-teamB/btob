@@ -10,14 +10,14 @@
 	
 			        SELECT
 			            a.user_id,
-			            a.user_pw,
+			            a.password,
 			            a.acc_status,
 			            b.comm_name AS accSttsNm,
 			            a.app_status,
 			            c.comm_name AS appSttsNm,
 			            a.user_login_fail_cnt,
 			            a.user_expired_date,
-			            a.pw_expired_date,
+			            a.pw_expired_date
 			        FROM
 			            TB_USERS a
 			            LEFT OUTER JOIN COMM_TBL b
@@ -25,7 +25,7 @@
 			            AND b.system_id = 'LOGIN'
 			            AND b.param_value = 'ACC_STATUS'
 			            LEFT OUTER JOIN COMM_TBL c
-			            ON a.acc_status = c.comm_no
+			            ON a.app_status = c.comm_no
 			            AND c.system_id = 'LOGIN'
 			            AND c.param_value = 'APP_STATUS'
 			        WHERE 1 = 1
@@ -54,8 +54,8 @@
 		        	TB_USERS
 		        SET
 			        user_login_fail_cnt = user_login_fail_cnt + 1,
-			        user_status = CASE
-			                        WHEN user_login_fail_cnt + 1 >= 5 THEN 'LOCKED'
+			        acc_status = CASE
+			                        WHEN user_login_fail_cnt >= 5 THEN 'LOCKED'
 			                        ELSE acc_status END
 		        WHERE 1 = 1
 		        AND user_id = #{userId}

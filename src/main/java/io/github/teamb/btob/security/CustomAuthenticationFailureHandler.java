@@ -1,14 +1,17 @@
 package io.github.teamb.btob.security;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.teamb.btob.dto.account.LoginValidateDTO;
 import io.github.teamb.btob.mapper.account.LoginMapper;
@@ -56,38 +59,53 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
         String userId = request.getParameter("userId");
         String errorMessage = "사용자 ID나 비밀번호를 잘못 입력하였습니다.";
 
-
         // 계정 잠금 확인
         if (userId != null && !userId.isEmpty()) {
-
-            // 1. 비밀번호가 틀린 경우
-            if (exception instanceof BadCredentialsException) {
-            	
-            	loginMapper.increaseLoginFailCntAndLockMemberId(userId);
-
-                // 실패 횟수 재조회 시 null 체크 추가
-                LoginValidateDTO userLoginCntChk = loginMapper.findLoginValidationUser(userId); 
-
-                if (userLoginCntChk != null && userLoginCntChk.getUserLoginFailCnt() >= 5) {
-
-                    loginMapper.lockMemberId(userId);
-                    errorMessage = "비밀번호 5회 이상 누적 실패로 계정이 잠금되었습니다.";
-                } else {
-
-                    errorMessage = "비밀번호가 올바르지 않습니다. (실패횟수: " + (userLoginCntChk != null ? userLoginCntChk.getUserLoginFailCnt() : 0) + ")";
-                }
-            }
             
-            // isAccountNonLocked()가 false일 때
-            // 2. 이미 계정이 잠긴 상태에서 로그인을 시도한 경우 (UserDetails에서 false 반환 시)
+            // 1. 비밀번호 불일치 (BadCredentialsException)
+            if (exception instanceof BadCredentialsException) {
+                try {
+                    // DB의 실패 카운트 증가 및 잠금 처리 실행
+                    loginMapper.increaseLoginFailCntAndLockMemberId(userId);
+                    
+                    // 최신 실패 횟수 조회를 위해 DB 다시 읽기
+                    LoginValidateDTO userDetails = loginMapper.findLoginValidationUser(userId);
+                    
+                    if (userDetails != null) {
+                        int failCnt = userDetails.getUserLoginFailCnt();
+                        if (failCnt >= 5) {
+                            errorMessage = "비밀번호 5회 이상 누적 실패로 계정이 잠금되었습니다.";
+                        } else {
+                            errorMessage = String.format("비밀번호가 올바르지 않습니다. (실패 횟수: %d/5)", failCnt);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("로그인 실패 처리 중 DB 오류 발생: ", e);
+                }
+            } 
+            // 2. 이미 계정이 잠겨 있는 상태에서 로그인 시도 (LockedException)
             else if (exception instanceof LockedException) {
-
-                errorMessage = "비밀번호 5회 이상 누적 실패로 계정이 잠금 되어있습니다.";
+                errorMessage = "비밀번호 5회 이상 누적 실패로 계정이 잠금되었습니다. 관리자에게 문의하세요.";
+            } 
+            // 3. 기타 비활성화 상태 (BANNED, DELETED 등)
+            else if (exception instanceof DisabledException) {
+                errorMessage = "정책에 의해 사용이 제한된 계정입니다. 관리자에게 문의하세요.";
+            }
+            else {
+                errorMessage = exception.getMessage();
             }
         }
 
-        // 에러 메시지를 인코딩하여 전달
-        String encodedMessage = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
-        response.sendRedirect("/login?error=true&exception=" + encodedMessage);
+        // [중요] AJAX 모달 처리를 위한 JSON 응답 설정
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 에러 상태값 전송
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("success", false);
+        responseData.put("message", errorMessage);
+
+        // JSON 문자열로 변환하여 출력
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(responseData));
 	}
 }

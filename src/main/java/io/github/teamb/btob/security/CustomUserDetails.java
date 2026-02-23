@@ -153,10 +153,13 @@ public class CustomUserDetails implements UserDetails {
 		 public boolean isAccountNonLocked() {
 		
 		     // 1. 계정 승인 상태 체크
+			 // 이건 임시주석 로그인 때 체크 안함.
+			 /*
 		     boolean isNotPending = !("PENDING".equals(loginValidateDTO.getAppStatus()) ||
 		    		 					"REJECTED".equals(loginValidateDTO.getAppStatus())
 		    		 				  ); 
-		
+			*/
+			 
 		     // 2. 행정적 제한 상태 체크
 		     boolean isNotRestricted = !("INACTIVE".equals(loginValidateDTO.getAccStatus()) ||
 		                             		"LOCKED".equals(loginValidateDTO.getAccStatus()) ||
@@ -169,8 +172,9 @@ public class CustomUserDetails implements UserDetails {
 		     // 3. 보안 정책 체크 (실패 횟수) 5회미만
 		     boolean isFailCountValid = loginValidateDTO.getUserLoginFailCnt() < 5;
 		
-		     // 최종 결과: 세 조건 모두 만족해야 로그인 가능
-		     return isNotPending && isNotRestricted && isFailCountValid;
+		     // 최종 결과: 두 조건 모두 만족해야 로그인 가능
+		     // return isNotPending && isNotRestricted && isFailCountValid;
+		     return isNotRestricted && isFailCountValid;
 		 }
 		
 		 /**
