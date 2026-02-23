@@ -34,6 +34,36 @@
 	    WHERE user_id = #{userId}
 	</update>
 	
+	<!-- 이력 저장 -->
+	<insert id="insertUserHistory" parameterType="map">
+	    INSERT INTO TB_USER_HISTORY (
+	        user_id, prev_status_cd, curr_status_cd, status_nm, reason, reg_id, reg_dtime
+	    ) VALUES (
+	        #{userId}, #{prevStatusCd}, #{currStatusCd}, #{statusNm}, #{reason}, #{regId}, NOW()
+	    )
+	</insert>
+	
+	<!-- 이력 조회 -->
+	<select id="selectUserHistory" parameterType="String" resultType="map">
+	    SELECT 
+	        status_nm       statusNm,
+	        curr_status_cd  currStatusCd,
+	        reason          reason,
+	        reg_id          regId,
+	        DATE_FORMAT(reg_dtime, '%Y-%m-%d %H:%i:%s') AS regDtime
+	    FROM TB_USER_HISTORY
+	    WHERE user_id = #{userId}
+	      AND use_yn = 'Y'
+	    ORDER BY reg_dtime DESC
+	</select>
+	
+	<!-- 사용자 상태 조회 -->
+	<select id="selectUserCurrStatus" resultType="String">
+	    SELECT app_status 
+	    FROM TB_USERS 
+	    WHERE user_id = #{userId}
+	</select>
+	
 	<!-- 계정 상태 변경 -->
 	<update id="updateUserStatus">
 		UPDATE TB_USERS

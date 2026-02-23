@@ -6,7 +6,6 @@
 	<c:set var="showAddBtn" value="true" scope="request" />
 </c:if>
 
-
 <style>
     /* [1] 스타일 */
     .tui-grid-cell-content { padding: 0 !important; }
@@ -57,6 +56,9 @@
     <div class="px-5" style="margin-top: 0rem !important;">
         <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
     </div>
+    
+    <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserApprovModal.jsp" />
+	<jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserHistModal.jsp" />
 </div>
 
 <script>
@@ -111,7 +113,7 @@ class DirectSelectRenderer {
             props.grid.setValue(props.rowKey, props.columnInfo.name, this.el.value, false);
         });
 
-        // ★ 최초 값 세팅
+        // 최초 값 세팅
         this.render(props);
     }
 
@@ -120,48 +122,63 @@ class DirectSelectRenderer {
     }
 
     render(props) {
-        // ★ 여기서 값 갱신
+        // 값 갱신
         this.el.value = props.value || '';
     }
 }
 
-function makeActionRenderer(btnText, secondaryBtnText) {
+function makeActionRenderer(btnText, showHistoryBtn = false) {
     return class {
         constructor(props) {
             const container = document.createElement('div');
-            container.className = 'flex gap-2 justify-center p-1';  // gap-2로 통일
+            container.className = 'flex gap-2 justify-center p-1';
             
             const row = props.grid.getRow(props.rowKey);
 
-            // ★ 승인/반려 버튼이 있는 경우(COMPANY탭)만 - 이미 처리된 건 숨김
-            if (secondaryBtnText && row && (row.appStatus === 'APPROVED' || row.appStatus === 'REJECTED')) {
-                this.el = container;
-                return;
-            }
+            // 1. [회사 관리] 탭일 때의 로직
+            if (viewType === 'COMPANY') {
+                const isProcessed = (row.appStatus === 'APPROVED' || row.appStatus === 'REJECTED');
 
-            // 승인 / 저장 버튼
-            const btn1 = document.createElement('button');
-            btn1.className = 'px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50 transition-colors';
-            btn1.textContent = btnText;
-            btn1.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const action = (btnText === '승인') ? 'APPROVE' : 'SAVE';
-                window.handleGridAction(props.grid.getRow(props.rowKey), action);
-            });
-            container.appendChild(btn1);
+                // 승인/반려가 아직 안 된 경우에만 버튼 노출
+                if (!isProcessed) {
+                    const btnApprove = document.createElement('button');
+                    btnApprove.className = 'px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50';
+                    btnApprove.textContent = '승인/반려';
+                    btnApprove.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openUserModal(row); // 승인 모달 띄우기
+                    });
+                    container.appendChild(btnApprove);
+                }
 
-            // 반려 버튼
-            if (secondaryBtnText) {
-                const btn2 = document.createElement('button');
-                btn2.className = 'px-3 py-1 text-xs font-bold text-red-600 border border-red-400 rounded-md hover:bg-red-50 transition-colors';
-                btn2.textContent = secondaryBtnText;
-                btn2.addEventListener('click', (e) => {
+                // 이력 버튼 (이미 처리됐거나 showHistoryBtn이 true일 때)
+                if (isProcessed || showHistoryBtn) {
+                    const btnHist = document.createElement('button');
+                    btnHist.className = 'px-3 py-1 text-xs font-bold text-gray-600 border border-gray-400 rounded-md hover:bg-gray-50';
+                    btnHist.textContent = '이력';
+                    btnHist.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.viewUserHistory(row.userId); 
+                    });
+                    container.appendChild(btnHist);
+                }
+            } 
+            // 2. 그 외 탭 (ADMIN, USER, 전체 등)일 때의 로직
+            else {
+                const btnSave = document.createElement('button');
+                btnSave.className = 'px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50';
+                btnSave.textContent = btnText || '저장'; // 기본값 저장
+                
+                btnSave.addEventListener('click', (e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    window.handleGridAction(props.grid.getRow(props.rowKey), 'REJECT');
+                    window.handleGridAction(row, 'SAVE'); // 기존 저장 로직 실행
                 });
-                container.appendChild(btn2);
+                container.appendChild(btnSave);
             }
-
+            
             this.el = container;
         }
         getElement() { return this.el; }
@@ -172,6 +189,9 @@ function makeActionRenderer(btnText, secondaryBtnText) {
 /* [3] DOM 로드 후 그리드 초기화 및 조회 기능 연결 */
 document.addEventListener('DOMContentLoaded', () => {
 
+	const modal = document.getElementById('userApprovModal'); // 모달 ID에 맞게 수정
+    if (modal) modal.style.display = 'none';
+	
 	const searchInput = document.getElementById('dg-search-input');
     if (searchInput) {
         const searchGroupHtml = `
@@ -220,9 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 header: '가입승인', 
                 name: 'manage', 
                 align: 'center', 
-                width: 160,
+                width: 180,
                 renderer: { 
-                    type: makeActionRenderer('승인', '반려')  // ← options 필요 없음, 직접 전달
+                	type: makeActionRenderer('승인/반려', true)  // ← options 필요 없음, 직접 전달
                 } 
             }
         );
