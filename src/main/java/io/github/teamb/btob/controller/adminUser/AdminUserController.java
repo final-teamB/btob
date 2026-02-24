@@ -1,11 +1,16 @@
 package io.github.teamb.btob.controller.adminUser;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,6 +48,39 @@ public class AdminUserController {
 		
 		return adminUserService.approveCompany(userId, adminId) ? "OK" : "FAIL";
 	}
+	
+	// 대표 가입 반려 처리
+	@PostMapping("/rejectCompany")
+	@ResponseBody
+	public String rejectCompany(@RequestParam String userId, 
+								@RequestParam String rejectReason,
+								@AuthenticationPrincipal UserDetails userDetails) {
+		try {
+			String adminId = userDetails.getUsername();
+			
+	        boolean result = adminUserService.rejectCompany(userId, rejectReason, adminId);
+	        return result ? "OK" : "FAIL";
+	    } catch (Exception e) {
+	        return "ERROR: " + e.getMessage();
+	    }
+	}
+	
+	// 사용자 상세 이력 조회
+	@GetMapping("/api/history/{userId}")
+    @ResponseBody
+    public Map<String, Object> getUserHistory(@PathVariable String userId) {
+        
+		Map<String, Object> result = new HashMap<>();
+        try {
+            List<Map<String, Object>> list = adminUserService.getUserHistory(userId);
+            result.put("list", list);
+            result.put("status", "SUCCESS");
+        } catch (Exception e) {
+            result.put("status", "ERROR");
+            result.put("message", e.getMessage());
+        }
+        return result;
+    }
 	
 	// 계정 상태 변경
 	@PostMapping("/modifyUserStatus")

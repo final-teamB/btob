@@ -8,20 +8,36 @@
   <div class="px-3 py-3 lg:px-5 lg:pl-3">
     <div class="flex items-center justify-between">
       
-      <div class="flex items-center justify-start">
-        <button id="toggleSidebarMobile" aria-expanded="true" aria-controls="sidebar" class="p-2 text-gray-600 rounded cursor-pointer lg:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-          <svg id="toggleSidebarMobileHamburger" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-          <svg id="toggleSidebarMobileClose" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 110 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-        </button>
-        
-        <a href="/main" class="flex ml-2 md:mr-24">
-          <img src="https://flowbite-admin-dashboard.vercel.app/images/logo.svg" class="h-8 mr-3" alt="Flowbite Logo" />
-          <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">Flowbite</span>
-        </a>
-      </div>
+      <div class="flex items-center justify-start flex-1">
+	    <div class="flex items-center w-64">
+	        <button id="toggleSidebarMobile" aria-expanded="true" aria-controls="sidebar" class="p-2 mr-2 text-gray-600 rounded cursor-pointer lg:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-700">
+	            <svg id="toggleSidebarMobileHamburger" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+	            <svg id="toggleSidebarMobileClose" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 110 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+	        </button>
+	        
+	        <a href="/main" class="flex items-center">
+	            <img src="https://flowbite-admin-dashboard.vercel.app/images/logo.svg" class="h-8 mr-3" alt="Flowbite Logo" />
+	            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white hidden sm:block">Flowbite</span>
+	        </a>
+	    </div>
+	
+	    <div class="hidden lg:block w-full max-w-md ml-4">
+	        <form id="globalSearchForm" action="${cp}/product/list" method="GET" class="relative">
+	            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+	                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+	                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+	                </svg>
+	            </div>
+	            <input type="text" name="searchKeyword" id="topbar-search" 
+	                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" 
+	                   placeholder="상품 검색">
+	        </form>
+	    </div>
+	</div>
 
       <div class="flex items-center">
       
+<<<<<<< HEAD
 	   <sec:authorize access="hasAnyRole('MASTER', 'USER')">
 		    <div class="relative mr-2">
 		        <a href="/cart/cart" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 block" title="거래 바구니">
@@ -36,6 +52,20 @@
 		    </div>
 		</sec:authorize>  
         
+=======
+      	<sec:authorize access="hasAnyRole('USER', 'MASTER')">
+		  <div class="relative mr-1">
+		    <a href="${cp}/cart/cart" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 block transition-colors">
+		      <span class="sr-only">View cart</span>
+		      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+		        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 100-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+		      </svg>
+		      <div id="cart-badge" class="hidden absolute inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-blue-600 border-2 border-white rounded-full -top-0 -right-0 dark:border-gray-900">0</div>
+		    </a>
+		  </div>
+		</sec:authorize>
+				        
+>>>>>>> refs/remotes/origin/main
         <div class="relative mr-1">
          	 <button type="button" id="notificationButton" data-dropdown-toggle="notification-dropdown" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700">
            		 <span class="sr-only">View notifications</span>
@@ -97,6 +127,32 @@
 		                마이페이지
 		            </a>
 		        </li>
+		        
+		        <%-- USER & MASTER 공통 추가 메뉴 --%>
+			    <sec:authorize access="hasAnyRole('USER', 'MASTER')">
+			        <li>
+			            <a href="/order/list" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group">
+			                <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+			                주문 및 견적 관리
+			            </a>
+			        </li>
+			        <li>
+			            <a href="/document/list" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group">
+			                <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+			                문서 관리
+			            </a>
+			        </li>
+			    </sec:authorize>
+			
+			    <%-- MASTER 전용 추가 메뉴 --%>
+			    <sec:authorize access="hasRole('MASTER')">
+			        <li>
+			            <a href="/users/list" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group">
+			                <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+			                사원 관리
+			            </a>
+			        </li>
+			    </sec:authorize>
 		
 		        <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
 		
@@ -273,6 +329,23 @@
             document.documentElement.classList.remove('dark');
             localStorage.setItem('color-theme', 'light');
         }
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('topbar-search');
+        
+        // 엔터키 입력 시 폼 제출 로직 (필요 시)
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const keyword = this.value.trim();
+                if (keyword.length < 2) {
+                    alert('검색어는 두 글자 이상 입력해주세요.');
+                    return;
+                }
+                this.closest('form').submit();
+            }
+        });
     });
 </script>
 

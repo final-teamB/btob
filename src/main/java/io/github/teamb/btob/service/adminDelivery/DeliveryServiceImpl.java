@@ -39,16 +39,17 @@ public class DeliveryServiceImpl implements DeliveryService {
       return deliveryMapper.selectDeliveryDetail(deliveryId);
    }
 
-   // 통합 수정 (수정, 주문 상태 동기화, 배송이력 등록)
-   @Override
-   @Transactional
+
+	// 통합 수정 (수정, 주문 상태 동기화, 배송이력 등록)
+	@Override
+	@Transactional
     public DeliveryDTO modifyDelivery(DeliveryDTO deliveryDTO) {
-      
-      // 이전 데이터 조회
-      DeliveryDTO oldData = deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
-       if (oldData == null) {
-           throw new IllegalArgumentException("존재하지 않는 배송 정보입니다.");
-       }
+		
+		// 이전 데이터 조회
+		DeliveryDTO oldData = deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
+	    if (oldData == null) {
+	        throw new IllegalArgumentException("존재하지 않는 배송 정보입니다.");
+	    }
         
         String orderStatus = oldData.getOrderStatus();
         
@@ -120,6 +121,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         // 알림
         DeliveryStatus newStatus = deliveryDTO.getDeliveryStatus();
         if(newStatus  != null && (oldData == null || oldData.getDeliveryStatus() != newStatus)) {
+
            String receiverUserId =
                   deliveryMapper.selectReceiverUserId(deliveryDTO.getDeliveryId());
            System.out.println("### 알림 대상자(주문자): " + receiverUserId);
@@ -141,12 +143,14 @@ public class DeliveryServiceImpl implements DeliveryService {
         
         return deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
    }
-   
-   // 삭제 (비활성화)
-   @Override
-   @Transactional(rollbackFor = Exception.class)
-   public boolean removeDelivery(int deliveryId, String updId) {
-      
-      return deliveryMapper.deleteDelivery(deliveryId, updId) > 0;
-   }
+
+	
+	// 삭제 (비활성화)
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean removeDelivery(int deliveryId, String updId) {
+		
+		return deliveryMapper.deleteDelivery(deliveryId, updId) > 0;
+	}
+
 }

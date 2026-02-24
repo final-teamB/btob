@@ -200,29 +200,7 @@ public class PaymentService {
 	                    deliveryMapper.insertDelivery(newDelivery);
 	                }
 	            }
-	            // 2차 결제 완료 -> 배송상태 dv006으로 변경
-	            else if ("pm004".equals(nextStatus)) {
-	                try {
-	                    DeliveryDTO delivery = deliveryMapper.selectDeliveryJoinOrder(payment.getDbOrderId());
-	                    if (delivery != null) {
-	                        // 중요: modifyDelivery 내부 로직이 복잡하므로, 
-	                        // 여기서는 상태 코드만 명확히 세팅해서 넘깁니다.
-	                        delivery.setUpdId(loginUserId);
-	                        delivery.setDeliveryStatus(DeliveryStatus.dv006); 
-	                        
-	                        // 만약 modifyDelivery에서 에러가 난다면, 
-	                        // 결제 전체를 롤백할 것인지 결정해야 합니다.
-	                        // 일단은 배송 상태 변경 실패가 결제 취소로 이어지지 않게 별도 try-catch 권장
-	                        // 운송장 번호 생성, 택배사 지정, dv006 변경, 이력 등록, 알림 발송
-	                        deliveryService.modifyDelivery(delivery);
-	                    }
-	                } catch (Exception de) {
-	                    // 배송 상태 변경 실패 시 로그만 남기고 결제는 유지하고 싶다면 여기서 catch
-	                    System.err.println("🚨 배송 상태 변경 중 오류 발생 (결제는 성공): " + de.getMessage());
-	                    // 만약 배송 상태 변경 실패 시 결제도 취소해야 한다면 throw de; 를 하시면 됩니다.
-	                }
-	            }
-	            
+
 	            // 장바구니 업데이트
 	            if ("FIRST".equals(payStep)) {
 	                Map<String, Object> cartParams = new HashMap<>();

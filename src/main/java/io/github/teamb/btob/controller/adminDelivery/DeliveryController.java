@@ -90,18 +90,22 @@ public class DeliveryController {
             String adminId = userDetails.getUsername();
             deliveryDTO.setUpdId(adminId);
 
-            deliveryService.modifyDelivery(deliveryDTO);
-            
+            DeliveryDTO updated = deliveryService.modifyDelivery(deliveryDTO);
+
             result.put("success", true);
             result.put("message", "정상적으로 수정되었습니다.");
-        } catch (IllegalArgumentException e) {
-            result.put("success", false);
-            result.put("message", "변경 불가: " + e.getMessage()); // 규칙 위반 시 메시지 출력
+
+            // 프론트로 최신 값 전달
+            result.put("deliveryStatus", updated.getDeliveryStatus().name());
+            result.put("deliveryStatusDesc", updated.getDeliveryStatus().getDescription());
+            result.put("trackingNo", updated.getTrackingNo());
+            result.put("carrierName", updated.getCarrierName());
+
         } catch (Exception e) {
-            e.printStackTrace(); // 콘솔에서 에러 로그 확인용
             result.put("success", false);
-            result.put("message", "시스템 오류: " + e.getMessage());
+            result.put("message", e.getMessage());
         }
+
         return result;
     }
 
