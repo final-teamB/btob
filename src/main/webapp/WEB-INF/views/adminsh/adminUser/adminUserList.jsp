@@ -6,7 +6,6 @@
 	<c:set var="showAddBtn" value="true" scope="request" />
 </c:if>
 
-
 <style>
     /* [1] 스타일 */
     .tui-grid-cell-content { padding: 0 !important; }
@@ -23,25 +22,27 @@
     }
     .text-ellipsis { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; }
 
+	.flex { display: flex; }
+	.justify-center { justify-content: center; }
+	.space-x-1 > * + * { margin-left: 0.25rem; }
 
-
-/* 필터 내 select 박스 스타일 조정 */
-#dg-common-filter-wrapper select {
-    width: 100% !important;
-    height: 40px !important; /* 높이도 검색창과 통일 */
-    padding-right: 30px !important; /* 화살표 공간 */
-    cursor: pointer;
-}
+	/* 필터 내 select 박스 스타일 조정 */
+	#dg-common-filter-wrapper select {
+	    width: 100% !important;
+	    height: 40px !important; /* 높이도 검색창과 통일 */
+	    padding-right: 30px !important; /* 화살표 공간 */
+	    cursor: pointer;
+	}
 
 </style>
 
 <div class="my-6 space-y-6">
-    <div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리 시스템 (Admin)</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">상태를 변경한 후 반드시 [저장] 버튼을 눌러주세요.</p>
-        </div>
+    <div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div class="w-full text-left"> 
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리 시스템 (Admin)</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">상태를 변경한 후 반드시 [저장] 버튼을 눌러주세요.</p>
     </div>
+</div>
 
     <div class="px-5 pt-4">
         <div class="flex space-x-2">
@@ -55,6 +56,9 @@
     <div class="px-5" style="margin-top: 0rem !important;">
         <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
     </div>
+    
+    <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserApprovModal.jsp" />
+	<jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserHistModal.jsp" />
 </div>
 
 <script>
@@ -65,6 +69,7 @@ const rawData = [
     {
         userId: "${u.user_id}", userName: "${u.user_name}", userType: "${u.user_type}",
         companyName: "${u.company_name != null ? u.company_name : '-'}",
+        companyPhone: "${u.company_phone != null ? u.company_phone : '-'}",
         bizNumber: "${u.biz_number != null ? u.biz_number : '-'}",
         email: "${u.email != null ? u.email : '-'}", phone: "${u.phone != null ? u.phone : '-'}",
         appStatus: "${u.app_status}", accStatus: "${u.acc_status}",
@@ -79,7 +84,7 @@ const tabFilteredData = rawData.filter(u => {
     if(!viewType) return true;
     if(viewType === 'COMPANY') return u.userType === 'MASTER';
     if(viewType === 'ADMIN') return u.userType === 'ADMIN';
-    if(viewType === 'USER') return u.userType === 'USER';
+    if(viewType === 'USER') return (u.userType === 'USER' || u.userType === 'MASTER'); 
     return true;
 });
 
@@ -108,7 +113,7 @@ class DirectSelectRenderer {
             props.grid.setValue(props.rowKey, props.columnInfo.name, this.el.value, false);
         });
 
-        // ★ 최초 값 세팅
+        // 최초 값 세팅
         this.render(props);
     }
 
@@ -117,15 +122,76 @@ class DirectSelectRenderer {
     }
 
     render(props) {
-        // ★ 여기서 값 갱신
+        // 값 갱신
         this.el.value = props.value || '';
     }
 }
 
+function makeActionRenderer(btnText, showHistoryBtn = false) {
+    return class {
+        constructor(props) {
+            const container = document.createElement('div');
+            container.className = 'flex gap-2 justify-center p-1';
+            
+            const row = props.grid.getRow(props.rowKey);
+
+            // 1. [회사 관리] 탭일 때의 로직
+            if (viewType === 'COMPANY') {
+                const isProcessed = (row.appStatus === 'APPROVED' || row.appStatus === 'REJECTED');
+
+                // 승인/반려가 아직 안 된 경우에만 버튼 노출
+                if (!isProcessed) {
+                    const btnApprove = document.createElement('button');
+                    btnApprove.className = 'px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50';
+                    btnApprove.textContent = '승인/반려';
+                    btnApprove.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openUserModal(row); // 승인 모달 띄우기
+                    });
+                    container.appendChild(btnApprove);
+                }
+
+                // 이력 버튼 (이미 처리됐거나 showHistoryBtn이 true일 때)
+                if (isProcessed || showHistoryBtn) {
+                    const btnHist = document.createElement('button');
+                    btnHist.className = 'px-3 py-1 text-xs font-bold text-gray-600 border border-gray-400 rounded-md hover:bg-gray-50';
+                    btnHist.textContent = '이력';
+                    btnHist.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.viewUserHistory(row.userId); 
+                    });
+                    container.appendChild(btnHist);
+                }
+            } 
+            // 2. 그 외 탭 (ADMIN, USER, 전체 등)일 때의 로직
+            else {
+                const btnSave = document.createElement('button');
+                btnSave.className = 'px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50';
+                btnSave.textContent = btnText || '저장'; // 기본값 저장
+                
+                btnSave.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.handleGridAction(row, 'SAVE'); // 기존 저장 로직 실행
+                });
+                container.appendChild(btnSave);
+            }
+            
+            this.el = container;
+        }
+        getElement() { return this.el; }
+        render() {}
+    };
+}
 
 /* [3] DOM 로드 후 그리드 초기화 및 조회 기능 연결 */
 document.addEventListener('DOMContentLoaded', () => {
 
+	const modal = document.getElementById('userApprovModal'); // 모달 ID에 맞게 수정
+    if (modal) modal.style.display = 'none';
+	
 	const searchInput = document.getElementById('dg-search-input');
     if (searchInput) {
         const searchGroupHtml = `
@@ -151,36 +217,56 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.style.height = '40px';
     }
 
-    const fmt = ({value}) => `<span class="text-ellipsis" title="\${value}">\${value}</span>`;
-    let columns = [{ header: '구분', name: 'userType', align: 'center', width: 70 }];
+    const fmt = ({value}) => `<span class="text-ellipsis" title="${value}">${value}</span>`;
+
+    let columns = [{ 
+        header: '구분', 
+        name: 'userType', 
+        align: 'center', 
+        width: 80,
+        renderer: { type: CustomStatusRenderer, options: { theme: 'accStatus' } }
+    }];
 
     if (viewType === 'COMPANY') {
+        // --- [1. 회사 관리] : 업체 승인 중심 ---
         columns.push(
-            { header: '회사명', name: 'companyName', align: 'left', formatter: fmt },
+            { header: '회사명', name: 'companyName', align: 'center' },
+            { header: '회사연락처', name: 'companyPhone', align: 'center' },
             { header: '사업자번호', name: 'bizNumber', align: 'center' },
+            { header: '통관번호', name: 'customsNum', align: 'center' },
             { header: '대표자명', name: 'userName', align: 'center' },
-            { header: '연락처', name: 'phone', align: 'center' }
+            { header: '아이디', name: 'userId', align: 'center' },
+            { header: '승인상태', name: 'appStatus', align: 'center', renderer: { type: CustomStatusRenderer, options: { theme: 'appStatus' } } },
+            { 
+                header: '가입승인', 
+                name: 'manage', 
+                align: 'center', 
+                width: 180,
+                renderer: { 
+                	type: makeActionRenderer('승인/반려', true)  // ← options 필요 없음, 직접 전달
+                } 
+            }
         );
     } else if (viewType === 'ADMIN') {
+        // --- [2. 관리자 관리] : 소속 회사 제외 ---
         columns.push(
             { header: '관리자ID', name: 'userId', align: 'center' },
             { header: '관리자명', name: 'userName', align: 'center' },
             { header: '연락처', name: 'phone', align: 'center' },
-            { header: '등록일', name: 'regDtime', align: 'center'}
+            { header: '계정상태', name: 'accStatus', align: 'center', renderer: { type: DirectSelectRenderer } },
+            { header: '관리', name: 'manage', align: 'center', renderer: { type: makeActionRenderer('저장', null) } }
         );
     } else {
+        // --- [3. 일반 사용자] : MASTER + USER 합쳐서 관리 ---
         columns.push(
             { header: '이름', name: 'userName', align: 'center' },
             { header: '아이디', name: 'userId', align: 'center' },
-            { header: '소속', name: 'companyName', align: 'left', formatter: fmt },
-            { header: '승인상태', name: 'appStatus', align: 'center' }
+            { header: '연락처', name: 'phone', align: 'center' },
+            { header: '승인상태', name: 'appStatus', align: 'center', renderer: { type: CustomStatusRenderer, options: { theme: 'appStatus' } } },
+            { header: '계정상태', name: 'accStatus', align: 'center', renderer: { type: DirectSelectRenderer } },
+            { header: '관리', name: 'manage', align: 'center', renderer: { type: makeActionRenderer('저장', null) } }
         );
     }
-
-    columns.push(
-        { header: '계정상태(수정)', name: 'accStatus', align: 'center', renderer: { type: DirectSelectRenderer } },
-        { header: '관리', name: 'manage', align: 'center', renderer: { type: CustomActionRenderer, options: { btnText: '저장' } } }
-    );
 
     // 그리드 초기화 (ID: dg-search-input 사용)
     window.userGrid = new DataGrid({
@@ -214,8 +300,19 @@ document.addEventListener('DOMContentLoaded', () => {
             ] 
         }
     ];
+    
+    if (!viewType || viewType === 'USER') {
+        filterOptions.push({
+            field: 'userType',
+            title: '계정구분',
+            options: [
+                { text: '대표(MASTER)', value: 'MASTER' },
+                { text: '직원(USER)', value: 'USER' }
+            ]
+        });
+    }
 
-    if (viewType !== 'COMPANY' && viewType !== 'ADMIN') {
+    if (viewType !== 'MASTER' && viewType !== 'ADMIN') {
         filterOptions.push({
             field: 'appStatus',
             title: '승인상태',
@@ -235,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const keyword = document.getElementById('dg-search-input').value.toLowerCase();
     const accFilter = document.getElementById('filter-accStatus')?.value;
     const appFilter = document.getElementById('filter-appStatus')?.value;
+    const typeFilter = document.getElementById('filter-userType')?.value;
 
     let filtered = [...tabFilteredData];  
 
@@ -246,6 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 승인 상태
     if (appFilter) {
         filtered = filtered.filter(row => row.appStatus === appFilter);
+    }
+    
+ 	// 계정 구분 필터
+    if (typeFilter) {
+        filtered = filtered.filter(row => row.userType === typeFilter);
     }
 
     // 검색어
@@ -292,59 +395,54 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         performFilter();
     });
+    
+    const filterType = document.getElementById('filter-userType');
+    if (filterType) filterType.addEventListener('change', performFilter);
 });
 
 /* [4] 액션 핸들러 */
-window.handleGridAction = function(rowData) {
-    const rowKey = rowData.rowKey;
-    const userId = rowData.userId; 
+window.handleGridAction = function(rowData, actionType) {
+    const { userId, rowKey, appStatus } = rowData;
 
-    // 렌더러에서 생성한 select 엘리먼트 참조
-    const statusEl = document.getElementById('select_status_' + rowKey);
+    if (viewType === 'COMPANY') {
+        if (actionType === 'APPROVE') { // 승인 클릭
+            if (appStatus === 'APPROVED') { alert('이미 승인된 업체입니다.'); return; }
+            if (!confirm(`${userId}님의 가입을 승인하시겠습니까?`)) return;
 
-    if (!statusEl) return;
-
-    const currentCode = statusEl.value; // 선택된 상태 값 (ACTIVE, SLEEP, STOP)
-
-    // 중복 클릭 방지용 버튼 비활성화
-    const saveBtn = document.querySelector(`[data-row-key="${rowKey}"] .custom-action-btn`);
-    if(saveBtn) saveBtn.disabled = true;
-
-    // 서버로 상태 변경 요청 전송
-    fetch('/admin/user/modifyUserStatus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            userId: userId,
-            accStatus: currentCode
-        })
-    })
-    .then(res => res.text())
-    .then(res => {
-        if (res === "OK") {
-            alert('성공적으로 저장되었습니다.');
+            fetch('/admin/user/approveCompany', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ userId })
+            }).then(res => res.text()).then(res => {
+                if (res === "OK") { alert('승인 완료!'); location.reload(); }
+            });
+        } 
+        else if (actionType === 'REJECT') { // 반려 클릭
+            if (appStatus === 'REJECTED') { alert('이미 반려 처리된 업체입니다.'); return; }
             
-            // 1. 원본 데이터 배열(tabFilteredData)의 값 업데이트
-            const targetRow = tabFilteredData.find(item => item.userId == userId);
-            if (targetRow) {
-                targetRow.accStatus = currentCode;
-            }
-            
-            // 2. 그리드 내부 행 데이터 실제 값 업데이트 (UI 동기화)
-            window.userGrid.grid.setValue(rowKey, 'accStatus', currentCode);
-            
-        } else {
-            alert('실패: ' + res);
+            const reason = prompt("반려 사유를 입력해주세요.\n(사용자 마이페이지에 노출됩니다)");
+            if (reason === null) return; 
+            if (!reason.trim()) { alert("반려 사유는 필수입니다."); return; }
+
+            fetch('/admin/user/rejectCompany', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ userId, rejectReason: reason })
+            }).then(res => res.text()).then(res => {
+                if (res === "OK") { alert('반려 처리가 완료되었습니다.'); location.reload(); }
+            });
         }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        alert('통신 중 오류가 발생했습니다.');
-    })
-    .finally(() => {
-        // 처리 완료 후 버튼 다시 활성화
-        if(saveBtn) saveBtn.disabled = false;
-    });
+    } else {
+        // 일반 상태 저장 로직 (기존 유지)
+        const accStatus = document.getElementById('select_status_' + rowKey).value;
+        fetch('/admin/user/modifyUserStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ userId, accStatus })
+        }).then(res => res.text()).then(res => {
+            if (res === "OK") alert('상태가 저장되었습니다.');
+        });
+    }
 };
 
 function handleAddAction() {

@@ -61,7 +61,7 @@
 	            <when test="searchType == 'trackingNo'"> AND D.tracking_no LIKE CONCAT('%', #{searchKeyword}, '%') </when>
 	        </choose>
 	    </if>
-	    ORDER BY D.reg_dtime DESC
+	    ORDER BY D.reg_dtime DESC, D.delivery_id DESC
 	</select>
 	
 	<!-- 배송 정보 상세보기 -->

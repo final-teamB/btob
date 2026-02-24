@@ -1,18 +1,20 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- [1] 레이아웃 설정: datagrid.jsp의 검색 영역을 사용함 --%>
 <c:set var="showSearchArea" value="true" scope="request" />
 <c:set var="showAddBtn" value="true" scope="request" />
 
-<%-- [2] 타이틀 영역 (패딩 포함) --%>
+<style>
+    .tui-grid-cell { cursor: pointer !important; }
+    .real-delete-btn { pointer-events: auto !important; cursor: pointer !important; }
+</style>
+
 <div class="mx-4 my-6 space-y-6">
     <div class="px-5 py-4 pb-0">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">자주 묻는 질문 (FAQ) 관리</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">시스템 데이터를 조회하고 관리합니다.</p>
     </div>
 
-    <%-- [3] 데이터 그리드 인클루드 (여기에 검색 필터가 내장되어 있음) --%>
     <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
 </div>
 
@@ -30,12 +32,14 @@
     ];
 
     document.addEventListener('DOMContentLoaded', function() {
-        // [1] datagrid.jsp 내부에 있는 '구분' 필터 활성화 및 옵션 추가
+        
         const filterWrapper = document.getElementById('dg-common-filter-wrapper');
         const filterSelect = document.getElementById('dg-common-filter');
+        const searchInput = document.getElementById('dg-search-input');
+        const btnSearch = document.getElementById('dg-btn-search');
         
         if (filterWrapper && filterSelect) {
-            filterWrapper.classList.remove('hidden'); // hidden 해제
+            filterWrapper.classList.remove('hidden'); 
             filterWrapper.classList.add('flex');
             
             // 카테고리 옵션 동적 삽입
@@ -51,6 +55,22 @@
                 opt.textContent = cat.text;
                 filterSelect.appendChild(opt);
             });
+            
+            // 필터 셀렉트 변경 시 즉시 검색
+            filterSelect.addEventListener('change', () => {
+                btnSearch.click();
+            });
+            
+            // 검색어 입력 시 실시간 검색
+            if (searchInput) {
+		        let searchTimeout;
+		        searchInput.addEventListener('input', () => {
+		            clearTimeout(searchTimeout);
+		            searchTimeout = setTimeout(() => {
+		                btnSearch.click();
+		            }, 300);
+		        });
+		    }
         }
 
         // [2] 그리드 초기화
@@ -131,8 +151,3 @@
         location.href = '/support/registerFaq';
     }
 </script>
-
-<style>
-    .tui-grid-cell { cursor: pointer !important; }
-    .real-delete-btn { pointer-events: auto !important; cursor: pointer !important; }
-</style>

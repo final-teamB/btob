@@ -15,14 +15,14 @@
 </style>
 
 <%-- [팀 공통 가이드 적용: Charcoal & White 미니멀 스타일] --%>
-<div class="mx-4 my-6 space-y-6">
+<div class="my-6 space-y-6">
 
     <%-- [1. 타이틀 영역] --%>
-    <div class="px-8 py-4 flex flex-col md:flex-row justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">종합 통계 대시보드</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">실시간 주문 현황 및 물류/재고 데이터를 시각화합니다.</p>
-        </div>
+    <div class="px-9 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full md:w-auto text-left">
+	        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">종합 통계 대시보드</h1>
+	        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">실시간 주문 현황 및 물류/재고 데이터를 시각화합니다.</p>
+	    </div>
         <div class="flex items-center space-x-3 mt-4 md:mt-0">
             <button type="button" onclick="location.reload()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 transition shadow-sm">
                 새로고침
@@ -35,22 +35,22 @@
 
     <%-- [2. KPI 카드 섹션] --%>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-5">
-        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-800 border-t-4 border-gray-900 dark:border-gray-500">
+        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-700 border-t-4 border-gray-900 dark:border-gray-500">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">오늘 주문</h3>
             <div class="text-2xl font-bold text-gray-900 dark:text-white mt-2" id="kpi-order">-</div>
         </div>
         
-        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-800 border-t-4 border-gray-400 dark:border-gray-600">
+        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-700 border-t-4 border-gray-400 dark:border-gray-500">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">평균 배송일</h3>
             <div class="text-2xl font-bold text-gray-900 dark:text-white mt-2" id="kpi-delivery">-</div>
         </div>
         
-        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-800 border-t-4 border-red-500">
+        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-700 border-t-4 border-red-500">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">재고 부족 상품</h3>
             <div class="text-2xl font-bold text-red-600 mt-2" id="kpi-product">-</div>
         </div>
         
-        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-800 border-t-4 border-gray-300 dark:border-gray-700">
+        <div class="p-5 bg-white rounded-lg shadow-sm dark:bg-gray-700 border-t-4 border-gray-300 dark:border-gray-500">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">활성 유저</h3>
             <div class="text-2xl font-bold text-gray-900 dark:text-white mt-2" id="kpi-user">-</div>
         </div>
@@ -61,7 +61,7 @@
     
     <%-- (1) 주문 현황 -> stats/order 이동 --%>
     <section onclick="location.href='${pageContext.request.contextPath}/admin/stats/order'" 
-             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-700 border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
             <h4 class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">
                 최근 7일 주문 건수
@@ -75,7 +75,7 @@
 
     <%-- (2) 배송 단계 비율 -> stats/delivery 이동 --%>
     <section onclick="location.href='${pageContext.request.contextPath}/admin/stats/delivery'"
-             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-700 border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
             <h4 class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">배송 단계 비율</h4>
             <span class="text-xs text-blue-500 font-medium">상세보기 ></span>
@@ -87,7 +87,7 @@
 
     <%-- (3) 지역별 사용자 -> stats/user 이동 --%>
     <section onclick="location.href='${pageContext.request.contextPath}/admin/stats/user'"
-             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-700 border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
             <h4 class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">지역별 사용자</h4>
             <span class="text-xs text-blue-500 font-medium">상세보기 ></span>
@@ -99,7 +99,7 @@
 
     <%-- (4) 상품 재고 현황 -> stats/product 이동 --%>
     <section onclick="location.href='${pageContext.request.contextPath}/admin/stats/product'"
-             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+             class="chart-card p-6 bg-white rounded-lg shadow-sm dark:bg-gray-700 border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
             <h4 class="text-md font-bold text-gray-900 dark:text-white border-l-4 border-gray-900 pl-3">상품 재고 현황</h4>
             <span class="text-xs text-blue-500 font-medium">상세보기 ></span>
@@ -153,85 +153,80 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 // 매개변수 이름을 o로 통일하여 에러 수정
 function renderCharts(o, d, u, p, isDark) {
-    const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { font: { family: 'Pretendard' } } } }
+	// 다크모드용 테마 색상 정의
+    const theme = {
+        line: isDark ? '#F3F4F6' : '#111827',        // 메인 선 (화이트그레이 vs 차콜)
+        area: isDark ? 'rgba(243, 244, 246, 0.1)' : 'rgba(17, 24, 39, 0.05)', // 영역 채우기
+        grid: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F3F4F6', // 눈금선 (더 은은하게)
+        text: isDark ? '#9CA3AF' : '#6B7280',        // 축 글자색
+        barMain: isDark ? '#D1D5DB' : '#111827',     // 바 차트 주색상
+        barSub: isDark ? '#4B5563' : '#9CA3AF'       // 바 차트 보조색상
     };
+	
+    const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { 
+                    display: false // 미니멀함을 위해 범례를 숨기거나 하단 배치 권장
+                } 
+            },
+            scales: {
+                y: { 
+                    grid: { color: theme.grid },
+                    ticks: { color: theme.text, font: { size: 11 } }
+                },
+                x: { 
+                	grid: { color: theme.grid },
+                    ticks: { color: theme.text, font: { size: 11 } }
+                }
+            }
+        };
 
-    // 1. 주문 현황 (Line) - 전달받은 o(최근 7일 데이터) 사용
+ 	// 1. 주문 현황 (Line) - Charcoal 컨셉 유지
     new Chart(document.getElementById('orderChart'), {
         type: 'line',
         data: {
-            // [수정] statsDate 대신 executedAt을 사용하거나 statsDate를 파싱하여 포맷팅
             labels: o.map(x => {
                 const date = new Date(x.executedAt || x.statsDate);
-                const month = date.getMonth() + 1;
-                const day = date.getDate();
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                return `\${month}/\${day} \${hours}:\${minutes}`;
+                return `\${date.getMonth() + 1}/\${date.getDate()}`;
             }),
             datasets: [{ 
-                label: '주문수(건)', 
+                label: '주문수', 
                 data: o.map(x => x.totalOrderCount), 
-                borderColor: '#111827', 
-                backgroundColor: 'rgba(17, 24, 39, 0.1)',
+                borderColor: theme.line, 
+                backgroundColor: theme.area, 
                 fill: true,
-                tension: 0.4,
-                pointRadius: 4,
-                pointBackgroundColor: '#111827'
+                tension: 0.4, // 곡선 테두리
+                pointRadius: 3,
+                pointBackgroundColor: theme.line,
+                borderWidth: 2
             }]
         },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: { 
-                    beginAtZero: true, 
-                    ticks: { 
-                        stepSize: 1,
-                        callback: v => v.toLocaleString() + '건' 
-                    } 
-                },
-                x: {
-                    ticks: {
-                        maxRotation: 0, // 라벨 꺾임 방지
-                        font: { size: 11 }
-                    }
-                }
-            }
-        }
+        options: commonOptions
     });
 
-    // 2. 배송 단계 (Doughnut)
+ // 2. 배송 단계 (Doughnut) - 무채색 그라데이션
     new Chart(document.getElementById('deliveryChart'), {
         type: 'doughnut',
         data: {
             labels: ['상품준비중', '국제운송중', '보세창고입고', '통관진행중', '통관완료', '국내배송중', '배송완료'],
             datasets: [{
                 data: [d.status.dv001, d.status.dv002, d.status.dv003, d.status.dv004, d.status.dv005, d.status.dv006, d.status.dv007],
-                backgroundColor: ['#F3F4F6', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#111827'],
-                borderWidth: 0,      
-                hoverBorderWidth: 0, 
-                spacing: 0           
+                backgroundColor: isDark 
+                    ? ['#F9FAFB', '#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#374151', '#111827']
+                    : ['#F3F4F6', '#E5E7EB', '#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#111827'],
+                borderWidth: 2,
+                borderColor: isDark ? '#1F2937' : '#FFFFFF' // 도넛 사이 구분선
             }]
         },
         options: {
             ...commonOptions,
-            plugins: {
-                ...commonOptions.plugins,
-                legend: {
-                    position: 'bottom', // 범례를 아래로 배치
-                    labels: {
-                        font: { family: 'Pretendard', size: 11 },
-                        padding: 20
-                    }
-                }
-            },
+            plugins: { legend: { display: true, position: 'bottom', labels: { color: theme.text, boxWidth: 10 } } }
         }
     });
 
-    // 3. 지역별 사용자 (Bar)
+ // 3. 지역별 사용자 (Bar)
     new Chart(document.getElementById('userChart'), {
         type: 'bar',
         data: {
@@ -239,11 +234,25 @@ function renderCharts(o, d, u, p, isDark) {
             datasets: [{ 
                 label: '유저수', 
                 data: u.region.map(r => r.value), 
-                backgroundColor: '#374151',
+                // 다크모드일 때는 배경과 대비되는 밝은 그레이, 라이트모드일 때는 Charcoal
+                backgroundColor: isDark ? '#D1D5DB' : '#374151',
                 borderRadius: 6
             }]
         },
-        options: commonOptions
+        options: {
+            ...commonOptions, // 위에서 정의한 폰트/그리드 설정 적용
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F3F4F6' },
+                    ticks: { color: isDark ? '#9CA3AF' : '#4B5563' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: isDark ? '#9CA3AF' : '#4B5563' }
+                }
+            }
+        }
     });
 
     // 4. 상품 재고 (Horizontal Bar)
@@ -254,35 +263,48 @@ function renderCharts(o, d, u, p, isDark) {
             datasets: [{ 
                 label: '재고량', 
                 data: p.topProducts.map(x => x.value), 
-                backgroundColor: [
-                    '#111827', 
-                    '#374151', 
-                    '#4B5563', 
-                    '#6B7280', 
-                    '#9CA3AF'  
-                ],
+                // 순서대로 중요도를 나타내므로, 다크모드에서는 밝은 순서부터 배치
+                backgroundColor: isDark 
+                    ? ['#F9FAFB', '#E5E7EB', '#D1D5DB', '#9CA3AF', '#6B7280'] // 다크모드: 밝은색 -> 어두운색
+                    : ['#111827', '#374151', '#4B5563', '#6B7280', '#9CA3AF'], // 라이트모드: 어두운색 -> 밝은색
                 borderRadius: 6
             }]
         },
         options: { 
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: 'y',
+            indexAxis: 'y', // 건드리지 않음
             plugins: { 
                 legend: { 
                     position: 'bottom',
-                    labels: { font: { family: 'Pretendard', size: 11 }, padding: 15 } 
+                    labels: { 
+                        font: { family: 'Pretendard', size: 11 }, 
+                        padding: 15,
+                        color: isDark ? '#9CA3AF' : '#4B5563' // 범례 글자색
+                    } 
                 } 
             },
             scales: {
                 x: { 
                     beginAtZero: true,
-                    grid: { display: true }, // 눈금 유지
-                    ticks: { font: { size: 11 } }
+                    grid: { 
+                        display: true, 
+                        color: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F3F4F6' 
+                    },
+                    ticks: { 
+                        font: { size: 11 },
+                        color: isDark ? '#9CA3AF' : '#4B5563'
+                    }
                 },
                 y: { 
-                    grid: { display: true }, // 눈금 유지
-                    ticks: { font: { size: 11 } }
+                    grid: { 
+                        display: true, 
+                        color: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F3F4F6' 
+                    },
+                    ticks: { 
+                        font: { size: 11 },
+                        color: isDark ? '#9CA3AF' : '#4B5563'
+                    }
                 }
             }
         }
