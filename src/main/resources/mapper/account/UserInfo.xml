@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.teamb.btob.mapper.account.UserInfoMapper">
+		
+		
+		<!-- 1.1 회원가입 -->
+	    <insert id="insertUser" 
+	    	parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+	    	useGeneratedKeys="true"
+            keyProperty="companyCd">
+	
+		        INSERT INTO TB_USERS(
+						user_id,
+						password,
+						user_name,
+						phone,
+						email,
+						company_cd,
+						user_type,
+						app_status,
+						acc_status,
+						reg_id,
+						is_representative,
+						position
+			       ) VALUES (
+			            #{userId},
+					    #{password},
+					    #{userName},
+					    #{phone},
+					    #{email},
+					    #{companyCd},
+					    #{userType},
+					    #{appStatus},
+					    #{accStatus},
+					    #{regId},
+					    #{isRepresentative},
+					    #{position}
+			        )
+		
+	    </insert>
+	    
+	    <!-- 1.2 회원가입 ( 회사정보 ) -->
+	    <insert id="insertCompany"
+	    	parameterType="io.github.teamb.btob.dto.account.CompanyInfoDTO"
+	    	useGeneratedKeys="true"
+            keyProperty="companySeq">
+	    
+		    	INSERT INTO TB_COMPANIES (
+	                    company_seq,
+	                    company_cd,
+	                    company_name,
+	                    company_phone,
+	                    addr_kor,
+	                    addr_eng,
+	                    zip_code,
+	                    biz_number,
+	                    customs_num,
+	                    master_id,
+	                    reg_id
+	                ) VALUES (
+	                    #{companySeq},
+	                    #{companyCd},
+	                    #{companyName},
+	                    #{companyPhone},
+	                    #{addrKor},
+	                    #{addrEng},
+	                    #{zipCode},
+	                    #{bizNumber},
+	                    #{customsNum},
+	                    #{masterId},
+	                    #{regId}
+	                )
+	    
+	    </insert>
+	
+	    <!-- 2. 로그인 사용자 확인 -->
+	    <select id="selectUserById" 
+	    	parameterType="String" 
+	    	resultType="io.github.teamb.btob.dto.account.UserInfoDTO">
+	    	
+		        SELECT
+					 a.user_no
+					,a.user_id
+					,a.password
+					,a.user_name
+					,a.phone
+					,a.email
+					,a.company_cd
+					,a.user_type
+					,a.app_status
+					,fnc_get_commnm(a.app_status) AS appSttsNm
+					,a.acc_status
+					,fnc_get_commnm(a.acc_status) AS accSttsNm
+					,a.reg_dtime
+					,a.reg_id
+					,a.upd_dtime
+					,a.upd_id
+					,a.use_yn
+					,a.is_representative
+					,a.position
+					,a.user_login_fail_cnt
+					,b.company_name
+					,b.company_phone
+					,b.addr_kor
+					,b.addr_eng
+					,b.zip_code
+					,b.biz_number
+					,b.customs_num
+					,b.master_id
+					,fnc_get_usernm(master_id) AS master_nm
+				FROM TB_USERS a
+  				LEFT OUTER JOIN TB_COMPANIES b 
+  				ON a.company_cd = b.company_cd
+				WHERE 1=1
+				AND a.user_id = #{userId}
+	
+	    </select>
+	
+	    <!-- 3. 비밀번호 수정 -->
+	    <!-- 시큐리티 사용시 비밀번호 검증은 쿼리에서 하지 않는다.-->
+	    <update id="updateUserPassword" 
+	    	parameterType="io.github.teamb.btob.dto.account.UserInfoDTO">
+	
+	        UPDATE
+	            TB_USERS
+	        SET
+	            password = #{newPassword},
+	            upd_dtime = NOW(),
+	            upd_id = #{updId}
+	        WHERE 1=1
+	        AND user_id = #{userId}
+	        AND user_no = #{userNo}
+	        AND password = #{previousPassword}
+	
+	    </update>
+	    
+	    <!-- 개인정보 수정 -->
+	    <update id="updateUserInfo"
+	    	parameterType="io.github.teamb.btob.dto.account.UserInfoDTO">
+	    
+		        UPDATE
+		        	TB_USERS
+		        SET
+		        	user_name = #{userName},
+					phone = #{phone},
+					email = #{email},
+					position = #{position},
+					user_type = #{userType},
+					upd_dtime = CURRENT_TIMESTAMP,
+					upd_id = #{updId}
+		        WHERE 1=1
+		        AND user_id = #{userId}
+		        AND user_no = #{userNo}
+		        
+	    </update>
+	    
+	    <!-- 회사정보 수정 마스터, 관리자만 가능 -->
+	    <update id="updateCompanyInfo"
+	    	parameterType="io.github.teamb.btob.dto.account.CompanyInfoDTO">
+	    		
+	    		UPDATE 
+	    			TB_COMPANIES
+	    		SET
+	    			company_name = #{companyName},
+	    			company_phone = #{companyPhone},
+	    			addr_kor = #{addrKor},
+	    			addr_eng = #{addrEng},
+	    			zip_code = #{zipCode},
+	    			biz_number = #{bizNumber},
+	    			customs_num = #{customsNum},
+	    			master_id = #{masterId},
+	    			upd_dtime = CURRENT_TIMESTAMP,
+	    			upd_id = #{updId}
+	    		WHERE 1=1
+	    		AND master_id = #{masterId}
+	    			
+	    </update>
+	    
+
+
+</mapper>

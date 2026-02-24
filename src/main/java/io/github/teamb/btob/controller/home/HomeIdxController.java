@@ -13,11 +13,4 @@ public class HomeIdxController {
 		
 		return "home/homeIndex";
 	}
-	
-	@GetMapping("/chkk")
-	public String chkk() {
-		
-		return "document/previewEst";
-	}
-
 }

@@ -5,10 +5,6 @@ import io.github.teamb.btob.dto.excel.ExcelUploadResultDTO;
 import io.github.teamb.btob.dto.mgmtAdm.compy.CompyUploadExcelDTO;
 import io.github.teamb.btob.dto.mgmtAdm.compy.InsertCompyDTO;
 import io.github.teamb.btob.dto.mgmtAdm.compy.SearchConditionCompyDTO;
-import io.github.teamb.btob.dto.mgmtAdm.product.InsertDetailInfoProductDTO;
-import io.github.teamb.btob.dto.mgmtAdm.product.InsertProductDTO;
-import io.github.teamb.btob.dto.mgmtAdm.product.ProductUploadExcelDTO;
-import io.github.teamb.btob.dto.mgmtAdm.product.SearchConditionProductDTO;
 import io.github.teamb.btob.mapper.mgmtAdm.CompyMgmtAdmMapper;
 import io.github.teamb.btob.service.attachfile.FileService;
 import io.github.teamb.btob.service.excel.ExcelService;
@@ -20,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Slf4j
@@ -88,7 +83,8 @@ public class CompanyExcelServiceImpl implements CompanyExcelService {
 
         // 1. 실제로 사용할 정확한 영문 Key 목록 (White List)
         List<String> validKeys = Arrays.asList(
-                "companyName",
+                "companyCd",
+        		"companyName",
                 "companyPhone",
                 "addrKor",
                 "addrEng",
@@ -103,6 +99,7 @@ public class CompanyExcelServiceImpl implements CompanyExcelService {
         // 2. 한글-영문 매핑 정보
         // 엑셀파일하고 동일하게 맞춰야함
         Map<String, String> myHeader = new HashMap<String, String>();
+        myHeader.put("회사코드", "companyCd");
         myHeader.put("회사명", "companyName");
         myHeader.put("회사번호", "companyPhone");
         myHeader.put("한글주소", "addrKor");
@@ -118,7 +115,8 @@ public class CompanyExcelServiceImpl implements CompanyExcelService {
 
         // 필수로 들어가야하는 값 ( 필수 항목 정의 == null 값 검증 부분임)
         List<String> requiredKeys = List.of(
-                "companyName",
+                "companyCd",
+        		"companyName",
                 "companyPhone",
                 "addrKor",
                 "addrEng",
@@ -130,7 +128,7 @@ public class CompanyExcelServiceImpl implements CompanyExcelService {
                 "useYn");
 
         // 카테고리별 시퀀스를 관리할 맵 (uploadAndSave 실행 직전에 선언)
-        Map<String, Integer> sequenceMap = new HashMap<>();
+        //Map<String, Integer> sequenceMap = new HashMap<>();
 
         // 3. [수정 핵심] 공통 모듈의 uploadAndSave 호출
         ExcelUploadResultDTO<CompyUploadExcelDTO> result = excelService.uploadAndSave(
@@ -149,12 +147,14 @@ public class CompanyExcelServiceImpl implements CompanyExcelService {
 
                         // 회사코드 자동생성 company_cd
                         // --- [회사코드 자동생성 로직 핵심] ---
-                        String companyNm = base.getCompanyName();
-
-                        Integer objId = compyMgmtAdmMapper.selectAutoObjId();
-                        int year = LocalDate.now().getYear();
-                        String companyCd = year + "-" + companyNm + "-" + objId;
-                        base.setCompanyCd(companyCd);
+                        // 자동생성 안함
+						/*
+						 * String companyNm = base.getCompanyName();
+						 * 
+						 * Integer objId = compyMgmtAdmMapper.selectAutoObjId(); int year =
+						 * LocalDate.now().getYear(); String companyCd = year + "-" + companyNm + "-" +
+						 * objId; base.setCompanyCd(companyCd);
+						 */
 
                         // --- [회사코드 자동생성 로직 종료] ---
 
