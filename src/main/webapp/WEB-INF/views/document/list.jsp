@@ -92,6 +92,7 @@ class MemoCellRenderer {
 		{
 			docId: "${d.docId}",
 			docNo: "${d.docNo}",
+			docTitle: "${d.docTitle}",
 			userName: "${d.userName}",
 			docType: "${d.docType}",
 			regDtime: "${d.regDtime}",
@@ -103,8 +104,40 @@ class MemoCellRenderer {
 	document.addEventListener('DOMContentLoaded', function() {
 		const filteredData = rawData.filter(item => {
 		    // 우리가 정의한 3가지 타입 중 하나인 경우만 남김
-		    return ['QUOTE', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
+		    return ['ESTIMATE', 'PURCHASE_ORDER', 'TRANSACTION', 'CONTRACT'].includes(item.docType);
 		});
+		
+		class DocTitleRenderer {
+		    constructor(props) {
+		        this.el = document.createElement('div');
+		        this.el.className = 'px-2 flex items-center gap-2 h-full';
+		        this.render(props);
+		    }
+		    getElement() { return this.el; }
+
+		    render(props) {
+		        // [수정 핵심 1] 데이터가 로딩 중이거나 필터링 중일 때 row가 없을 수 있음
+		        const row = props.grid.getRow(props.rowKey);
+		        if (!row) return; 
+
+		        // [수정 핵심 2] 필터링 시 데이터 구조에 따라 docType을 못 찾을 경우 대비
+		        const type = row.docType || "";
+		        const theme = (GRID_STATUS_THEMES.docType && GRID_STATUS_THEMES.docType[type]) 
+		                      || { bgColor: 'bg-gray-100', textColor: 'text-gray-500', label: type };
+
+		        // [수정 핵심 3] props.value가 undefined일 경우 빈 문자열 처리
+		        const title = props.value || "";
+
+		        this.el.innerHTML = `
+		            <span class="\${theme.bgColor} \${theme.textColor} text-[10px] px-1.5 py-0.5 rounded-sm font-medium shrink-0">
+		                \${theme.label || type}
+		            </span>
+		            <span class="text-gray-700 truncate" title="\${title}">
+		                \${title}
+		            </span>
+		        `;
+		    }
+		}
 		
    		const docGrid = new DataGrid({
 			containerId: 'dg-container',
@@ -115,9 +148,14 @@ class MemoCellRenderer {
             filterSelectId: 'dg-common-filter',
             
 			columns: [
-				{ header: '담당자', name: 'userName'},
+				{ header: '담당자', name: 'userName', width: 100},
 				{ header: '문서번호', name: 'docNo'},
-				{ header: '문서유형', name: 'docType'},
+				{ 
+			        header: '문서제목', 
+			        name: 'docTitle', 
+			        width: 400,
+			        renderer: { type: DocTitleRenderer } // 새로 만든 로컬 렌더러 사용
+			    },
 				{ header: '등록일', name: 'regDtime', align: 'center'},
 				{ 
 			        header: '특이사항', 
@@ -141,16 +179,17 @@ class MemoCellRenderer {
 			    	}
 				}
 			],
-			data: filteredData
+			data: rawData
 			});
 			docGrid.initFilters([
 				  { 
 					  field: 'docType',
 					  title: '문서',
 					  options:  [ 
-						  { value: "QUOTE", text: "견적서" },
-		                  { value: "TRANSATION", text: "거래내역서" },
+						  { value: "ESTIMATE", text: "견적서" },
+		                  { value: "PURCHASE_ORDER", text: "발주서" },
 		                  { value: "CONTRACT", text: "계약서" },
+		                  { value: "TRANSACTION", text: "거래내역서" },
 					]
 			    }					  
 			])

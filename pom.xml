@@ -70,17 +70,17 @@
 		    <artifactId>openhtmltopdf-pdfbox</artifactId>
 		    <version>1.0.10</version> <!-- OpenHTMLtoPDF 최신 안정 버전 -->
 		</dependency>
-		
-		<!-- playwright (HTML to PDF 변환) -->
+			
+		<!-- playwright (HTML to PDF 변환) -->	
 		<dependency>
-		    <groupId>com.microsoft.playwright</groupId>
-		    <artifactId>playwright</artifactId>
-		    <version>1.40.0</version>
-		</dependency>
-		
-		
-		
-		
+		  <groupId>com.microsoft.playwright</groupId>
+		  <artifactId>playwright</artifactId>
+		  <version>1.40.0</version>
+		</dependency>	
+        
+        
+        
+        
 		<!-- JSP 지원 -->
 		<dependency>
 		    <groupId>org.apache.tomcat.embed</groupId>

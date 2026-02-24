@@ -17,4 +17,6 @@ public interface TradeApprovalMapper {
 
 	EstimateDetailDTO getEstimateDetail(Integer orderId);
 
+	int selectPendingCount(String userId);
+
 }

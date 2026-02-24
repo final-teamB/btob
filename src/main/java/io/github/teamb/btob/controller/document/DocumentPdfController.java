@@ -5,19 +5,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
 import io.github.teamb.btob.service.document.DocumentPdfService;
+import io.github.teamb.btob.service.document.TradeDocService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/document")
+@RequiredArgsConstructor
 public class DocumentPdfController {
 
     private final DocumentPdfService documentPdfService;
-
-    public DocumentPdfController(DocumentPdfService documentPdfService) {
-        this.documentPdfService = documentPdfService;
-    }
+    private final TradeDocService tradeDocService;
 
     @GetMapping("/exportPdf")
     public void exportPdf(
@@ -25,6 +26,33 @@ public class DocumentPdfController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        documentPdfService.exportPdf(docId, request, response);
+    	// 1. 먼저 문서 정보(타입 확인용)를 가져옵니다.
+        DocumentPreviewDTO doc = tradeDocService.getDocumentById(docId);
+      
+        Object detailData = null;
+        int orderId = doc.getOrderId();
+        String docType = doc.getDocType().toUpperCase();
+        
+        // 2. 타입에 따라 알맞은 상세 데이터를 조회합니다.
+        switch (docType) {
+            case "ESTIMATE":
+                detailData = tradeDocService.getEstimateDetail(orderId);
+                break;
+            case "PURCHASE_ORDER":
+            	 detailData = tradeDocService.getOrderDetail(orderId);
+                 break;
+            case "TRANSACTION":
+                detailData = tradeDocService.getTransactionDetail(orderId); 
+                break;
+            case "CONTRACT":
+            	detailData = tradeDocService.getContractDetail(orderId);
+                break;
+        }
+          	
+        if (detailData == null) {
+            throw new RuntimeException("DB에 상세 데이터가 존재하지 않습니다. (타입: " + docType + ", ID: " + orderId + ")");
+        }
+        
+        documentPdfService.exportPdf(docId, detailData, request, response);
     }
 }

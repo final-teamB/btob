@@ -17,6 +17,16 @@ public interface AdminUserMapper {
 	// 대표 가입 승인
 	int updateCompanyApproval(@Param("userId") String userId, @Param("updId") String updId);
 	
+	// 대표 가입 반려
+	int updateCompanyReject(@Param("userId") String userId, 
+						   @Param("rejectReason") String rejectReason, String adminId);
+	
+	// 승인, 반려 이력 등록 / 조회
+	int insertUserHistory(Map<String, Object> params);
+	List<Map<String, Object>> selectUserHistory(String userId);
+	// 현재 사용자의 상태 정보 가져오기
+    String selectUserCurrStatus(@Param("userId") String userId);
+	
 	// 계정 상태 변경
 	int updateUserStatus(@Param("userId") String userId, 
 						 @Param("accStatus") String accStatus,

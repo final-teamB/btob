@@ -19,7 +19,9 @@ const GRID_STATUS_THEMES = {
 	
 	'docType': {
 	        'ESTIMATE': { bgColor: 'bg-blue-200', textColor: 'text-blue-700', label: '견적서' },
-	        'PURCHASE ORDER': { bgColor: 'bg-emerald-200', textColor: 'text-emerald-700', label: '발주서' }
+	        'PURCHASE_ORDER': { bgColor: 'bg-emerald-200', textColor: 'text-emerald-700', label: '발주서' },
+			'CONTRACT': { bgColor: 'bg-purple-200', textColor: 'text-purple-700', label: '계약서' },
+	        'TRANSACTION': { bgColor: 'bg-orange-200', textColor: 'text-orange-700', label: '내역서' }
     },
 	
     'accStatus': {

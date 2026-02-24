@@ -19,8 +19,9 @@ public class DocumentListDTO {
 	
 	private int docId;              // doc_id
     private String docNo;			// doc_no
+    private String docTitle;		// doc_title
     private String docType;			// doc_type
-    private int ownerUserId;        // owner_user_id내부 로직용
+    private String ownerUserId;     // owner_user_id내부 로직용
     private String userName;        // ownerUserName 화면 표시용
     private String memo;  			// memo
     private LocalDateTime regDtime; // reg_dtime
