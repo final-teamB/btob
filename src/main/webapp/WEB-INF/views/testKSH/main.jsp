@@ -1,5 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<div class="bg-yellow-100 p-4 mb-4 text-xs">
+    로그인 상태: <sec:authorize access="isAuthenticated()">인증됨</sec:authorize>
+               <sec:authorize access="isAnonymous()">미인증(익명)</sec:authorize> <br>
+    내 권한 목록: <sec:authentication property="principal.authorities" /> <br>
+    내 ID: <sec:authentication property="principal.username" />
+</div>
 
 <div class="p-6 space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

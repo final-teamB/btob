@@ -10,6 +10,7 @@
 	
 			        SELECT
 			            a.user_id,
+			            a.user_type,
 			            a.password,
 			            a.acc_status,
 			            b.comm_name AS accSttsNm,
