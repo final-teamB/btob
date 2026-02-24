@@ -47,6 +47,9 @@ public class UserInfoDTO {
     
     private String assignee;			// 권한 양도 받는 사람
     
+    private String appSttsNm;			// 권한 상태 코드 명칭
+    private String accSttsNm;			// 계정 상태 코드 명칭
+    
     //TB_COMPANIES
     private Integer companySeq;             // 식별자
     private String companyName;             // 회사명
@@ -57,4 +60,5 @@ public class UserInfoDTO {
     private String bizNumber;               // 사업자 번호
     private String customsNum;              // 통관 번호
     private String masterId;                // 대표자 ID
+    private String masterNm;				// 대표자명
 }

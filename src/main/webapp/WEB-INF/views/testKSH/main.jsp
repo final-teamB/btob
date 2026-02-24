@@ -15,12 +15,12 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-gray-900 dark:text-white">${member.userName} <span class="text-gray-500 text-xs font-normal">${member.position}</span></p>
-                        <p class="text-xs text-gray-500">${member.email}</p>
+                        <p class="text-xs text-gray-500">${member.userId}</p>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2"><i class="bi bi-building mr-2"></i>${member.companyCd}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2"><i class="bi bi-building mr-2"></i>${member.companyName}</p>
                 <div class="grid grid-cols-2 gap-2 pt-4">
-                    <button class="py-2 text-sm font-bold bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition" onclick="location.href='/mypage'">내 정보</button>
+                    <button class="py-2 text-sm font-bold bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition" onclick="location.href='/account/mypage'">내 정보</button>
                     <button class="py-2 text-sm font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition" onclick="location.href='/logout'">로그아웃</button>
                 </div>
             </div>

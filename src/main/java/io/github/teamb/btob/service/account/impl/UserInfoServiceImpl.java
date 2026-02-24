@@ -61,10 +61,12 @@ public class UserInfoServiceImpl implements UserInfoService{
 				passwordEncryptor.encrypt(userInfoDTO.getPassword()) 
 				);
 		
-		// 2. 이메일 암호화 후 저장 처리
+		// 2. 이메일 암호화 후 저장 처리 -- 미협의로 주석
+		/*
 		userInfoDTO.setEmail(
 				passwordEncryptor.encrypt(userInfoDTO.getEmail())
 				);
+		*/
 		
 		// 3. 기타 세팅
 		userInfoDTO.setIsRepresentative("Y");		// 대표는 무조건 일단 있다고 세팅
@@ -228,9 +230,28 @@ public class UserInfoServiceImpl implements UserInfoService{
 			loginUserNo = loginUserProvider.getLoginUserNo();
 		}
 		
+		// 2. 새 비밀번호와 기존 비밀번호 동일 여부 체크 (문자열 평문 비교)
+	    // 이 체크를 가장 먼저 해야 불필요한 DB 조회를 줄일 수 있습니다.
+	    if (previousPassword.equals(newPassword)) {
+	        throw new Exception("현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다.");
+	    }
+	    
+	    // 3. DB에서 현재 암호화된 비밀번호 가져오기
+	    UserInfoDTO user = userInfoMapper.selectUserById(loginUserId);
+	    if (user == null) {
+	        throw new Exception("사용자 정보를 확인할 수 없습니다.");
+	    }
+	    String currentEncryptedPassword = user.getPassword();
+
+	    // 4. 현재 비밀번호 일치 여부 체크 (PasswordEncryptor.matches 사용)
+	    // encrypt() 결과끼리 비교하는 것이 아니라 평문과 암호문을 matches로 비교해야 합니다.
+	    if (!passwordEncryptor.matches(previousPassword, currentEncryptedPassword)) {
+	        throw new Exception("현재 비밀번호가 일치하지 않습니다.");
+	    }
+		
 		// 비밀번호는 암호화 되어야한다.
 		UserInfoDTO updto = new UserInfoDTO();
-		updto.setPreviousPassword(passwordEncryptor.encrypt(previousPassword));
+		updto.setPreviousPassword(currentEncryptedPassword);
 		updto.setNewPassword(passwordEncryptor.encrypt(newPassword));
 		updto.setUpdId(loginUserId);
 		updto.setUserId(loginUserId);
@@ -288,6 +309,8 @@ public class UserInfoServiceImpl implements UserInfoService{
 			updateUser = userInfoModifyRequestDTO.getUpdateUserInfo();
 			// 업데이트 사용자
 			updateUser.setUpdId(loginUserId);
+			updateUser.setUserId(loginUserId);
+			updateUser.setUserNo(loginUserNo);
 			
 			// 개인정보 수정 시 체크
 			// 만약 타입을 변경한다고 했을 때

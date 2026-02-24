@@ -46,6 +46,14 @@ public class CustomUserDetails implements UserDetails {
 			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getUserType())
 			         );
 			     }
+			     
+			     // 2. ROLE 권한 (접두사 ROLE_ 필수) -- 버튼 권한
+			     if (loginValidateDTO.getUserType() != null) {
+			
+			         authorities.add(
+			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getAppStatus())
+			         );
+			     }
 			
 			     // return List.of(); 권한 스킵
 			     // 일반적인 권한 + 세부권한 생기는 경우 때문에 리스트로
