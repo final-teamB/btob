@@ -76,11 +76,11 @@
 	<!-- 신규 관리자 등록 -->
 	<insert id="insertAdminUser">
 		INSERT INTO TB_USERS(
-			user_id, password, user_name, user_type, app_status, acc_status, 
+			user_id, password, user_name, user_type, phone, app_status, acc_status, 
 			reg_dtime, reg_id, upd_id
 		)
         VALUES (
-        	#{userId}, #{password}, #{userName}, 'ADMIN', 'APPROVED', 'ACTIVE', 
+        	#{userId}, #{password}, #{userName}, 'ADMIN', #{phone}, 'APPROVED', 'ACTIVE', 
         	NOW(), #{regId}, #{updId}
         )
 	</insert>

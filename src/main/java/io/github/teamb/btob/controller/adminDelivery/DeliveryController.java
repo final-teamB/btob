@@ -110,12 +110,17 @@ public class DeliveryController {
     }
 
     @GetMapping("/detail/{deliveryId}")
-    public String deliveryDetail(@PathVariable int deliveryId, Model model) {
-    	
+    public String deliveryDetail(@PathVariable int deliveryId, Model model, 
+                                 @RequestParam(value="modal", required=false) String modal) {
+        
         model.addAttribute("deliveryDTO", deliveryService.getDeliveryDetail(deliveryId));
         model.addAttribute("statusList", DeliveryStatus.values());
         
-        model.addAttribute("content", "adminsh/adminDelivery/deliveryDetail.jsp"); // 실제 파일 경로
+        if("Y".equals(modal)) {
+            return "adminsh/adminDelivery/deliveryDetail"; 
+        }
+        
+        model.addAttribute("content", "adminsh/adminDelivery/deliveryDetail.jsp");
         return "layout/layout";
     }
 

@@ -2,20 +2,93 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="showSearchArea" value="true" scope="request" />
-<c:set var="showAddBtn" value="true" scope="request" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
     .tui-grid-cell { cursor: pointer !important; }
     .real-delete-btn { pointer-events: auto !important; cursor: pointer !important; }
+
+    /* 사용자 관리와 동일한 입력/필터 톤 */
+    #dg-container { width: 100%; margin-top: 1rem; }
+    .grid-relative-wrapper { position: relative; width: 100%; }
+
+    #dg-common-filter-wrapper select,
+    #dg-search-input {
+        padding-left: 1rem !important;
+        padding-right: 2.5rem !important;
+    }
+    
+    /* FAQ 삭제 버튼 저장 버튼이랑 동일하게 강제 */
+	.tui-grid-body-area td[data-column-name="manage"] button {
+	    padding: 0.25rem 0.75rem !important;   /* px-3 py-1 */
+	    font-size: 0.75rem !important;         /* text-xs */
+	    font-weight: 700 !important;           /* font-bold */
+	    color: #1d4ed8 !important;             /* text-blue-700 */
+	    background-color: #ffffff !important;  /* bg-white */
+	    border: 1px solid #60a5fa !important;  /* border-blue-400 */
+	    border-radius: 0.375rem !important;    /* rounded-md */
+	    text-decoration: none !important;     /* 밑줄 제거 */
+	    transition: background-color 0.2s ease !important;
+	}
+	
+	.tui-grid-body-area td[data-column-name="manage"] button:hover {
+	    background-color: #eff6ff !important;  /* hover:bg-blue-50 */
+	}
 </style>
 
-<div class="mx-4 my-6 space-y-6">
-    <div class="px-5 py-4 pb-0">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">자주 묻는 질문 (FAQ) 관리</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">시스템 데이터를 조회하고 관리합니다.</p>
-    </div>
+<div class="max-w-screen-2xl mx-auto">
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
 
-    <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
+        <!-- 상단 타이틀 영역 -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        자주 묻는 질문 (FAQ) 관리
+                    </h2>
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                        ADMIN
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">
+                    자주 묻는 질문을 조회하고 수정 및 삭제할 수 있습니다.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="handleAddAction()"
+                        class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95 flex items-center">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    FAQ 등록
+                </button>
+            </div>
+        </div>
+
+        <!-- 데이터그리드 영역 -->
+        <div class="grid-relative-wrapper">
+            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
+        </div>
+    </div>
+</div>
+
+<div id="faqModal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static" 
+     class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 overflow-y-auto">
+    <div class="relative w-full max-w-4xl p-4 mx-auto">
+        <div class="relative bg-white rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">자주 묻는 질문 설정</h2>
+                <button type="button" onclick="closeFaqModal()" class="text-gray-400 hover:text-gray-900 ml-auto p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="faqModalContent"></div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -83,9 +156,23 @@
                 { header: 'ID', name: 'faqId', width: 80, align: 'center' },
                 { 
                     header: '카테고리', name: 'category', width: 120, align: 'center',
-                    formatter: ({value}) => {
+                    formatter: function(props) {
+                        const val = props.value;
+                        if (!val) return '-';
+
                         const map = { 'DELIVERY': '배송', 'PAYMENT': '결제', 'PRODUCT': '상품', 'ETC': '기타' };
-                        return map[value] || value;
+                        const labelName = map[val] || val;
+
+                        const badgeStyles = {
+                            'DELIVERY': 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+                            'PAYMENT': 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+                            'PRODUCT': 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+                            'ETC': 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                        };
+                        
+                        const styleClass = badgeStyles[val] || 'bg-gray-100 text-gray-500';
+                        
+                        return '<span class="px-2 py-1 rounded text-[11px] font-bold ' + styleClass + '">' + labelName + '</span>';
                     }
                 },
                 { header: '질문', name: 'question', align: 'left' },
@@ -93,10 +180,15 @@
                 {
                     header: '관리',
                     name: 'manage',
-                    width: 100,
+                    width: 120,
                     align: 'center',
                     formatter: () => {
-                        return '<button type="button" class="real-delete-btn px-3 py-1 text-xs font-bold text-white bg-red-500 rounded hover:bg-red-600 transition">삭제</button>';
+                        return `
+                            <button type="button"
+                                class="real-delete-btn px-3 py-1 text-xs font-bold text-blue-700 border border-blue-400 rounded-md hover:bg-blue-50">
+                                삭제
+                            </button>
+                        `;
                     }
                 }
             ],
@@ -118,15 +210,13 @@
 
         // [4] 행 클릭(수정) 및 삭제 버튼 이벤트
         faqGrid.grid.on('click', (ev) => {
-            const rowData = faqGrid.grid.getRow(ev.rowKey);
+        	const rowData = faqGrid.grid.getRow(ev.rowKey);
             if (!rowData) return;
 
             if (ev.nativeEvent.target.classList.contains('real-delete-btn')) {
-                if (confirm('삭제하시겠습니까?')) {
-                    handleDelete(rowData.faqId);
-                }
+                if (confirm('삭제하시겠습니까?')) handleDelete(rowData.faqId);
             } else if (ev.targetType === 'cell') {
-                location.href = '/support/modifyFaq/' + rowData.faqId;
+                openFaqModal(rowData.faqId); // 수정 모달 열기
             }
         });
     });
@@ -148,6 +238,26 @@
 
     // 신규 등록 버튼 연동
     function handleAddAction() {
-        location.href = '/support/registerFaq';
+    	openFaqModal(0);
+    }
+    
+ // 모달 열기 함수 (AJAX로 폼 불러오기)
+    function openFaqModal(faqId) {
+    	const url = faqId > 0 ? '/support/modifyFaq/' + faqId : '/support/registerFaq';
+        
+        $.ajax({
+            url: url + "?isModal=Y",
+            type: "GET",
+            success: function(html) {
+                $('#faqModalContent').html(html);
+                $('#faqModal').removeClass('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+
+    function closeFaqModal() {
+    	$('#faqModal').addClass('hidden');
+        document.body.style.overflow = 'auto';
     }
 </script>

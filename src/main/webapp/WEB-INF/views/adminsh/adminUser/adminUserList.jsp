@@ -2,63 +2,124 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="showSearchArea" value="true" scope="request" />
-<c:if test="${viewType == 'ADMIN'}">
-	<c:set var="showAddBtn" value="true" scope="request" />
-</c:if>
+<c:set var="cp" value="${pageContext.request.contextPath}" />
 
 <style>
-    /* [1] 스타일 */
-    .tui-grid-cell-content { padding: 0 !important; }
+    /* productMgmtAdm.jsp의 유류명칭 링크 스타일과 동일하게 고도화 */
+    .user-link { 
+        color: #1e293b;
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.2s ease;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .user-link:hover { 
+        color: #2563eb; 
+        background-color: #eff6ff;
+        text-decoration: none !important;
+    }
+
+    /* 그리드 내 입력 요소 스타일링 */
     .direct-edit-el {
-        pointer-events: auto !important; width: 100% !important; height: 100% !important;
-        min-height: 38px; padding: 0 12px !important; border: 1px solid transparent !important;
-        box-sizing: border-box !important; outline: none !important; transition: all 0.2s;
-        cursor: pointer; background-color: transparent !important;
+        pointer-events: auto !important; width: 90% !important; height: 32px !important;
+        border: 1px solid #e2e8f0 !important; border-radius: 6px !important;
+        background-color: #ffffff !important; font-size: 13px !important;
+        transition: border-color 0.2s;
     }
+    .direct-edit-el:focus { border-color: #3b82f6 !important; outline: none !important; }
+
+    /* 데이터그리드 컨테이너 여백 */
+    #dg-container { width: 100%; margin-top: 1rem; }
+    .grid-relative-wrapper { position: relative; width: 100%; }
+    
     select.direct-edit-el {
-        text-align: center !important; text-align-last: center !important; appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 8px center; background-size: 14px;
-    }
-    .text-ellipsis { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; }
-
-	.flex { display: flex; }
-	.justify-center { justify-content: center; }
-	.space-x-1 > * + * { margin-left: 0.25rem; }
-
-	/* 필터 내 select 박스 스타일 조정 */
-	#dg-common-filter-wrapper select {
-	    width: 100% !important;
-	    height: 40px !important; /* 높이도 검색창과 통일 */
-	    padding-right: 30px !important; /* 화살표 공간 */
-	    cursor: pointer;
+	    text-align: center !important;
+	    text-align-last: center !important; 
+	    appearance: none;                   
+	    background-position: right 8px center;
 	}
+	
+	select.direct-edit-el option {
+	    text-align: center;
+	}
+	
+	/* 1. 필터 셀렉트 박스 및 검색창 크기 확대 */
+    #dg-common-filter-wrapper select, 
+    #dg-search-category, 
+    #dg-search-input {
+        padding-left: 1rem !important;
+        padding-right: 2.5rem !important;
+    }
 
+    /* 2. '구분', '검색어' 라벨 텍스트 크기 확대 */
+    .search-group label, 
+    .filter-label,
+    div.text-sm.font-bold { 
+        margin-bottom: 0.5rem !important;
+        display: inline-block;
+    }
 </style>
 
-<div class="my-6 space-y-6">
-    <div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
-    <div class="w-full text-left"> 
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리 시스템 (Admin)</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">상태를 변경한 후 반드시 [저장] 버튼을 눌러주세요.</p>
+<div class="max-w-screen-2xl mx-auto">
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리</h2>
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                        ${viewType == 'COMPANY' ? '회사' : viewType == 'ADMIN' ? '관리자' : '전체'}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">시스템 사용자의 권한을 관리하고 가입 승인을 처리할 수 있습니다.</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <c:if test="${viewType == 'ADMIN'}">
+                    <button type="button" onclick="handleAddAction()" 
+                            class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95 flex items-center">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        신규 관리자 등록
+                    </button>
+                </c:if>
+            </div>
+        </div>
+
+        <div class="flex space-x-1 mb-1">
+            <a href="/admin/user/list" class="px-5 py-2.5 text-sm font-medium transition-all ${empty viewType ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">전체</a>
+            <a href="/admin/user/list?viewType=COMPANY" class="px-5 py-2.5 text-sm font-medium transition-all ${viewType == 'COMPANY' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">회사 관리</a>
+            <a href="/admin/user/list?viewType=ADMIN" class="px-5 py-2.5 text-sm font-medium transition-all ${viewType == 'ADMIN' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">관리자 관리</a>
+            <a href="/admin/user/list?viewType=USER" class="px-5 py-2.5 text-sm font-medium transition-all ${viewType == 'USER' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">일반 사용자</a>
+        </div>
+
+        <div class="grid-relative-wrapper">
+            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                <jsp:param name="showSearchArea" value="true" />
+                <jsp:param name="showPerPage" value="true" />
+            </jsp:include>
+        </div>
     </div>
 </div>
 
-    <div class="px-5 pt-4">
-        <div class="flex space-x-2">
-            <a href="/admin/user/list" class="px-4 py-2 text-sm font-medium ${empty viewType ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}">전체</a>
-            <a href="/admin/user/list?viewType=COMPANY" class="px-4 py-2 text-sm font-medium ${viewType == 'COMPANY' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}">회사 관리</a>
-            <a href="/admin/user/list?viewType=ADMIN" class="px-4 py-2 text-sm font-medium ${viewType == 'ADMIN' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}">관리자 관리</a>
-            <a href="/admin/user/list?viewType=USER" class="px-4 py-2 text-sm font-medium ${viewType == 'USER' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}">일반 사용자</a>
+<jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserApprovModal.jsp" />
+<jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserHistModal.jsp" />
+
+<div id="adminRegModal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center">
+    <div class="relative w-full max-w-2xl p-4">
+        <div class="relative bg-white rounded-2xl shadow-2xl dark:bg-gray-800">
+            <div class="flex items-center justify-between p-5 border-b rounded-t">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white" id="modalTitle">신규 관리자 등록</h3>
+                <button type="button" onclick="closeAdminRegModal()" class="text-gray-400 bg-transparent hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserForm.jsp" />
+            </div>
         </div>
     </div>
-
-    <div class="px-5" style="margin-top: 0rem !important;">
-        <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
-    </div>
-    
-    <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserApprovModal.jsp" />
-	<jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserHistModal.jsp" />
 </div>
 
 <script>
@@ -318,7 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
             title: '승인상태',
             options: [
                 { text: 'APPROVED', value: 'APPROVED' },
-                { text: 'PENDING', value: 'PENDING' }
+                { text: 'PENDING', value: 'PENDING' },
+                { text: 'REJECTED', value: 'REJECTED' }
             ]
         });
     }
@@ -445,7 +507,28 @@ window.handleGridAction = function(rowData, actionType) {
     }
 };
 
+/* list.jsp 하단 <script> 영역 */
+
 function handleAddAction() {
-    location.href = '/admin/user/register';
+    openAdminRegModal();
+}
+
+function openAdminRegModal() {
+    const modal = document.getElementById('adminRegModal');
+    modal.style.display = 'flex'; // hidden 대신 display 조작
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAdminRegModal() {
+    const modal = document.getElementById('adminRegModal');
+    modal.style.display = 'none'; // 다시 숨기기
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    
+    // 폼 초기화 (jQuery가 있다면)
+    if($('#adminRegForm').length > 0) {
+        $('#adminRegForm')[0].reset();
+    }
 }
 </script>

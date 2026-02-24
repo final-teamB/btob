@@ -105,23 +105,19 @@ public class NoticeController {
                 .body(resource);
     }
     
-    // 수정 페이지 이동
+    // 수정 페이지 이동 (모달 대응)
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable("id") Integer id, Model model) {
-    	Notice notice;
-        
-        if (id == null || id == 0) {
-            notice = new Notice(); 
-        } else {
-            notice = noticeService.getNoticeDetail(id);
-        }
-
+    public String editForm(@PathVariable("id") Integer id, 
+                           @RequestParam(value="isModal", defaultValue="N") String isModal, 
+                           Model model) {
+        Notice notice = (id == null || id == 0) ? new Notice() : noticeService.getNoticeDetail(id);
         model.addAttribute("notice", notice);
         
-        if (model.getAttribute("files") == null) {
-            model.addAttribute("files", new ArrayList<>());
+        // 모달 요청인 경우 레이아웃 없이 JSP만 리턴
+        if ("Y".equals(isModal)) {
+            return "testKSH/noticeEdit"; 
         }
-
+        
         model.addAttribute("content", "testKSH/noticeEdit.jsp");
         return "layout/layout";
     }
