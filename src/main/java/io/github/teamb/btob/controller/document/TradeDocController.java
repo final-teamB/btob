@@ -14,8 +14,10 @@ import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.document.DocumentListDTO;
 import io.github.teamb.btob.dto.document.DocumentMemoActionDTO;
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
+import io.github.teamb.btob.dto.trade.ContractDetailDTO;
 import io.github.teamb.btob.dto.trade.EstimateDetailDTO;
 import io.github.teamb.btob.dto.trade.OrderDetailDTO;
+import io.github.teamb.btob.dto.trade.TransactionDetailDTO;
 import io.github.teamb.btob.service.document.TradeDocService;
 import lombok.RequiredArgsConstructor;
 
@@ -49,22 +51,54 @@ public class TradeDocController {
 	
 	// 문서 미리보기(PDF)
 	@GetMapping("/previewPDF")
-	public String previewPDF(
-			@RequestParam int docId,
-	        Model model) {
-
-	    // 단건 조회
-		DocumentPreviewDTO doc = tradeDocService.getDocumentById(docId);
-		System.out.println("========== 요청받은 문서 ID: " + docId);
-	    model.addAttribute("doc", doc);
+	public String previewPDF(@RequestParam int docId, Model model) {
+	    // 1. 문서 마스터 정보 조회
+	    DocumentPreviewDTO doc = tradeDocService.getDocumentById(docId);
+	    model.addAttribute("doc", doc); // 문서 자체 정보 (doc_no 등)
+	    model.addAttribute("mode", "preview");
 	    
+	    Integer orderId = doc.getOrderId();
+	    String userType = loginUserProvider.getUserType(loginUserProvider.getLoginUserId());
+	    model.addAttribute("userType", userType);
+
+	    // 2. 문서 타입에 따른 데이터 바인딩 및 분기
 	    switch(doc.getDocType()) {
-	    case "ESTIMATE": return "/document/previewEst"; 				// 견적서
-	    case "CONTRACT": return "document/previewContract";		// 계약서
-	    case "TRANSACTION": return "document/previewTransaction";	// 거래내역서
-	    default: return "document/previewDefault";					// 예외 처리용 기본 화면
+	        case "ESTIMATE":
+	            EstimateDetailDTO estDetail = tradeDocService.getEstimateDetail(orderId);
+	            if (estDetail != null) {
+	                model.addAttribute("info", estDetail);
+	                model.addAttribute("itemList", estDetail.getItemList());
+	            }
+	            return "document/previewEst";
+
+	        case "PURCHASE_ORDER":
+	            OrderDetailDTO ordDetail = tradeDocService.getOrderDetail(orderId);
+	            if (ordDetail != null) {
+	                model.addAttribute("info", ordDetail);
+	                model.addAttribute("itemList", ordDetail.getItemList());
+	            }
+	            return "document/previewOrder";
+
+	        case "CONTRACT":
+	        	ContractDetailDTO ctDetail = tradeDocService.getContractDetail(orderId);
+	        	if (ctDetail != null) {
+	        		model.addAttribute("doc", ctDetail);
+	                model.addAttribute("info", ctDetail);
+	                model.addAttribute("itemList", ctDetail.getItemList());
+	            }
+	            return "document/previewContract";
+
+	        case "TRANSACTION":
+	        	TransactionDetailDTO Trdetail = tradeDocService.getTransactionDetail(orderId);
+	        	if (Trdetail != null) {
+	        		model.addAttribute("doc", Trdetail);
+	                model.addAttribute("info", Trdetail);
+	            }
+	            return "document/previewTransaction";
+
+	        default:
+	            return "document/previewDefault";
 	    }
-	    	 
 	}
 	
 	@GetMapping("/previewEst")
@@ -110,17 +144,34 @@ public class TradeDocController {
 		        model.addAttribute("cartIds", cartIds);
 		    }
 
-
 	    return "document/previewOrder";
 	}
 	
 	@GetMapping("/previewContract")
-	public String previewContract() {
+	public String previewContract(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		ContractDetailDTO detail = tradeDocService.getContractDetail(orderId);
+		
+		if (detail != null) {
+	
+	        model.addAttribute("doc", detail); 
+	        model.addAttribute("info", detail); 
+	
+	        model.addAttribute("itemList", detail.getItemList());
+	    }
+		
 		return "document/previewContract";
 	}
 	
 	@GetMapping("/previewTransaction")
-	public String previewTransaction() {
+	public String previewTransaction(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		TransactionDetailDTO detail = tradeDocService.getTransactionDetail(orderId);
+		if (detail != null) {
+			
+	        model.addAttribute("doc", detail); 
+	        model.addAttribute("info", detail); 
+
+	    }
+		
 		return "document/previewTransaction";
 	}
 	

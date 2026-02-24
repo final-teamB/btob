@@ -10,6 +10,7 @@
 </div>
 
 <script>
+const cp = "${cp}";
 /** 1. 데이터 매핑 (MyBatis 결과를 JS 객체로) **/
 const rawData = [
     <c:if test="${not empty pendingList}">
@@ -29,6 +30,7 @@ const rawData = [
 ];
 
 document.addEventListener('DOMContentLoaded', function() {
+	
     /** 2. 그리드 초기화 **/
     const pendingGrid = new DataGrid({
         containerId: 'dg-container',
@@ -73,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     		title: '문서',
     		options: [
                 { text: '견적 승인대기', value: 'ESTIMATE' },
-                { text: '주문 승인대기', value: 'PURCHASE ORDER' }
+                { text: '주문 승인대기', value: 'PURCHASE_ORDER' }
             ]
     	}
     ]);
@@ -83,20 +85,25 @@ window.handleGridAction = function(rawData, action) {
     if(action === 'OPEN_DETAIL') {
         const orderId = rawData.orderId;
         const docType = rawData.docType; // 'ESTIMATE' 또는 'ORDER'
-        const ctx = "${pageContext.request.contextPath}";
-        
         let targetUrl = "";
         
         if(docType === 'ESTIMATE') {
             // 견적 승인용 상세 페이지 (희망 단가, 총 합계 등 포함)
-            targetUrl = ctx + "/trade/approveEst?orderId=" + orderId;
+            targetUrl = cp + "/trade/approveEst?orderId=" + orderId;
         } else {
             // 일반 주문 승인용 상세 페이지
-            targetUrl = ctx + "/trade/previewOrder?orderId=" + orderId;
+            targetUrl = cp + "/trade/previewOrder?orderId=" + orderId;
         }
 
         const win = window.open(targetUrl, "_blank");
-        if (win) win.focus();
+        // 새 창이 닫혔는지 감지하거나, 새 창에서 부모창을 새로고침하게 유도
+        const timer = setInterval(function() {
+            if (win.closed) {
+                clearInterval(timer);
+                // 결재 처리가 되었을 수 있으므로 목록과 카운트를 새로고침
+                location.reload(); 
+            }
+        }, 1000);
     }
 };
 </script>

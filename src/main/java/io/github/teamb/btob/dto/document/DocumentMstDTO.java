@@ -21,7 +21,7 @@ public class DocumentMstDTO {
     private String docNo;           // doc_no
     private String docType;         // doc_type
     private int orderId;            // order_id
-    private int ownerUserId;        // owner_user_id
+    private String ownerUserId;        // owner_user_id
     private LocalDateTime regDtime; // reg_dtime
     private String memo;           // memo
     private String regId;           // reg_id

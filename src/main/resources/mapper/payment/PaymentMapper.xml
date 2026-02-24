@@ -142,4 +142,13 @@
       AND pay_step = 'SECOND'
 </update>
 
+<!-- 1차결제금액 가져오기 -->
+<select id="selectFirstPaymentAmount" resultType="integer">
+    SELECT amount 
+    FROM TB_PAYMENT_MST 
+    WHERE order_id = #{orderId} 
+      AND pay_step = 'FIRST' 
+      AND status = 'DONE'
+</select>
+
 </mapper>

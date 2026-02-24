@@ -69,10 +69,9 @@
                 <a href="#" class="text-sm font-bold text-gray-600 hover:text-blue-600 flex items-center gap-2 transition-colors">
                     <i data-lucide="megaphone" class="w-4 h-4 text-gray-400"></i> 공지사항
                 </a>
-                <button onclick="location.href='<c:url value="/login"/>'" class="min-w-[110px] h-11 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2">
-				    <i data-lucide="log-in" class="w-4 h-4"></i>
-				    <span>로그인</span>
-				</button>
+                <button onclick="openAuthModal()" class="min-w-[110px] h-11 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2">
+			    	<i data-lucide="log-in" class="w-4 h-4"></i>
+			    <span>로그인</span>
             </div>
         </div>
     </nav>
@@ -88,7 +87,7 @@
             </p>
             
             <div class="flex flex-col sm:flex-row gap-5 justify-center">
-                <button onclick="location.href='<c:url value="/login"/>'" class="px-12 py-4 bg-white text-blue-700 font-black rounded-2xl hover:bg-blue-50 transition-all text-lg shadow-2xl">
+                <button onclick="openAuthModal()" class="px-12 py-4 bg-white text-blue-700 font-black rounded-2xl hover:bg-blue-50 transition-all text-lg shadow-2xl">
 				    거래 시작하기
 				</button>
                 <button class="px-12 py-4 bg-white/10 border border-white/30 text-white font-black rounded-2xl hover:bg-white/20 backdrop-blur-md transition-all text-lg">
@@ -164,6 +163,8 @@
         </div>
     </footer>
 </div>
+
+<jsp:include page="/WEB-INF/views/home/authModal.jsp" />
 
 <script>
     lucide.createIcons();

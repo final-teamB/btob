@@ -230,12 +230,28 @@ function deleteCartItem(cartId) {
         type: "POST",
         data: { cartId: cartId },
         success: function(res) {
+            // 서버 응답이 성공인 경우
             if(res.result === 'success' || res === 'success') {
+                // 1. 현재 페이지의 행(Row) 삭제
                 const row = document.getElementById('cart-row-' + cartId);
                 if(row) row.remove();
+                
+                // 2. 현재 페이지의 최종 합계 갱신
                 updateFinalTotal();
-                if(document.querySelectorAll('[id^="cart-row-"]').length === 0) location.reload();
+                
+                // ⭐ 3. 공통 뱃지 숫자 갱신 (헤더의 장바구니 카운트 즉시 반영)
+                if(typeof updateAllBadges === 'function') {
+                    updateAllBadges();
+                }
+
+                // 4. 장바구니가 텅 비었으면 새로고침하여 '비어있음' 메시지 노출
+                if(document.querySelectorAll('[id^="cart-row-"]').length === 0) {
+                    location.reload();
+                }
             }
+        },
+        error: function() {
+            alert("삭제 처리 중 오류가 발생했습니다.");
         }
     });
 }

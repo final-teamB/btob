@@ -10,9 +10,28 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     @media print {
+        /* 1. 페이지 여백 설정 */
+        @page {
+            margin: 15mm 10mm;
+        }
+
+        /* 2. 요소 잘림 방지 (중요) */
+        tr, 
+        .p-8, 
+        .grid > div,
+        .bg-gray-900 { /* 하단 합계 박스 */
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* 3. 여백 및 줄간격 압축 (0.85 배율 보조) */
+        body { padding-top: 0 !important; padding-bottom: 0 !important; }
+        .py-10, .py-12, .mb-12 { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-bottom: 1.5rem !important; }
+        
+        /* 4. PDF 변환 시 불필요한 요소 제거 */
         .no-print { display: none !important; }
-        body { background: white !important; margin: 0; padding: 0; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+         body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
     body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -191,7 +210,23 @@
                 </div>
             </div>
 
+			 <%-- 상황 A: 미리보기 모드일 때 (다운로드/닫기만 표시) --%>
+			 <c:choose>
+	        <c:when test="${mode eq 'preview'}">
+	            <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-end gap-3">
+	                <button type="button" onclick="exportPdf(${doc.docId})" 
+	                        class="px-8 py-3 bg-blue-900 text-white text-sm font-bold rounded-lg hover:bg-blue-800 shadow-lg transition">
+	                    PDF 견적서 다운로드
+	                </button>
+	                <button type="button" onclick="window.close()" 
+	                        class="px-8 py-3 bg-gray-100 text-gray-500 text-sm font-bold rounded-lg hover:bg-gray-200 transition">
+	                    닫기
+	                </button>
+	            </div>
+	        </c:when>
+
             <%-- 5. 하단 버튼 영역 --%>
+            <c:otherwise>
             <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-between items-center">
                 <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm">프린트 / PDF</button>
                 <div class="flex gap-2">
@@ -203,6 +238,8 @@
                     </c:if>
                 </div>
             </div>
+	      </c:otherwise>
+	    </c:choose>
         </div>
     </div>
 <script>
@@ -273,8 +310,12 @@
                 "companyPhone": "${info.companyPhone}" // 값 추가
             }),
             success: function() { 
-                alert("요청되었습니다."); 
-                if(window.opener) window.opener.location.reload(); 
+                alert("견적 요청이 완료되었습니다.\n거래바구니 목록으로 이동합니다."); // 목적지 안내
+                
+                if(window.opener && !window.opener.closed) {
+                    // 부모 창 이동
+                    window.opener.location.href = "${pageContext.request.contextPath}/cart/cart";
+                }
                 window.close(); 
             },
             error: function(e) {
@@ -282,6 +323,10 @@
                 console.log(e);
             }
         });
+    }
+    
+    function exportPdf(docId) {
+        window.location.href = "${pageContext.request.contextPath}/document/exportPdf?docId=" + docId;
     }
 </script>
 </body>

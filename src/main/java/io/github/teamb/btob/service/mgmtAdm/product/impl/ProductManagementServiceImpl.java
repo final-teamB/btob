@@ -526,8 +526,18 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		// 반려 됬을 때 제품 수량은 증가하게된다.
 		} else if ( type.equals("UP") ) {
 			
-			Integer statusChk = productMgmtAdmMapper.chkOrderStatusCd(updateProductCurrVolDTO.getOrderStatus());
+			// 장바구니만 담아 있을 경우가 있음
+			//Integer statusChk = productMgmtAdmMapper.chkOrderStatusCd(updateProductCurrVolDTO.getOrderStatus());
 			
+			// 제품 회수한다.
+			result = productMgmtAdmMapper.incrProductCurrVol(updateProductCurrVolDTO);
+			
+			// 제품 회수 처리가 성공하고 이전 현재 재고량이 0인 경우 판매상태코드 판매중 상태로 변경
+			if ( result > 0 && currvol == 0) {
+				productMgmtAdmMapper.itemSttsChgOnSale(fuelId);
+			}
+			
+			/*
 			// 반려 가능한 상태코드이면
 			if ( statusChk > 0) {
 				
@@ -542,6 +552,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 			} else {
 				throw new Exception("반려가 불가능한 상태입니다.");
 			}
+			*/
 		// UP, DOWN 타입 이외인 경우
 		} else {
 			throw new Exception("올바르지 않은 요청 상태입니다.");

@@ -41,32 +41,31 @@
 </style>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@latest/dist/flowbite.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900">
 
-	<jsp:include page="/WEB-INF/views/layout/header.jsp" />
-	
-	<div class="flex pt-16">
-		<sec:authorize access="hasRole('ADMIN')">
-	        <jsp:include page="/WEB-INF/views/layout/adminSidebar.jsp" />
-	    </sec:authorize>
-	
-	    <sec:authorize access="hasAnyRole('USER', 'MASTER')">
-	        <jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
-	    </sec:authorize>
-	    
-		<div class="flex flex-col flex-1 ml-0 lg:ml-64 min-h-screen transition-all duration-300">
-
-    <main class="p-5 flex-1 bg-gray-50 dark:bg-gray-900">
-        <jsp:include page="/WEB-INF/views/${content}" />
-    </main>
-
-    <footer class="p-5 bg-gray-50 dark:bg-gray-900">
-        <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
-    </footer>
+    <jsp:include page="/WEB-INF/views/layout/header.jsp" />
     
-</div>
-	</div>
-	
-	<script src="https://cdn.jsdelivr.net/npm/flowbite@latest/dist/flowbite.min.js"></script>
+    <div class="flex pt-16 overflow-hidden bg-gray-50 dark:bg-gray-900">
+        
+        <sec:authorize access="hasRole('ADMIN')">
+            <jsp:include page="/WEB-INF/views/layout/adminSidebar.jsp" />
+        </sec:authorize>
+    
+        <sec:authorize access="hasAnyRole('USER', 'MASTER')">
+            <jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
+        </sec:authorize>
+        
+        <div id="main-content" class="relative w-full h-full overflow-y-auto bg-gray-50 lg:ml-64 dark:bg-gray-900 min-h-screen">
+            <main class="p-5">
+                <jsp:include page="/WEB-INF/views/${content}" />
+            </main>
+
+            <footer class="p-5">
+                <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+            </footer>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@latest/dist/flowbite.min.js"></script>
 </body>
 </html>

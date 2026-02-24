@@ -1,12 +1,11 @@
 package io.github.teamb.btob.controller.member;
 
-import io.github.teamb.btob.dto.member.MemberDto;
-import io.github.teamb.btob.service.member.MemberService;
 import io.github.teamb.btob.service.notice.NoticeService;
+import io.github.teamb.btob.common.security.LoginUserProvider;
+import io.github.teamb.btob.dto.account.UserInfoDTO;
+import io.github.teamb.btob.service.account.UserInfoService;
 import io.github.teamb.btob.service.adminSupport.FaqService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,25 +20,35 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MainController {
 
-    private final MemberService memberService;
     private final NoticeService noticeService;
     private final FaqService faqService;
+    private final UserInfoService userInfoService; // 수정: 서비스 주입
+    private final LoginUserProvider loginUserProvider; // 로그인 정보 제공자
     
     @GetMapping("/")
     public String root() {
-        return "redirect:/login"; // 루트 접속 시 로그인 페이지로 리다이렉트
+    	return "redirect:/home/index"; // 루트 접속 시 로그인 페이지로 리다이렉트
     }
     
     @GetMapping("/main")
-    public String mainPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        if (userDetails != null) {
-            MemberDto member = memberService.getMyInfo(userDetails.getUsername());
+    public String mainPage(Model model) {
+
+    	// 1. 본인이 만든 Provider를 통해 안전하게 로그인 ID 추출
+        String loginUserId = loginUserProvider.getLoginUserId();
+
+        if (loginUserId != null && !loginUserId.isEmpty()) {
+
+        	// 2. 서비스를 통해 사용자 정보 및 회사 정보 통합 조회
+            UserInfoDTO member = userInfoService.getUserInfoById(loginUserId);
             model.addAttribute("member", member);
         }
+
+        // 3. 공통 리스트 및 레이아웃 설정
         model.addAttribute("noticeList", noticeService.getNoticeList(""));
         model.addAttribute("faqList", faqService.getFaqList(null));
         model.addAttribute("content", "testKSH/main.jsp");
-        return "layout/layout"; 
+        
+        return "layout/layout";
     }
 
     @GetMapping("/api/external/exchange-rate")

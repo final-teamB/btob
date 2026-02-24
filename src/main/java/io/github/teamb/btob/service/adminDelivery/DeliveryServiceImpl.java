@@ -12,30 +12,33 @@ import io.github.teamb.btob.dto.adminDelivery.DeliveryHistoryDTO;
 import io.github.teamb.btob.dto.adminDelivery.DeliveryStatus;
 import io.github.teamb.btob.mapper.adminDelivery.DeliveryMapper;
 import io.github.teamb.btob.service.notification.NotificationService;
+import io.github.teamb.btob.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryServiceImpl implements DeliveryService {
-	
-	private final DeliveryMapper deliveryMapper;
-	private final NotificationService notificationService;
-	
-	private final List<String> CARRIERS = List.of("CJ대한통운", "한진택배", "롯데택배", "경동택배", "로젠택배");
+   
+   private final DeliveryMapper deliveryMapper;
+   private final NotificationService notificationService;
+   private final PaymentService paymentService;
+   
+   private final List<String> CARRIERS = List.of("CJ대한통운", "한진택배", "롯데택배", "경동택배", "로젠택배");
 
-	// 전체 배송 목록 조회 (관리자용)
-	@Override
-	public List<DeliveryDTO> getDeliveryList(DeliveryDTO deliveryDTO) {
-		
-		return deliveryMapper.selectDeliveryList(deliveryDTO);
-	}
+   // 전체 배송 목록 조회 (관리자용)
+   @Override
+   public List<DeliveryDTO> getDeliveryList(DeliveryDTO deliveryDTO) {
+      
+      return deliveryMapper.selectDeliveryList(deliveryDTO);
+   }
 
-	// 배송 정보 상세보기
-	@Override
-	public DeliveryDTO getDeliveryDetail(int deliveryId) {
-		
-		return deliveryMapper.selectDeliveryDetail(deliveryId);
-	}
+   // 배송 정보 상세보기
+   @Override
+   public DeliveryDTO getDeliveryDetail(int deliveryId) {
+      
+      return deliveryMapper.selectDeliveryDetail(deliveryId);
+   }
+
 
 	// 통합 수정 (수정, 주문 상태 동기화, 배송이력 등록)
 	@Override
@@ -85,9 +88,23 @@ public class DeliveryServiceImpl implements DeliveryService {
                 throw new IllegalArgumentException("[" + orderStatus + "] 단계에서 [" + statusCode + "] 상태로 변경할 수 없습니다.");
             }
         }
-		
+      
         // 배송 정보 업데이트 
         deliveryMapper.updateDelivery(deliveryDTO);
+        
+        // ⭐️ 3. [추가 로직] 배송 상태가 dv005(통관완료)로 변경되었을 때 2차 결제 요청 실행
+        if (deliveryDTO.getDeliveryStatus() == DeliveryStatus.dv005 
+            && (oldData.getDeliveryStatus() != DeliveryStatus.dv005)) {
+            
+            try {
+                // PaymentService의 prepareSecondPayment 호출
+                // oldData에서 orderId를, deliveryDTO에서 관리자 ID(updId)를 가져와 넘깁니다.
+                paymentService.prepareSecondPayment(oldData.getOrderId(), deliveryDTO.getUpdId());     
+            } catch (Exception e) {
+                // 트랜잭션 롤백을 위해 RuntimeException으로 던짐
+                throw new RuntimeException("2차 결제 요청 처리 중 오류가 발생했습니다.", e);
+            }
+        }
         
         // 배송 이력 등록 
         DeliveryHistoryDTO history = new DeliveryHistoryDTO();
@@ -104,19 +121,29 @@ public class DeliveryServiceImpl implements DeliveryService {
         // 알림
         DeliveryStatus newStatus = deliveryDTO.getDeliveryStatus();
         if(newStatus  != null && (oldData == null || oldData.getDeliveryStatus() != newStatus)) {
-        	String receiverUserId =
-        		    deliveryMapper.selectReceiverUserId(deliveryDTO.getDeliveryId());
-        	System.out.println("### 알림 대상자(주문자): " + receiverUserId);
-        	
-        	if(receiverUserId != null && !receiverUserId.isEmpty()) {
-        		String msg = String.format("주문하신 상품이 [%s] 상태로 변경되었습니다.", newStatus.getDescription());
-        		
-        		notificationService.send(receiverUserId, "DELIVERY", deliveryDTO.getDeliveryId(), msg, deliveryDTO.getUpdId());
-        	}
-        }
+
+           String receiverUserId =
+                  deliveryMapper.selectReceiverUserId(deliveryDTO.getDeliveryId());
+           System.out.println("### 알림 대상자(주문자): " + receiverUserId);
+           
+           if(receiverUserId != null && !receiverUserId.isEmpty()) {
+               String msg;
+               
+               // ⭐️ [추가] 통관완료(dv005)일 때만 특별 메시지 적용
+               if (newStatus == DeliveryStatus.dv005) {
+                   msg = String.format("주문하신 상품의 통관이 완료되었습니다. [2차 결제]를 진행해 주세요.", newStatus.getDescription());
+               } else {
+                   msg = String.format("주문하신 상품이 [%s] 상태로 변경되었습니다.", newStatus.getDescription());
+               }
+               
+               // 기존 notificationService 호출 (여기서 한 번에 처리)
+               notificationService.send(receiverUserId, "DELIVERY", deliveryDTO.getDeliveryId(), msg, deliveryDTO.getUpdId());
+           }
+       }
         
         return deliveryMapper.selectDeliveryDetail(deliveryDTO.getDeliveryId());
-	}
+   }
+
 	
 	// 삭제 (비활성화)
 	@Override
@@ -125,4 +152,5 @@ public class DeliveryServiceImpl implements DeliveryService {
 		
 		return deliveryMapper.deleteDelivery(deliveryId, updId) > 0;
 	}
+
 }
