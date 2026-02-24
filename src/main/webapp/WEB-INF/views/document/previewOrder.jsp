@@ -4,17 +4,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>PURCHASE ORDER | (주)글로벌 유류 트레이딩</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
     @media print {
+        /* 1. 페이지 설정 */
+        @page {
+            margin: 15mm 10mm;
+        }
+
+        /* 2. 요소 잘림 방지: 테이블 행, 정보 박스, 합계 요약 영역 */
+        tr, 
+        .p-8, 
+        .bg-emerald-50,
+        .bg-gray-900,
+        #rejectArea {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* 3. 여백 및 줄간격 압축 (0.85 배율 보조) */
+        body { padding-top: 0 !important; padding-bottom: 0 !important; }
+        .py-10, .py-12, .mb-12 { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-bottom: 1.5rem !important; }
+        
+        /* 4. PDF 변환 시 버튼 및 그림자 제거 */
         .no-print { display: none !important; }
-        body { background: white !important; margin: 0; padding: 0; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+        
+        /* 배경색 강제 적용 */
+        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
-    /* 견적서 원본과 동일한 폰트 스택 적용 */
     body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; }
 </style>
 </head>
@@ -184,59 +205,78 @@
 			    </div>
 			</div>
 
-      <%-- 하단 버튼 영역 --%>
+    <%-- 하단 버튼 영역 --%>
 	<div class="mt-8 pt-8 border-t border-gray-100 no-print">
-	    <div class="flex justify-between items-center">
-	        <div class="flex gap-2">
-	            <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center shadow-sm">프린트 / PDF</button>
-	        </div>
-	        
-	        <div class="flex gap-2">
-	            <c:if test="${userType eq 'MASTER'}">
-	                <c:choose>
-	                    <c:when test="${info.orderStatus eq 'od001'}">
-	                        <button type="button" onclick="fn_processApproval('REJECT')" 
-	                                class="px-5 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition shadow-sm">
-	                            반려하기
-	                        </button>
-	                        <button type="button" onclick="fn_processApproval('APPROVE')" 
-	                                class="px-5 py-2 text-sm font-bold text-emerald-600 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm">
-	                            승인하기
-	                        </button>
-	                    </c:when>
-	                    <c:otherwise>
-	                        <button type="button" onclick="fn_confirmOrder('MASTER_REQ')"
-	                                class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl transition">
-	                            최종 승인 요청
-	                        </button>
-	                    </c:otherwise>
-	                </c:choose>
-	            </c:if>
-	
-	            <c:if test="${userType eq 'USER'}">
-	                <button type="button" onclick="fn_confirmOrder('USER_REQ')"
-	                        class="px-8 py-2 text-sm font-bold text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 shadow-xl transition">
-	                    주문 승인 요청
+	    <c:choose>
+	        <%-- 상황 A: 미리보기 모드일 때 (다운로드/닫기만 표시) --%>
+	        <c:when test="${mode eq 'preview'}">
+	            <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-end gap-3">
+	                <button type="button" onclick="exportPdf(${doc.docId})" 
+	                        class="px-8 py-3 bg-blue-900 text-white text-sm font-bold rounded-lg hover:bg-blue-800 shadow-lg transition">
+	                    PDF 발주서 다운로드
 	                </button>
-	            </c:if>
-	        </div>
-	    </div>
+	                <button type="button" onclick="window.close()" 
+	                        class="px-8 py-3 bg-gray-100 text-gray-500 text-sm font-bold rounded-lg hover:bg-gray-200 transition">
+	                    닫기
+	                </button>
+	            </div>
+	        </c:when>
 	
-	    <%-- 반려 사유 입력 영역: 버튼 아래에 위치 --%>
-	    <div id="rejectArea" class="hidden mt-6 p-6 bg-red-50 border border-red-100 rounded-xl shadow-inner transition-all">
-	        <div class="flex items-center mb-3">
-	            <div class="w-1 h-4 bg-red-500 mr-2"></div>
-	            <label class="text-sm font-black text-red-800 uppercase tracking-tighter">Reason for Rejection</label>
-	        </div>
-	        <textarea id="rejectReasonText" 
-	                  class="w-full p-4 border border-red-200 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm" 
-	                  rows="3" 
-	                  placeholder="반려 사유를 상세히 입력해 주세요 (예: 품목 단가 재확인 필요 등)"></textarea>
-	        <div class="mt-3 flex justify-end gap-2">
-	            <button type="button" onclick="$('#rejectArea').addClass('hidden')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 transition">취소</button>
-	            <button type="button" onclick="fn_submitReject()" class="px-6 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 shadow-lg shadow-red-200 transition">반려 확정 및 전송</button>
-	        </div>
-	    </div>
+	        <%-- 상황 B: 실제 주문/승인 프로세스 --%>
+	        <c:otherwise>
+	            <div class="flex justify-between items-center">
+	                <div class="flex gap-2">
+	                    <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center shadow-sm">프린트 / PDF</button>
+	                </div>
+	                
+	                <div class="flex gap-2">
+	                    <c:if test="${userType eq 'MASTER'}">
+	                        <c:choose>
+	                            <c:when test="${info.orderStatus eq 'od001'}">
+	                                <button type="button" onclick="fn_processApproval('REJECT')" 
+	                                        class="px-5 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition shadow-sm">
+	                                    반려하기
+	                                </button>
+	                                <button type="button" onclick="fn_processApproval('APPROVE')" 
+	                                        class="px-5 py-2 text-sm font-bold text-emerald-600 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition shadow-sm">
+	                                    승인하기
+	                                </button>
+	                            </c:when>
+	                            <c:otherwise>
+	                                <button type="button" onclick="fn_confirmOrder('MASTER_REQ')"
+	                                        class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl transition">
+	                                    최종 승인 요청
+	                                </button>
+	                            </c:otherwise>
+	                        </c:choose>
+	                    </c:if>
+	
+	                    <c:if test="${userType eq 'USER'}">
+	                        <button type="button" onclick="fn_confirmOrder('USER_REQ')"
+	                                class="px-8 py-2 text-sm font-bold text-white bg-emerald-700 rounded-lg hover:bg-emerald-800 shadow-xl transition">
+	                            주문 승인 요청
+	                        </button>
+	                    </c:if>
+	                </div>
+	            </div>
+	
+	            <%-- 반려 사유 입력 영역: '주문 프로세스'일 때만 필요하므로 otherwise 안에 배치 --%>
+	            <div id="rejectArea" class="hidden mt-6 p-6 bg-red-50 border border-red-100 rounded-xl shadow-inner transition-all">
+	                <div class="flex items-center mb-3">
+	                    <div class="w-1 h-4 bg-red-500 mr-2"></div>
+	                    <label class="text-sm font-black text-red-800 uppercase tracking-tighter">Reason for Rejection</label>
+	                </div>
+	                <textarea id="rejectReasonText" 
+	                          class="w-full p-4 border border-red-200 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm" 
+	                          rows="3" 
+	                          placeholder="반려 사유를 상세히 입력해 주세요"></textarea>
+	                <div class="mt-3 flex justify-end gap-2">
+	                    <button type="button" onclick="$('#rejectArea').addClass('hidden')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 transition">취소</button>
+	                    <button type="button" onclick="fn_submitReject()" class="px-6 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 shadow-lg shadow-red-200 transition">반려 확정 및 전송</button>
+	                </div>
+	            </div>
+	        </c:otherwise>
+	    </c:choose>
 	</div>
 <script>
 	function fn_confirmOrder(requestLevel) {
@@ -264,10 +304,12 @@
 	        contentType: "application/json",
 	        data: JSON.stringify(requestData),
 	        success: function(res) {
-	            alert("요청이 완료되었습니다.");
-	            if (window.opener && !window.opener.closed) {
-	                window.opener.location.reload(); 
-	            }
+	        	 alert("주문 요청이 완료되었습니다.\n거래바구니 목록으로 이동합니다."); // 목적지 안내
+	                
+	                if(window.opener && !window.opener.closed) {
+	                    // 부모 창 이동
+	                    window.opener.location.href = "${pageContext.request.contextPath}/cart/cart";
+	                }
 	            window.close();
 	        }, 
 	        error: function(err) {
@@ -328,6 +370,15 @@
 	        }
 	    });
 	}
+	
+	// PDF 다운로드 요청 함수
+    function exportPdf(docId) {
+        if(!docId) {
+            alert("문서 정보를 찾을 수 없습니다.");
+            return;
+        }
+        window.location.href = "${pageContext.request.contextPath}/document/exportPdf?docId=" + docId;
+    }
 </script>
 </body>
 </html>

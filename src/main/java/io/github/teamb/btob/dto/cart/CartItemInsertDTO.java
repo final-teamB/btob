@@ -18,5 +18,7 @@ public class CartItemInsertDTO {
     private int regId;
     private LocalDateTime regDtime;
     
+    private String isDirect;
+    
     private int baseUnitPrc; // 기본 가격(oil join)
 }

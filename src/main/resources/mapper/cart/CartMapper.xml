@@ -126,6 +126,21 @@
         )
     </insert>
     
+    <select id="checkAnyRequestStatus" resultType="int">
+	    SELECT COUNT(*) 
+		    FROM TB_CART 
+		    WHERE user_id = #{userId} 
+		    	AND cart_status = #{status} 
+		    	AND use_yn = 'Y'
+	</select>
+	
+	<select id="checkActiveCartCount" resultType="int">
+	    SELECT COUNT(*) 
+		    FROM TB_CART 
+		    WHERE user_id = #{userId} 
+		    	AND use_yn = 'Y'
+	</select>
+    
     <!-- 거래바구니 업데이트 -->
     <update id="updateCartItem">
         UPDATE TB_CART
@@ -220,4 +235,13 @@
 	    WHERE order_no = #{orderNo}
 	      AND user_id = #{userId}
 	</update>
+	
+	<!-- count확인 -->
+	<select id="getCartCount" resultType="int">
+	    SELECT COUNT(*)
+	    FROM TB_CART
+	    WHERE user_id = #{userId}
+	      AND use_yn = 'Y'
+	</select>
+	
 </mapper>

@@ -19,5 +19,7 @@ public interface PaymentMapper {
 
 	void updatePaymentForSecondStep(PaymentRequestDTO payment);
 
+	Integer selectFirstPaymentAmount(int orderId);
+
 
 }

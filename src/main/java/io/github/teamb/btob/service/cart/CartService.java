@@ -22,4 +22,6 @@ public interface CartService {
 
 	List<CartItemDTO> selectCartItemListByIds(List<String> idList);
 
+	int getCartCount(String userId);
+
 }
