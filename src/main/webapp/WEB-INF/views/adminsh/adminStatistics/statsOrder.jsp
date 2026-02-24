@@ -34,20 +34,20 @@
 
 <div class="my-6 space-y-6">
     <%-- [1. 타이틀 영역] --%>
-    <div class="px-9 py-4 flex flex-col md:flex-row justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">주문 통계 분석</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">주문 건수 및 매출 추이를 한눈에 분석합니다.</p>
-        </div>
-        <div class="flex items-center space-x-3 mt-4 md:mt-0">
-            <button type="button" id="btnRefresh" class="px-4 py-2 text-sm font-semibold text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded-lg shadow-md hover:bg-gray-800 transition-all active:scale-95">
-                데이터 최신화
-            </button>
-            <button type="button" onclick="location.href='/admin/stats/order/excel'" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm">
-                엑셀 다운로드
-            </button>
-        </div>
-    </div>
+    <div class="px-9 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+	    <div class="w-full md:w-auto text-left">
+	        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">주문 통계 분석</h1>
+	        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">주문 건수 및 매출 추이를 한눈에 분석합니다.</p>
+	    </div>
+	    <div class="flex items-center space-x-3 mt-4 md:mt-0">
+	        <button type="button" id="btnRefresh" class="px-4 py-2 text-sm font-semibold text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded-lg shadow-md hover:bg-gray-800 transition-all active:scale-95">
+	            데이터 최신화
+	        </button>
+	        <button type="button" onclick="location.href='/admin/stats/order/excel'" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm">
+	            엑셀 다운로드
+	        </button>
+	    </div>
+	</div>
     
     <%@ include file="statsNav.jsp" %>
 

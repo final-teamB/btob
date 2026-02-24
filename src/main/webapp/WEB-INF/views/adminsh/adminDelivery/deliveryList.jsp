@@ -130,11 +130,11 @@ input.direct-edit-el {
 </style>
 
 <div class="mx-4 my-6 space-y-6">
-<div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-center">
-<div>
-<h1 class="text-2xl font-bold text-gray-900 dark:text-white">배송 관리 시스템 (Admin)</h1>
-<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">모든 페이지에서 배송 상태와 운송장을 즉시 수정하고 저장할 수 있습니다.</p>
-</div>
+<div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div class="text-left">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">배송 관리 시스템 (Admin)</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">모든 페이지에서 배송 상태와 운송장을 즉시 수정하고 저장할 수 있습니다.</p>
+    </div>
 </div>
 
 <c:set var="showSearchArea" value="true" scope="request" />

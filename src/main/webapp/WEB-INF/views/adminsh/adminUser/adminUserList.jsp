@@ -37,12 +37,12 @@
 </style>
 
 <div class="my-6 space-y-6">
-    <div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리 시스템 (Admin)</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">상태를 변경한 후 반드시 [저장] 버튼을 눌러주세요.</p>
-        </div>
+    <div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div class="w-full text-left"> 
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리 시스템 (Admin)</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">상태를 변경한 후 반드시 [저장] 버튼을 눌러주세요.</p>
     </div>
+</div>
 
     <div class="px-5 pt-4">
         <div class="flex space-x-2">

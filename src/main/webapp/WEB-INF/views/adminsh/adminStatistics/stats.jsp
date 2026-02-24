@@ -18,11 +18,11 @@
 <div class="my-6 space-y-6">
 
     <%-- [1. 타이틀 영역] --%>
-    <div class="px-9 py-4 flex flex-col md:flex-row justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">종합 통계 대시보드</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">실시간 주문 현황 및 물류/재고 데이터를 시각화합니다.</p>
-        </div>
+    <div class="px-9 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full md:w-auto text-left">
+	        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">종합 통계 대시보드</h1>
+	        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">실시간 주문 현황 및 물류/재고 데이터를 시각화합니다.</p>
+	    </div>
         <div class="flex items-center space-x-3 mt-4 md:mt-0">
             <button type="button" onclick="location.reload()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 transition shadow-sm">
                 새로고침
