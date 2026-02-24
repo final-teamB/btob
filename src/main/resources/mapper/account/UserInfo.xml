@@ -87,6 +87,7 @@
 					,a.email
 					,a.company_cd
 					,a.user_type
+					,fnc_get_commnm(a.user_type) AS userTypeNm
 					,a.app_status
 					,fnc_get_commnm(a.app_status) AS appSttsNm
 					,a.acc_status
@@ -107,7 +108,7 @@
 					,b.biz_number
 					,b.customs_num
 					,b.master_id
-					,fnc_get_usernm(master_id) AS master_nm
+					,fnc_get_usernm(master_id) AS masterNm
 				FROM TB_USERS a
   				LEFT OUTER JOIN TB_COMPANIES b 
   				ON a.company_cd = b.company_cd
@@ -176,6 +177,130 @@
 	    			
 	    </update>
 	    
-
+		<!-- 권한 재신청 처리 시 권한변경 REJECTED -> PENDING 으로 변경  -->
+		<update id="updateReAppStatus"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO">
+		
+				UPDATE
+					TB_USERS
+				SET
+					app_status = 'PENDING',
+					upd_dtime = CURRENT_TIMESTAMP,
+					upd_id = #{updId}
+				WHERE 1=1
+				AND user_id = #{userId}
+				AND app_status = 'REJECTED'
+		
+		</update>
+		
+		<!-- 아이디 찾기 -->
+		<select id="findUserIdByUserNmAndEmail"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+			resultType="io.github.teamb.btob.dto.account.UserInfoDTO">
+				
+				SELECT
+					user_id,
+					reg_dtime
+				FROM
+					TB_USERS
+				WHERE 1=1
+				AND user_name = #{userName}
+				AND email = #{email}
+		
+		</select>
+		
+		<!-- 비밀번호 찾기 -->
+		<select id="findUserPwByUserNmAndEmailAndUserId"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+			resultType="int">
+			
+				SELECT
+					COUNT(user_no)
+				FROM
+					TB_USERS
+				WHERE 1=1
+				AND user_name = #{userName}
+				AND user_id = #{userId}
+				AND email = #{email}
+			
+		</select>
+		
+		<!-- 비밀번호 수정 -->
+		<update id="updateNewPassword"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO">
+			
+				UPDATE
+					TB_USERS
+				SET
+					password = #{newPassword}
+					,acc_status = 'ACTIVE'
+					,user_login_fail_cnt = 0
+					,upd_id = #{updId}
+					,upd_dtime = CURRENT_TIMESTAMP
+				WHERE user_id = #{userId}
+		
+		</update>
+		
+		<!-- 이메일 보내기전 사용자 체크 아이디쪽-->
+		<select id="selectUserChk"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+			resultType="int">
+		
+					SELECT
+						COUNT(user_no)
+					FROM
+						TB_USERS
+					WHERE 1=1
+					AND user_name = #{userName}
+					AND email = #{email}
+		
+		</select>
+		
+		<!-- 이메일 보내기전 사용자 벤체크 아이디쪽-->
+		<select id="selectUserBanChk"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+			resultType="String">
+		
+					SELECT
+						acc_status
+					FROM
+						TB_USERS
+					WHERE 1=1
+					AND user_name = #{userName}
+					AND email = #{email}
+		
+		</select>
+		
+		<!-- 이메일 보내기전 사용자 체크 패스워드쪽-->
+		<select id="selectUserChkPw"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+			resultType="int">
+		
+					SELECT
+						COUNT(user_no)
+					FROM
+						TB_USERS
+					WHERE 1=1
+					AND user_name = #{userName}
+					AND user_id = #{userId}
+					AND email = #{email}
+		
+		</select>
+		
+		<!-- 이메일 보내기전 사용자 체크 패스워드쪽-->
+		<select id="selectUserPwBanChk"
+			parameterType="io.github.teamb.btob.dto.account.UserInfoDTO"
+			resultType="String">
+		
+					SELECT
+						acc_status
+					FROM
+						TB_USERS
+					WHERE 1=1
+					AND user_name = #{userName}
+					AND user_id = #{userId}
+					AND email = #{email}
+		
+		</select>
 
 </mapper>

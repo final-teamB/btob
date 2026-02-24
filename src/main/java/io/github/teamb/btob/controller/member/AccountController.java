@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,11 +15,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
+import io.github.teamb.btob.dto.account.EmailAuthDTO;
+import io.github.teamb.btob.dto.account.FindRequestDTO;
 import io.github.teamb.btob.dto.account.UserInfoDTO;
 import io.github.teamb.btob.dto.account.UserInfoModifyRequestDTO;
 import io.github.teamb.btob.dto.account.UserInfoRegisterRequestDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
+import io.github.teamb.btob.service.account.EmailService;
 import io.github.teamb.btob.service.account.UserInfoService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AccountController {
 	
     private final UserInfoService userInfoService;
+    private final EmailService emailService;
     private final LoginUserProvider loginUserProvider;
 
     
@@ -73,45 +79,225 @@ public class AccountController {
 
     /**
      * 
-     * [API] 아이디 찾기
-     * (제공해주신 서비스에는 없으나 모달 구현을 위해 구조 생성)
+     * [API] 인증번호 발송
      * @author GD
      * @since 2026. 2. 24.
-     * @param data
+     * @param authDTO
+     * @param session
      * @return
      * 수정일        수정자       수정내용
      * ----------  --------    ---------------------------
      * 2026. 2. 24.  GD       최초 생성
      */
-    @PostMapping("/api/find-id")
+    @PostMapping("/api/send-auth-num")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> findId(@RequestBody Map<String, String> data) {
+    public ResponseEntity<Map<String, Object>> sendAuthNum(
+										    		@RequestBody EmailAuthDTO authDTO, 
+										    		HttpSession session) {
         Map<String, Object> response = new HashMap<>();
-        // TODO: 서비스에 findId(userName, email/phone) 구현 필요
-        response.put("success", true);
-        response.put("message", "입력하신 정보로 등록된 아이디를 이메일로 전송했습니다.");
-        return ResponseEntity.ok(response);
+        
+        try {
+        	
+        	boolean isExist = false;
+        	boolean isExistBan = false;
+            String type = authDTO.getType(); // "ID" 또는 "PW"
+
+            // [수정] 타입에 따른 서비스 분기 처리
+            if ("ID".equals(type)) {
+                // 아이디 찾기: 이름 + 이메일 체크
+                isExist = userInfoService.checkUserExists(authDTO.getUserName(), authDTO.getEmail());
+                isExistBan = userInfoService.checkUserBanExists(authDTO.getUserName(), authDTO.getEmail());
+            } else if ("PW".equals(type)) {
+                // 비밀번호 찾기: 이름 + 아이디 + 이메일 체크
+                isExist = userInfoService.checkUserPwExists(authDTO.getUserName(), authDTO.getUserId(), authDTO.getEmail());
+                isExistBan = userInfoService.checkUserBanPwExists(authDTO.getUserName(), authDTO.getUserId(), authDTO.getEmail());
+            }
+            
+            if (!isExist) {
+                response.put("success", false);
+                // 비밀번호 찾기 시 아이디 정보까지 확인하라는 메시지 추가
+                String msg = "ID".equals(type) ? "이름과 이메일을 다시 확인해주세요." : "이름, 아이디, 이메일을 다시 확인해주세요.";
+                response.put("message", "일치하는 사용자 정보가 없습니다. " + msg);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+            if (!isExistBan) {
+                response.put("success", false);
+                // 비밀번호 찾기 시 아이디 정보까지 확인하라는 메시지 추가
+                String msg = "해당 사용자는 계정상태가 밴처리 상태입니다. 문의사항은 관리자에게 요청해주세요";
+                response.put("message", msg);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+        	
+            // 메일 발송 시도 (검증 통과 시에만 실행)
+            String generatedNum = emailService.sendAuthMail(authDTO.getEmail(), authDTO.getType());
+            
+            // 2. 세션에 정보 저장 (인증번호, 이메일, 발송시간)
+            session.setAttribute("authNum_" + type, generatedNum);
+            session.setAttribute("authEmail_" + type, authDTO.getEmail());
+            session.setAttribute("authTime_" + type, System.currentTimeMillis()); // [추가] 생성 시간 기록
+            
+            // 세션 유지 시간 설정 (필요시)
+            session.setMaxInactiveInterval(600); // 10분 정도가 적당합니다 (3분 인증 대기 고려)
+            
+            response.put("success", true);
+            response.put("message", "인증번호가 발송되었습니다. 메일함을 확인해주세요.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            // 서비스에서 던진 "메일 발송 중 오류..." 메시지가 사용자에게 전달됨
+        	// [수정] 상세한 에러 로그는 서버 콘솔에만 찍고
+            log.error("인증번호 발송 에러 발생: ", e);
+            response.put("success", false);
+            // [수정] 사용자에게는 정제된 메시지만 보여줍니다.
+            response.put("message", "입력하신 정보가 올바르지 않거나 시스템 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     /**
      * 
-     * [API] 비밀번호 재설정/찾기 요청
+     * [API] 인증번호 검증
      * @author GD
      * @since 2026. 2. 24.
-     * @param data
+     * @param authDTO
+     * @param session
      * @return
      * 수정일        수정자       수정내용
      * ----------  --------    ---------------------------
      * 2026. 2. 24.  GD       최초 생성
      */
-    @PostMapping("/api/find-pw")
+    @PostMapping("/api/verify-auth-num")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> findPw(@RequestBody Map<String, String> data) {
+    public ResponseEntity<Map<String, Object>> verifyAuthNum(
+													    		@RequestBody EmailAuthDTO authDTO, 
+													    		HttpSession session) {
         Map<String, Object> response = new HashMap<>();
-        // TODO: 임시 비밀번호 발급 또는 재설정 링크 메일 발송 로직 필요
-        response.put("success", true);
-        response.put("message", "비밀번호 재설정 안내가 메일로 발송되었습니다.");
-        return ResponseEntity.ok(response);
+        
+        try {
+        	
+        	// [추가] 시간 만료 체크 (3분 = 180,000ms)
+            Long sendTime = (Long) session.getAttribute("authTime_" + authDTO.getType());
+            if (sendTime == null || (System.currentTimeMillis() - sendTime) > 180000) {
+                throw new Exception("인증 시간이 만료되었습니다. 다시 시도해주세요.");
+            }
+        	
+            String serverNum = (String) session.getAttribute("authNum_" + authDTO.getType());
+            
+            // 검증 로직 호출 (성공하면 true, 실패하면 Exception 발생)
+            emailService.verifyAuthNum(authDTO.getAuthNum(), serverNum);
+            
+            // 인증 성공 상태 기록
+            session.setAttribute("authSuccess_" + authDTO.getType(), true);
+            response.put("success", true);
+            response.put("message", "인증에 성공하였습니다.");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 서비스에서 던진 "인증 시간 만료" 또는 "번호 불일치" 메시지가 그대로 담깁니다.
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    
+    /**
+     * 
+     * 아이디 찾기
+     * @author GD
+     * @since 2026. 2. 24.
+     * @param findDTO
+     * @param session
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 24.  GD       최초 생성
+     */
+    @PostMapping("/api/find-id-complete")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> findIdComplete(
+										    		@RequestBody FindRequestDTO findDTO, 
+										    		HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 1. 이메일 인증 성공 여부 체크 (보안)
+            Boolean isVerified = (Boolean) session.getAttribute("authSuccess_ID");
+            String verifiedEmail = (String) session.getAttribute("authEmail_ID");
+
+            if (isVerified == null || !isVerified) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                     .body(Map.of("success", false, "message", "이메일 인증이 필요합니다."));
+            }
+            
+            if (!verifiedEmail.equals(findDTO.getEmail())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                     .body(Map.of("success", false, "message", "인증받은 이메일 정보와 다릅니다."));
+            }
+
+            // 2. 아이디 찾기 서비스 호출
+            String resultMsg = userInfoService.processFindId(findDTO);
+
+            // 3. 사용 완료된 세션 삭제
+            session.removeAttribute("authNum_ID");
+            session.removeAttribute("authEmail_ID");
+            session.removeAttribute("authTime_ID");
+            session.removeAttribute("authSuccess_ID");
+
+            response.put("success", true);
+            response.put("result", resultMsg);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+
+    
+    /**
+     * 
+     * 비밀번호 재설정
+     * @author GD
+     * @since 2026. 2. 24.
+     * @param userInfoDTO
+     * @param session
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 24.  GD       최초 생성
+     */
+    @PostMapping("/api/reset-pw-complete")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> resetPwComplete(
+									    		@RequestBody UserInfoDTO userInfoDTO, 
+									    		HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 1. 이메일 인증 성공 여부 체크
+            Boolean isVerified = (Boolean) session.getAttribute("authSuccess_PW");
+            if (isVerified == null || !isVerified) {
+                throw new Exception("이메일 인증 후 비밀번호 변경이 가능합니다.");
+            }
+
+            // 2. 서비스 호출 (검증 + 암호화 + 업데이트)
+            boolean isUpdated = userInfoService.processResetPassword(userInfoDTO);
+
+            if (isUpdated) {
+                session.removeAttribute("authNum_PW");
+                session.removeAttribute("authSuccess_PW");
+                response.put("success", true);
+                response.put("message", "비밀번호가 성공적으로 변경되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "비밀번호 변경에 실패했습니다.");
+            }
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.ok(response);
+        }
     }
     
     /**
@@ -229,5 +415,48 @@ public class AccountController {
         }
         
         return result;
+    }
+    
+    
+    /**
+     * * [API] 권한 재신청 처리 (REJECTED -> PENDING)
+     * @author GD
+     * @since 2026. 2. 24.
+     * @return 성공 여부 및 결과 메시지
+     */
+    @PostMapping("/api/re-apply")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> reApplyAuth() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 1. 로그인 사용자 ID 추출
+            String userId = loginUserProvider.getLoginUserId();
+            
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "로그인 세션이 만료되었습니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            log.info("권한 재신청 요청 - User: {}", userId);
+
+            // 2. 서비스 호출 (REJECTED 상태인 경우에만 PENDING으로 변경)
+            Integer result = userInfoService.reauthorizationAppStatus(userId);
+
+            if (result != null && result > 0) {
+                response.put("success", true);
+                response.put("message", "권한 재신청이 완료되었습니다. 관리자 승인을 기다려주세요.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "재신청 대상이 아니거나 이미 처리 중입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            log.error("권한 재신청 오류: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", "처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 }

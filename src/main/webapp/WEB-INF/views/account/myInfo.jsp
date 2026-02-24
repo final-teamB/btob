@@ -98,9 +98,14 @@
                             <p class="font-semibold text-indigo-600">${userInfo.accSttsNm}</p>
                         </div>
                         <div class="p-4 border border-gray-100 rounded-lg bg-gray-50/30">
-                            <p class="text-xs text-gray-500 font-bold mb-1">사용자 유형</p>
-                            <p class="font-semibold text-gray-800">${userInfo.userType}</p>
-                        </div>
+						    <p class="text-xs text-gray-500 font-bold mb-1">사용자 유형</p>
+						    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold 
+						        ${userInfo.userType eq 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
+						          userInfo.userType eq 'MASTER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}">
+						        <i class="bi bi-person-badge mr-1"></i>
+						        ${userInfo.userTypeNm}
+						    </span>
+						</div>
                     </div>
                 </div>
             </div>
@@ -265,8 +270,24 @@
     }
 
     function reApplyAuth() {
-        if(confirm("권한 재신청을 진행하시겠습니까?")) {
-            alert("재신청 처리가 완료되었습니다.");
+        if(confirm("권한 재신청을 진행하시겠습니까? 현재 '반려' 상태에서 '승인 대기' 상태로 변경됩니다.")) {
+            fetch('/account/api/re-apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.success) {
+                    alert(res.message);
+                    location.reload(); // 상태 반영을 위해 새로고침
+                } else {
+                    alert("재신청 실패: " + res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버와 통신 중 오류가 발생했습니다.");
+            });
         }
     }
 </script>

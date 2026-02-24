@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.account.CompanyInfoDTO;
+import io.github.teamb.btob.dto.account.FindRequestDTO;
 import io.github.teamb.btob.dto.account.UserInfoDTO;
 import io.github.teamb.btob.dto.account.UserInfoModifyRequestDTO;
 import io.github.teamb.btob.dto.account.UserInfoRegisterRequestDTO;
@@ -480,4 +481,226 @@ public class UserInfoServiceImpl implements UserInfoService{
 		
 	    return userInfoMapper.selectUserById(userId);
 	}
+
+	/**
+	 * 
+	 * 권한 재 신청 시 권한 상태 변경
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param userId
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public Integer reauthorizationAppStatus(String userId) {
+		
+		UserInfoDTO reAppUser = new UserInfoDTO();
+		reAppUser.setUpdId(userId);
+		reAppUser.setUserId(userId);
+		
+		return userInfoMapper.updateReAppStatus(reAppUser);
+	}
+
+	
+	/**
+	 * 
+	 * 아이디 찾기
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param findRequestDTO
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public String processFindId(FindRequestDTO findRequestDTO) throws Exception {
+		
+		if (! commonService.nullEmptyChkValidate(findRequestDTO) ) {
+			
+			throw new Exception("파라미터 오류가 발생하였습니다.");
+		}
+		
+		// 아이디 찾기
+		UserInfoDTO usr = userInfoMapper.findUserIdByUserNmAndEmail(findRequestDTO);
+		
+		if (usr == null) {
+	        throw new Exception("입력하신 정보와 일치하는 사용자가 없습니다.");
+	    }
+												
+		return "아이디: " + usr.getUserId() + " (가입일: " + usr.getRegDtime() + ")";
+	}
+
+	/**
+	 * 
+	 * 비밀번호 재설정
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param userInfoDTO
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public boolean processResetPassword(UserInfoDTO userInfoDTO) throws Exception {
+		
+		// 1. 파라미터 유효성 검사 
+	    if (!commonService.nullEmptyChkValidate(userInfoDTO)) {
+	        throw new Exception("입력 정보가 누락되었습니다.");
+	    }
+
+	    // 2. 사용자 존재 여부 확인 
+	    // 리턴 타입이 int이므로 유저가 있으면 1, 없으면 0이 올 것입니다.
+	    int userCount = userInfoMapper.findUserPwByUserNmAndEmailAndUserId(userInfoDTO);
+
+	    if (userCount == 0) {
+	        throw new Exception("일치하는 사용자를 찾을 수 없습니다.");
+	    }
+
+	    // 3. 새 비밀번호 암호화 (Spring Security 필수 과정)
+	    // 사용자가 입력한 평문 비밀번호를 암호화하여 다시 세팅합니다.
+	    String encryptedPassword = passwordEncryptor.encrypt(userInfoDTO.getNewPassword());
+	    
+	    // 4. 비밀번호 업데이트 (작성하신 update id="updateNewPassword" 호출)
+	    
+	    UserInfoDTO updatePw = new UserInfoDTO();
+	    updatePw.setUserId(userInfoDTO.getUserId());
+	    updatePw.setUpdId(userInfoDTO.getUserId());
+	    updatePw.setNewPassword(encryptedPassword);
+
+	    int updateResult = userInfoMapper.updateNewPassword(updatePw);
+
+	    return updateResult > 0;
+	}
+
+	/**
+	 * 
+	 * 메일 보내기전 사용자 검증 체크 ( 아이디쪽 )
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param userName
+	 * @param email
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public boolean checkUserExists(String userName, String email) throws Exception{
+		
+		UserInfoDTO dto = new UserInfoDTO();
+		dto.setUserName(userName);
+		dto.setEmail(email);
+		
+		if (!commonService.nullEmptyChkValidate(dto)) {
+	        throw new Exception("입력 정보가 누락되었습니다.");
+	    }
+		
+		boolean result = false;
+		
+		if (userInfoMapper.selectUserChk(dto) == 1) {
+			result = true;
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * 메일 보내기전 사용자 검증 체크 ( 아이디쪽 )
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param userName
+	 * @param email
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public boolean checkUserBanExists(String userName, String email) throws Exception{
+		
+		UserInfoDTO dto = new UserInfoDTO();
+		dto.setUserName(userName);
+		dto.setEmail(email);
+		
+		if (!commonService.nullEmptyChkValidate(dto)) {
+	        throw new Exception("입력 정보가 누락되었습니다.");
+	    }
+		
+		boolean result = false;
+		
+		if (!(userInfoMapper.selectUserBanChk(dto).equals("BANNED"))) {
+			result = true;
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * 메일 보내기전 사용자 검증 체크 ( 비밀번호쪽 )
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param userName
+	 * @param email
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public boolean checkUserPwExists(String userName, String userId, String email) throws Exception{
+		
+		UserInfoDTO dto = new UserInfoDTO();
+		dto.setUserName(userName);
+		dto.setUserId(userId);
+		dto.setEmail(email);
+		
+		if (!commonService.nullEmptyChkValidate(dto)) {
+	        throw new Exception("입력 정보가 누락되었습니다.");
+	    }
+		
+		boolean result = false;
+		
+		if (userInfoMapper.selectUserChk(dto) == 1) {
+			result = true;
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * 메일 보내기전 사용자 벤 검증 체크 ( 비밀번호쪽 )
+	 * @author GD
+	 * @since 2026. 2. 24.
+	 * @param userName
+	 * @param email
+	 * @return
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 24.  GD       최초 생성
+	 */
+	@Override
+	public boolean checkUserBanPwExists(String userName, String userId, String email) throws Exception{
+		
+		UserInfoDTO dto = new UserInfoDTO();
+		dto.setUserName(userName);
+		dto.setUserId(userId);
+		dto.setEmail(email);
+		
+		if (!commonService.nullEmptyChkValidate(dto)) {
+	        throw new Exception("입력 정보가 누락되었습니다.");
+	    }
+		
+		boolean result = false;
+		
+		if (!(userInfoMapper.selectUserPwBanChk(dto).equals("BANNED"))) {
+			result = true;
+		}
+		return result;
+	}
+	
 }

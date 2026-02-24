@@ -148,16 +148,10 @@
                     </div>
                 </div>
             </div>
-
-            <div id="findForm" class="hidden space-y-8 text-center">
-                <div class="text-left mb-10">
-                    <h2 class="text-3xl font-black text-white mb-3">정보 찾기</h2>
-                    <p class="text-gray-400 text-lg">등록된 이메일로 임시 정보를 발송해 드립니다.</p>
-                </div>
-                <input type="email" id="findEmail" placeholder="가입 시 등록한 이메일 (@gmail.com)" class="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-lg focus:outline-none focus:border-blue-500 transition-all">
-                <button onclick="alert('서비스 준비 중입니다.')" class="w-full py-5 bg-blue-600 text-white font-black text-xl rounded-2xl hover:bg-blue-700 transition-all shadow-lg">임시 비밀번호 발급</button>
-                <button onclick="switchTab('login')" class="text-lg text-gray-500 hover:text-white transition-colors block mx-auto">로그인 화면으로 돌아가기</button>
-            </div>
+           
+           <div id="findForm" class="hidden">
+			    <jsp:include page="/WEB-INF/views/home/findAccount.jsp" />
+			</div>
         </div>
     </div>
 </div>
@@ -180,26 +174,39 @@
         document.getElementById('authModal').classList.add('hidden');
         document.body.style.overflow = 'auto';
         resetRegisterStep();
+        
+     	// [추가] 정보 찾기 중이었을 경우 타이머 중지 및 폼 초기화
+        if(typeof timerInterval !== 'undefined') clearInterval(timerInterval);
     }
 
     /* 탭 전환 */
-    function switchTab(type) {
-        var forms = ['loginForm', 'registerForm', 'findForm'];
-        forms.forEach(function(f) { document.getElementById(f).classList.add('hidden'); });
-        document.getElementById(type + 'Form').classList.remove('hidden');
-
-        var loginTab = document.getElementById('loginTab');
-        var registerTab = document.getElementById('registerTab');
-
-        if (type === 'login' || type === 'find') {
-            loginTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
-            registerTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
-        } else {
-            registerTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
-            loginTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
-            resetRegisterStep();
-        }
-    }
+	function switchTab(type) {
+	    var forms = ['loginForm', 'registerForm', 'findForm'];
+	    forms.forEach(function(f) { 
+	        document.getElementById(f).classList.add('hidden'); 
+	    });
+	    
+	    document.getElementById(type + 'Form').classList.remove('hidden');
+	
+	    var loginTab = document.getElementById('loginTab');
+	    var registerTab = document.getElementById('registerTab');
+	
+	    // 스타일 제어
+	    if (type === 'login' || type === 'find') {
+	        loginTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
+	        registerTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
+	    } else {
+	        registerTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
+	        loginTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
+	        resetRegisterStep();
+	    }
+	
+	    // [추가] 정보 찾기 탭 클릭 시 include 된 파일 내부의 아이콘/상태 초기화
+	    if(type === 'find') {
+	        if(window.lucide) lucide.createIcons();
+	        if(typeof switchFindMode === 'function') switchFindMode('ID'); // 기본 모드를 ID찾기로 설정
+	    }
+	}
 
     /* -----------------------------------------------------------
      * [유틸리티: 휴대폰 번호 자동 하이픈]
