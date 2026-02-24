@@ -37,7 +37,6 @@
 
       <div class="flex items-center">
       
-<<<<<<< HEAD
 	   <sec:authorize access="hasAnyRole('MASTER', 'USER')">
 		    <div class="relative mr-2">
 		        <a href="/cart/cart" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 block" title="거래 바구니">
@@ -51,21 +50,7 @@
 		        </a>
 		    </div>
 		</sec:authorize>  
-        
-=======
-      	<sec:authorize access="hasAnyRole('USER', 'MASTER')">
-		  <div class="relative mr-1">
-		    <a href="${cp}/cart/cart" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 block transition-colors">
-		      <span class="sr-only">View cart</span>
-		      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-		        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 100-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
-		      </svg>
-		      <div id="cart-badge" class="hidden absolute inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-blue-600 border-2 border-white rounded-full -top-0 -right-0 dark:border-gray-900">0</div>
-		    </a>
-		  </div>
-		</sec:authorize>
-				        
->>>>>>> refs/remotes/origin/main
+
         <div class="relative mr-1">
          	 <button type="button" id="notificationButton" data-dropdown-toggle="notification-dropdown" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700">
            		 <span class="sr-only">View notifications</span>
@@ -122,7 +107,7 @@
 		    <%-- 실제 이동 메뉴 리스트 --%>
 		    <ul class="py-1" role="none">
 		        <li>
-		            <a href="/mypage" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group">
+		            <a href="/account/mypage" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group">
 		                <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
 		                마이페이지
 		            </a>

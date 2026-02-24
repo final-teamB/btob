@@ -300,7 +300,7 @@ public class CompanyMgmtAdmController {
             headerMap.put("대표자ID", "masterId");
             headerMap.put("등록자ID", "regId");
             headerMap.put("사용여부", "useYn");
-            headerMap.put("회사로고이미지명", "companyLogoFileNm"); // 엑셀헤더 "메인이미지명" -> DTO "companyLogoFileNm"
+            headerMap.put("회사로고이미지명", "companyLogoFileNm"); // 엑셀헤더 "회사로고이미지명" -> DTO "companyLogoFileNm"
 
             // 3. 수정된 서비스 호출 (headerMap 인자 추가)
             excelService.downloadFailReport(response, failList, headerMap);
