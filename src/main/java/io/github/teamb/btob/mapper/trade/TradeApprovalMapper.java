@@ -19,4 +19,6 @@ public interface TradeApprovalMapper {
 
 	int selectPendingCount(String userId);
 
+	Integer getEstIdByOrderId(int orderId);
+
 }

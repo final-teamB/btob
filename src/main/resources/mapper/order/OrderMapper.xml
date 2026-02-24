@@ -30,6 +30,8 @@
 	        <result property="totalQty" column="total_qty"/>
 	        <result property="baseUnitPrc" column="base_unit_prc"/>
 	        <result property="totalPrice" column="total_price"/>
+	        <result property="targetProductPrc" column="target_product_prc"/>
+	        <result property="targetProductAmt" column="target_product_amt"/>
 	        <result property="targetTotalAmount" column="target_total_amount"/>
 	    </collection>
 	</resultMap>
@@ -48,6 +50,8 @@
 	        com.addr_kor,
 	        o.fuel_nm, 
 	        c.total_qty, 
+	        c.target_product_prc,
+	        c.target_product_amt,
 	        o.base_unit_prc, 
 	        c.total_price, 
 	        e.target_total_amount,

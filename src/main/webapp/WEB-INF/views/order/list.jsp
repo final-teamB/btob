@@ -120,6 +120,13 @@
                 field: 'orderStatus',
                 title: '주문상태',
                 options: [
+                    { value: 'et002', text: '견적요청' },
+                    { value: 'et003', text: '견적승인' },
+                    { value: 'od001', text: '주문요청' },
+                    { value: 'od002', text: '주문승인' },
+                    { value: 'pr001', text: '구매요청' },
+                    { value: 'pr002', text: '구매승인' },
+                    { value: 'pm001', text: '1차 결제요청' },
                     { value: 'pm002', text: '1차 결제완료' },
                     { value: 'pm003', text: '2차 결제요청' },
                     { value: 'pm004', text: '2차 결제완료' }

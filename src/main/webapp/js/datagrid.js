@@ -9,12 +9,17 @@
  */
 
 const GRID_STATUS_THEMES = {
-    'deliveryStatus' : { bgColor: 'bg-indigo-100', textColor: 'text-indigo-700', label: '-'},
-	
-	'orderStatusNm': {
-	    '1차결제완료': { bgColor: 'bg-blue-200', textColor: 'text-blue-800', label: '1차 결제완료' },
-		'2차결제요청': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label: '2차 결제요청' },
-	    '2차결제완료': { bgColor: 'bg-green-200', textColor: 'text-green-800', label: '2차 결제완료'}
+    'orderStatusNm': {
+	    '견적요청': { bgColor: 'bg-blue-100', textColor: 'text-blue-700', label:'견적요청' },
+	    '견적요청승인': { bgColor: 'bg-blue-100', textColor: 'text-blue-700', label: '견적요청승인' },
+	    '주문요청': { bgColor: 'bg-blue-100', textColor: 'text-blue-700', label: '주문요청' },
+	    '주문요청승인': { bgColor: 'bg-blue-100', textColor: 'text-blue-700', label: '주문요청승인' },
+	    '구매요청': { bgColor: 'bg-blue-100', textColor: 'text-blue-700', label: '구매요청' },
+	    '구매요청승인': { bgColor: 'bg-blue-100', textColor: 'text-blue-700', label: '구매요청승인' },
+	    '1차결제요청': { bgColor: 'bg-yellow-200', textColor: 'text-yellow-900', label:'1차 결제요청' },
+	    '1차결제완료': { bgColor: 'bg-green-100', textColor: 'text-green-800', label: '1차 결제완료' },
+	    '2차결제요청': { bgColor: 'bg-orange-200', textColor: 'text-orange-900', label: '2차 결제요청' },
+	    '2차결제완료': { bgColor: 'bg-green-200', textColor: 'text-green-900', label: '2차 결제완료' }
 	},
 	
 	'docType': {
@@ -81,6 +86,9 @@ class CustomActionRenderer {
     render(props) {
         const { grid, rowKey, columnInfo } = props;
 		const rowData = grid.getRow(rowKey);
+		
+		if (!rowData) return;
+		
         this.el.innerHTML = ''; // 기존 버튼 초기화
 
         const options = columnInfo.renderer.options || {};

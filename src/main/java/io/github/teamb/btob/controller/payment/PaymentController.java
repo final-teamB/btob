@@ -34,7 +34,7 @@ public class PaymentController {
 	    			
 		model.addAttribute("paymentView", paymentView);
 		model.addAttribute("tossCk", tossCk);
-	
+		System.out.println("orderNo: " + orderNo);
 	    	    
 	    return "payment/payment"; // 결제 전용 JSP로 이동
 	}
