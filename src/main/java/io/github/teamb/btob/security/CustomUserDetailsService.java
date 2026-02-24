@@ -42,7 +42,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             // 시큐리티 전용 exception 같음
             throw new UsernameNotFoundException("해당 사용자가 존재하지 않습니다.");
         }
-
+        
+        
+        //System.out.println("ddddddddddddddddddddddddd " + loginValidateDTO.getUserType() );
+        
         // Required type: UserDetails
         // 사용자 정보 조회 시 있을 경우
         return new CustomUserDetails(loginValidateDTO);

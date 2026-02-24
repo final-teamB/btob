@@ -3,6 +3,7 @@ package io.github.teamb.btob.security;
 import java.io.IOException;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -46,11 +47,12 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 	        loginMapper.resetLoginFailCnt(userId);
 	        
 	        // 세션에 인증 정보가 확실히 저장되도록 강제 설정
+	        // 2. [핵심] 세션에 SecurityContext 저장
+	        // SecurityContext를 수동으로 생성하여 세션에 넣어줘야 AJAX 호출 후 리다이렉트 시 권한이 유지됩니다.
 	        HttpSession session = request.getSession();
-	        if (session != null) {
-	            // 이 부분이 세션을 브라우저에 고정시키는 역할을 합니다.
-	            session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-	        }
+	        SecurityContext context = SecurityContextHolder.createEmptyContext();
+	        context.setAuthentication(authentication); // 현재 인증된 정보 주입
+	        session.setAttribute("SPRING_SECURITY_CONTEXT", context);
 	        
 	     // AJAX 요청인 경우 JSON 응답 전송
 	        response.setContentType("application/json;charset=UTF-8");

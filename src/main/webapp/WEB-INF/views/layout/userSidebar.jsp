@@ -1,9 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
-<jsp:include page="/WEB-INF/views/common/common.jsp" />
+
 
 <aside id="sidebar" class="fixed top-0 left-0 z-20 flex-col flex-shrink-0 w-64 h-full pt-16 font-normal duration-75 transition-transform -translate-x-full bg-white border-r border-gray-200 lg:translate-x-0 lg:flex dark:bg-gray-800 dark:border-gray-700" aria-label="Sidebar">
+
+<jsp:include page="/WEB-INF/views/common/common.jsp" />
+	
   <div class="relative flex flex-col flex-1 min-h-0 pt-0 bg-white border-r border-gray-200 dark:bg-gray-800 dark:divide-gray-700">
     <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
       <div class="flex-1 px-3 space-y-1 bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">

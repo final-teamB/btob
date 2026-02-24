@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class CustomUserDetails implements UserDetails {
 
 	// 임시 2로 함
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 1L;
 	private final LoginValidateDTO loginValidateDTO;
 
 		 /**
@@ -43,7 +43,7 @@ public class CustomUserDetails implements UserDetails {
 			     if (loginValidateDTO.getUserType() != null) {
 			
 			         authorities.add(
-			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getUserType())
+			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getUserType().toUpperCase())
 			         );
 			     }
 			     
@@ -51,7 +51,7 @@ public class CustomUserDetails implements UserDetails {
 			     if (loginValidateDTO.getUserType() != null) {
 			
 			         authorities.add(
-			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getAppStatus())
+			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getAppStatus().toUpperCase())
 			         );
 			     }
 			
