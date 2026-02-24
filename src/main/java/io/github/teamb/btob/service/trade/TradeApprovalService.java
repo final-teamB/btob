@@ -87,14 +87,7 @@ public class TradeApprovalService {
 	            
 	            docDto.setOrderId(Integer.parseInt(orderIdObj.toString()));
 	            docDto.setOwnerUserId(receiverId); // 문서를 조회할 권한을 가진 유저(발주자)
-	            
-	            // [금액 정보] 1차 결제 총액 (혹은 1차+2차 합계)
-	            if (params.get("totalSum") != null) {
-	                // 숫자 형식이 확실치 않을 수 있으므로 안전하게 처리
-	                int totalSum = Integer.parseInt(params.get("totalSum").toString());
-	                docDto.setTotalAmt(totalSum);
-	            }
-	            
+	          	            
 	            docDto.setRegId(loginUserId);
 	            
 	            // 3. Mapper 호출 (TB_DOCUMENT_MST에 최종 인서트)
@@ -121,6 +114,10 @@ public class TradeApprovalService {
 	            loginUserId
 	        );
 	    }
+	}
+
+	public int selectPendingCount(String userId) {
+		return tradeApprovalmapper.selectPendingCount(userId);
 	}
 	
 	

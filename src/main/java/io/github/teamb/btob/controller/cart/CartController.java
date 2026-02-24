@@ -26,6 +26,14 @@ public class CartController {
 	private final CartService cartService;
 	private final LoginUserProvider loginUserProvider;
 	
+	@GetMapping("/count")
+	@ResponseBody
+	public int getCartCount() {
+		String userId = loginUserProvider.getLoginUserId();
+	    if (userId == null) return 0;
+	    return cartService.getCartCount(userId);
+	}
+	
 	@GetMapping("/cart")
 	public String cart(Model model,
 	                  @RequestParam(required = false) String orderNo) { // 로그인 유저 정보

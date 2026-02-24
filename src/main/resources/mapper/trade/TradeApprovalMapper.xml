@@ -2,13 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.github.teamb.btob.mapper.trade.TradeApprovalMapper">
 	
+	<select id="selectPendingCount" resultType="int">
+	    SELECT COUNT(*)
+	    FROM TB_ORDER_MST O
+	    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+	    WHERE O.use_yn = 'Y'
+	      AND O.order_status = 'od001'
+	      AND U.company_cd = (
+	          SELECT company_cd FROM TB_USERS WHERE user_id = #{userId}
+	      )
+	</select>
+	
 	<select id="getTradePendingList" resultType="io.github.teamb.btob.dto.trade.TradePendingDTO">
 	    SELECT 
 	        O.order_id,
 	        O.order_no,
 	        CASE WHEN O.est_id IS NOT NULL AND O.est_id > 0 
 	             THEN 'ESTIMATE' 
-	             ELSE 'PURCHASE ORDER'
+	             ELSE 'PURCHASE_ORDER'
 	        END AS docType,
 	        O.order_status,
 	        U.user_no,

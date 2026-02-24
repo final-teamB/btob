@@ -40,5 +40,7 @@ public interface CartMapper {
 	int checkAnyRequestStatus(String userId, String status);
 
 	int checkActiveCartCount(String userId);
+
+	int getCartCount(String userId);
 	
 }

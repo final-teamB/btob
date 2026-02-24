@@ -163,6 +163,11 @@ public class CartServiceImpl implements CartService {
 	public List<CartItemDTO> selectCartItemListByIds(List<String> idList) {
 		return cartMapper.selectCartItemListByIds(idList);
 	}
+
+	@Override
+	public int getCartCount(String userId) {
+		return cartMapper.getCartCount(userId);
+	}
 	
 	
 }

@@ -34,6 +34,7 @@
         border-radius: 10px;
     }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div id="productDetailModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
@@ -291,52 +292,82 @@ function changeQty(amount) {
  * 액션 함수 정의
  */
  function addToCart() {
-	    if(!currentFuelId) {
-	        alert("상품 정보를 불러오지 못했습니다.");
-	        return;
-	    }
-	    
-	    const unitPrice = Number(currentUnitPrice) || 0;
-	    const qty = Number(document.getElementById('orderQtyInput').value) || 1;
-	    const totalPrice = unitPrice * qty;
-	    var actionName = "장바구니 담기";
-	    
-		 // [확인용] 여기서 0이 나오면 애초에 currentUnitPrice가 세팅이 안 된 것입니다.
-	    console.log("계산 결과 -> 단가:", unitPrice, "수량:", qty, "총액:", totalPrice);
+     // 1. 기본 체크 (SweetAlert2로 통일)
+     if(!currentFuelId) {
+         Swal.fire({ icon: 'error', title: '오류', text: '상품 정보를 불러오지 못했습니다.' });
+         return;
+     }
+     
+     const unitPrice = Number(currentUnitPrice) || 0;
+     const qty = Number(document.getElementById('orderQtyInput').value) || 1;
+     const totalPrice = unitPrice * qty;
+     
+     console.log("계산 결과 -> 단가:", unitPrice, "수량:", qty, "총액:", totalPrice);
 
-	    if(totalPrice <= 0) {
-	        alert("금액이 0원입니다. 단가와 수량을 확인해주세요.");
-	        return;
-	    }
+     if(totalPrice <= 0) {
+         Swal.fire({ 
+             icon: 'warning', 
+             title: '금액 확인', 
+             text: '금액이 0원입니다. 단가와 수량을 확인해주세요.' 
+         });
+         return;
+     }
 
-	    // 4. 전송 데이터 생성
-	    var formData = new URLSearchParams();
-	    formData.append('fuelId', currentFuelId);
-	    formData.append('totalQty', qty);
-	    formData.append('totalPrice', totalPrice);
-	    formData.append('baseUnitPrc', currentUnitPrice);
+     // 2. 전송 데이터 생성
+     const formData = new URLSearchParams();
+     formData.append('fuelId', currentFuelId);
+     formData.append('totalQty', qty);
+     formData.append('totalPrice', totalPrice);
+     formData.append('baseUnitPrc', currentUnitPrice);
 
-	    fetch('${pageContext.request.contextPath}/cart/add', {
-	        method: 'POST',
-	        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-	        body: formData
-	    })
-	    .then(function(res) { return res.json(); })
-	    .then(function(data) {
-	        if(data.result === 'success') {
-	            var fuelNm = document.getElementById('detailFuelNm').innerText;
-	            if(confirm(fuelNm + ' 상품을 담았습니다.\n장바구니로 이동하시겠습니까?')) {
-	                location.href = "${pageContext.request.contextPath}/cart/cart";
-	            }
-	        } else {
-	        
-	            alert(actionName + " 실패\n사유: " + (data.message || "오류 발생"));
-	        }
-	    })
-	    .catch(function(err) {
-	        console.error("Error:", err);
-	    });
-	}
+     // 3. 서버 전송
+     fetch('${pageContext.request.contextPath}/cart/add', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+         body: formData
+     })
+     .then(res => {
+         if (!res.ok) throw new Error('네트워크 응답 에러');
+         return res.json();
+     })
+     .then(data => {
+         if(data.result === 'success') {
+        	 // ⭐ 여기에서 공통 뱃지 업데이트 함수 호출!
+             // 페이지 새로고침 없이 상단 장바구니 숫자가 즉시 바뀝니다.
+             if (typeof updateAllBadges === 'function') {
+                 updateAllBadges();
+             }
+        	 
+             const fuelNm = document.getElementById('detailFuelNm').innerText;
+             
+             Swal.fire({
+                 title: '거래바구니에 쏙!',
+                 text: "[" + fuelNm + "] 상품을 담았습니다.",
+                 icon: 'success',
+                 showCancelButton: true,
+                 confirmButtonColor: '#2563eb', // 거래바구니 이동 버튼 (Blue)
+                 cancelButtonColor: '#6b7280',  // 쇼핑 계속하기 버튼 (Gray)
+                 confirmButtonText: '거래바구니 이동',
+                 cancelButtonText: '계속 쇼핑하기',
+                 reverseButtons: true // 확인 버튼을 오른쪽으로
+             }).then((result) => {
+                 if (result.isConfirmed) {
+                     location.href = "${pageContext.request.contextPath}/cart/cart";
+                 }
+             });
+         } else {
+             Swal.fire({
+                 icon: 'error',
+                 title: '장바구니 담기 실패',
+                 text: data.message || "오류가 발생했습니다."
+             });
+         }
+     })
+     .catch(err => {
+         console.error(err);
+         Swal.fire({ icon: 'error', title: '통신 오류', text: '서버와 연결할 수 없습니다.' });
+     });
+ }
  
  /**
   * 통합 처리 함수 (견적/주문 공통)

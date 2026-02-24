@@ -236,4 +236,12 @@
 	      AND user_id = #{userId}
 	</update>
 	
+	<!-- count확인 -->
+	<select id="getCartCount" resultType="int">
+	    SELECT COUNT(*)
+	    FROM TB_CART
+	    WHERE user_id = #{userId}
+	      AND use_yn = 'Y'
+	</select>
+	
 </mapper>

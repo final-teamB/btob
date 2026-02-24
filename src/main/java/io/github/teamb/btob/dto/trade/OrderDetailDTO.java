@@ -3,6 +3,8 @@ package io.github.teamb.btob.dto.trade;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import lombok.Data;
 
 @Data

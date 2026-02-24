@@ -32,6 +32,89 @@
 	    ORDER BY C.cart_id ASC
 		</select>
 		-->
+		
+	<select id="getTransactionDetail" parameterType="int" resultType="io.github.teamb.btob.dto.trade.TransactionDetailDTO">
+	    SELECT 
+	        d.doc_id,
+	        d.doc_no,
+	        d.doc_title,
+	        d.total_amt,
+	        d.reg_dtime, 
+	        c.company_name,
+	        c.addr_kor,
+	        c.company_phone,
+	        u.user_name,
+	        u.phone
+	    FROM 
+	        TB_DOCUMENT_MST d
+	    INNER JOIN 
+	        TB_ORDER_MST o ON d.order_id = o.order_id
+	    INNER JOIN 
+	        TB_USERS u ON d.owner_user_id = u.user_id
+	    INNER JOIN 
+	        TB_COMPANIES c ON u.company_cd = c.company_cd
+	    WHERE 
+	        d.order_id = #{orderId}
+	        AND d.doc_type = 'TRANSACTION'
+	</select>	
+		
+	<resultMap id="ContractDetailMap" type="io.github.teamb.btob.dto.trade.ContractDetailDTO">
+	    <id property="docId" column="doc_id" />
+	    <result property="docNo" column="doc_no" />
+	    <result property="docTitle" column="doc_title" />
+	    <result property="totalAmt" column="total_amt" />
+	    <result property="dueDate" column="due_date" />
+	    <result property="docContent" column="doc_content" />
+	    <result property="regDtime" column="reg_dtime" />
+	
+	    <result property="companyName" column="company_name" />
+	    <result property="addrKor" column="addr_kor" />
+	    <result property="companyPhone" column="company_phone" />
+	    <result property="userName" column="user_name" />
+	    <result property="phone" column="phone" />
+	
+	    <collection property="itemList" ofType="io.github.teamb.btob.dto.trade.ContractDetailDTO$ContractItemDTO">
+	    	<id property="cartId" column="cart_id" />	    
+	        <result property="fuelNm" column="fuel_nm" />
+	        <result property="totalQty" column="total_qty" />
+	        <result property="totalPrice" column="total_price" />
+	        <result property="targetProductPrc" column="target_product_prc" />
+	        <result property="targetProductAmt" column="target_product_amt" />
+	        <result property="baseUnitPrc" column="base_unit_prc" />
+	    </collection>
+	</resultMap>		
+		
+	<select id="getContractDetail" resultMap="ContractDetailMap">
+	    SELECT 
+		    D.doc_id,		    
+	        D.doc_no,
+	        D.doc_title,
+	        D.total_amt,
+	        D.due_date,
+	        D.doc_content,
+	        D.reg_dtime,
+	        CO.company_name,
+	        CO.addr_kor,
+	        CO.company_phone,
+	        U.user_name,
+	        U.phone,
+	        OIL.fuel_nm,
+	        CT.cart_id,
+	        CT.total_qty,
+	        CT.total_price,
+	        OIL.base_unit_prc,
+	        CT.target_product_prc,
+	        CT.target_product_amt
+	    FROM TB_DOCUMENT_MST D
+	    INNER JOIN TB_ORDER_MST O ON D.order_id = O.order_id
+	    INNER JOIN TB_USERS U ON O.user_no = U.user_no
+	    INNER JOIN TB_COMPANIES CO ON U.company_cd = CO.company_cd
+	    INNER JOIN TB_CART CT ON O.order_no = CT.order_no
+	    INNER JOIN TB_OIL_MST OIL ON CT.fuel_id = OIL.fuel_id
+	    WHERE D.order_id = #{orderId}
+	    	AND D.doc_type = 'CONTRACT'
+	</select>	
+		
 	<select id="selectOrderNo">
 		SELECT order_no
 			FROM TB_ORDER_MST
@@ -93,28 +176,18 @@
 		</update>
 		
 		<select id="getDocumentById" resultType="io.github.teamb.btob.dto.document.DocumentPreviewDTO">
-			SELECT 
-				d.doc_id,
-				d.doc_no,
-				d.doc_type,
-				IFNULL(d.memo, '') AS memo,
-				d.reg_dtime,
-			    o.order_id,
-			    o.order_no, 
-			    o.order_status,
-			    c.cart_id,
-			    c.total_qty,
-			    c.total_price,
-			    c.fuel_id,
-			    f.fuel_nm,
-			    u.user_name
-			FROM TB_DOCUMENT_MST d
-			LEFT JOIN TB_ORDER_MST o ON d.order_id = o.order_id
-			LEFT JOIN TB_CART c ON o.order_no = c.order_no
-			LEFT JOIN TB_OIL_MST f ON c.fuel_id = f.fuel_id
-			LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_id
-			WHERE d.doc_id = #{docId}
-			ORDER BY d.doc_id DESC
+		    SELECT 
+		        doc_id,
+		        doc_no,
+		        doc_type, 
+                doc_title,
+                total_amt,
+	            order_id,
+		        due_date,
+		        doc_content,
+		        reg_dtime
+		    FROM TB_DOCUMENT_MST
+		    WHERE doc_id = #{docId}
 		</select>
 		
 		<select id="getDocumentList" resultType="io.github.teamb.btob.dto.document.DocumentListDTO">
@@ -129,6 +202,14 @@
 		    FROM TB_DOCUMENT_MST d
 		    LEFT JOIN TB_USERS u ON d.owner_user_id = u.user_id
 		    <where>
+		    	u.company_cd = (SELECT company_cd FROM TB_USERS WHERE user_id = #{userId})
+		    	<choose>
+		            <when test="userType == 'MASTER'">
+		            </when>
+		            <otherwise>
+		                AND d.owner_user_id = #{userId}
+		            </otherwise>
+		        </choose>
 		    	<if test="docType != null and docType != ''">
 			        AND doc_type = #{docType}
 			    </if>
@@ -136,6 +217,7 @@
 		        <if test="keyword != null and keyword != ''">
 		           	AND (
 		                d.doc_no LIKE CONCAT('%', #{keyword}, '%')
+		                d.doc_title LIKE CONCAT('%', #{keyword}, '%')
 		                OR u.user_name LIKE CONCAT('%', #{keyword}, '%')
 		            )
 		        </if>

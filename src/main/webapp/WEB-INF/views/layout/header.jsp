@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<jsp:include page="/WEB-INF/views/common/common.jsp" />
 <c:set var="cp" value="${pageContext.request.contextPath}" />
 
 <nav class="fixed z-30 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
@@ -20,6 +21,20 @@
       </div>
 
       <div class="flex items-center">
+      
+	   <sec:authorize access="hasAnyRole('MASTER', 'USER')">
+		    <div class="relative mr-2">
+		        <a href="/cart/cart" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 block" title="거래 바구니">
+		            <span class="sr-only">View cart</span>
+		            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+		                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+		            </svg>
+		            <div id="cart-badge" class="absolute inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-blue-600 border-2 border-white rounded-full -top-0 -right-0 dark:border-gray-900">
+		                <c:out value="${cartCount != null ? cartCount : 0}" />
+		            </div>
+		        </a>
+		    </div>
+		</sec:authorize>  
         
         <div class="relative mr-1">
          	 <button type="button" id="notificationButton" data-dropdown-toggle="notification-dropdown" class="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700">

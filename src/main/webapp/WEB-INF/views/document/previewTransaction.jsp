@@ -10,9 +10,27 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     @media print {
+        /* 1. 페이지 설정 */
+        @page {
+            margin: 15mm 10mm;
+        }
+
+        /* 2. 요소 잘림 방지: 테이블 행, 정보 박스, 도장 영역 */
+        tr, 
+        .p-6, 
+        .receipt-seal-section {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* 3. 여백 최적화 (0.85 배율 대응) */
+        body { padding-top: 0 !important; padding-bottom: 0 !important; }
+        .py-10, .py-12, .mb-12 { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-bottom: 1.5rem !important; }
+        
+        /* 4. PDF 변환 시 불필요한 요소 제거 */
         .no-print { display: none !important; }
-        body { background: white !important; margin: 0; padding: 0; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+         body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
     body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; }
 </style>
@@ -44,15 +62,19 @@
                 <div class="p-6 bg-gray-50 rounded-xl border border-gray-200">
                     <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">공급받는 자 (Buyer)</h4>
                     <div class="space-y-2 text-sm">
-                        <p><span class="w-20 inline-block font-bold text-gray-500">성 명:</span> <span class="text-gray-900 font-bold">${info.companyName}</span></p>
-                        <p><span class="w-20 inline-block font-bold text-gray-500">주 소:</span> <span class="text-gray-800">${info.addrKor}</span></p>
-                        <p><span class="w-20 inline-block font-bold text-gray-500">연락처:</span> <span class="text-gray-800">${info.phone}</span></p>
+                        <p class="text-sm font-bold text-gray-800">${info.companyName}</p>
+					    <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+					        ${info.addrKor} <br>
+					        T. ${info.companyPhone} </p>
+					    <p class="text-[11px] text-blue-600 mt-2 font-medium">
+					        담당자: ${info.userName} (${info.phone})
+					    </p>
                     </div>
                 </div>
                 <div class="flex flex-col justify-end text-right p-6">
                     <p class="text-sm text-gray-500 mb-1">거래 일시</p>
                     <p class="text-xl font-bold text-gray-800">
-                        <fmt:formatDate value="${doc.regDtime}" pattern="yyyy년 MM월 dd일 HH:mm"/>
+                      	${doc.formattedRegDtime}
                     </p>
                 </div>
             </div>
@@ -74,7 +96,7 @@
                         <tr>
                             <td class="py-5 px-4 font-bold text-gray-800"><c:out value="${doc.docTitle}" /></td>
                             <td class="py-5 px-4 text-right font-mono text-gray-700">
-                                ₩<fmt:formatNumber value="${doc.totalAmt - 7500000}" pattern="#,###"/>
+                                ₩<fmt:formatNumber value="${doc.firstPaymentAmt}" pattern="#,###"/>
                             </td>
                         </tr>
                         <tr>
@@ -104,7 +126,7 @@
             </div>
 
             <%-- 4. 하단 영수 확인 도장 영역 --%>
-            <div class="mt-20 flex flex-col items-center justify-center relative">
+            <div class="receipt-seal-section mt-20 flex flex-col items-center justify-center relative">
                 <p class="text-gray-400 text-sm mb-4 italic">위 금액을 정히 영수함에 따라 본 거래 내역서를 발행합니다.</p>
                 <div class="relative">
                     <p class="text-4xl font-black border-[6px] border-red-500/70 inline-block px-12 py-4 text-red-500/70 rounded-lg rotate-[-3deg] uppercase tracking-widest">
@@ -112,7 +134,7 @@
                     </p>
                     <%-- 작은 날짜 인장 (선택사항) --%>
                     <div class="absolute -right-8 -bottom-4 w-16 h-16 border-2 border-red-400 rounded-full flex items-center justify-center text-[10px] text-red-400 font-bold rotate-12 bg-white">
-                        <fmt:formatDate value="${doc.regDtime}" pattern="MM/dd"/>
+                        	${doc.formattedRegDtime}
                     </div>
                 </div>
                 <p class="mt-10 font-bold text-gray-900 text-xl serif-title">(주)글로벌 유류 트레이딩 대표이사 김철수</p>
@@ -129,12 +151,10 @@
             </div>
         </div>
     </div>
-
-    <script>
-    function exportPdf(docId) {
-        window.location.href = "${pageContext.request.contextPath}/document/exportPdf?docId=" + docId;
-    }
-    </script>
-
+<script>
+	function exportPdf(docId) {
+	    window.location.href = "${pageContext.request.contextPath}/document/exportPdf?docId=" + docId;
+	}
+</script>
 </body>
 </html>

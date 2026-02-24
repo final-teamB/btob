@@ -10,11 +10,32 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
     @media print {
+        /* 1. 페이지 설정 */
+        @page {
+            margin: 15mm 10mm;
+        }
+
+        /* 2. 요소 잘림 방지: 테이블 행, 정보 박스, 합계 요약 영역 */
+        tr, 
+        .p-8, 
+        .bg-emerald-50,
+        .bg-gray-900,
+        #rejectArea {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* 3. 여백 및 줄간격 압축 (0.85 배율 보조) */
+        body { padding-top: 0 !important; padding-bottom: 0 !important; }
+        .py-10, .py-12, .mb-12 { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-bottom: 1.5rem !important; }
+        
+        /* 4. PDF 변환 시 버튼 및 그림자 제거 */
         .no-print { display: none !important; }
-        body { background: white !important; margin: 0; padding: 0; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+        
+        /* 배경색 강제 적용 */
+        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
-    /* 견적서 원본과 동일한 폰트 스택 적용 */
     body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; }
 </style>
 </head>
@@ -189,7 +210,7 @@
 	    <c:choose>
 	        <%-- 상황 A: 미리보기 모드일 때 (다운로드/닫기만 표시) --%>
 	        <c:when test="${mode eq 'preview'}">
-	            <div class="flex justify-end gap-3">
+	            <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-end gap-3">
 	                <button type="button" onclick="exportPdf(${doc.docId})" 
 	                        class="px-8 py-3 bg-blue-900 text-white text-sm font-bold rounded-lg hover:bg-blue-800 shadow-lg transition">
 	                    PDF 발주서 다운로드

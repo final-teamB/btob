@@ -31,6 +31,19 @@ public class TradeApprovalController {
 	private final TradeDocService tradeDocService;
 	private final LoginUserProvider loginUserProvider;
 	
+	@GetMapping("/pendingCount")
+	@ResponseBody
+	public int getPendingCount() {
+	    // 1. 현재 로그인한 사용자의 ID나 회사 정보를 가져옵니다.
+	    String userId = loginUserProvider.getLoginUserId();
+	    
+	    // 2. 서비스 레이어에서 결재 대기 중인(예: status = 'WAITING') 건수를 조회합니다.
+	    // (이 로직은 이미 구현된 Service 메서드를 활용하세요)
+	    int count = tradeApprovalService.selectPendingCount(userId);
+	    
+	    return count; 
+	}
+	
 	@GetMapping("/pending")
 	public String pending(TradePendingDTO dto, Model model) {
 		List<TradePendingDTO> pendingList =  tradeApprovalService.getTradePendingList(dto);

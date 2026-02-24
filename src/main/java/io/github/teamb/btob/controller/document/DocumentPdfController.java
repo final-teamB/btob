@@ -42,13 +42,10 @@ public class DocumentPdfController {
             	 detailData = tradeDocService.getOrderDetail(orderId);
                  break;
             case "TRANSACTION":
-                // 주문서나 거래명세서는 OrderDetailDTO를 사용한다고 가정
-                detailData = tradeDocService.getOrderDetail(orderId); 
+                detailData = tradeDocService.getTransactionDetail(orderId); 
                 break;
             case "CONTRACT":
-                // 계약서 전용 DTO가 있다면 추가
-                // detailData = tradeDocService.getContractDetail(docId);
-            	detailData = tradeDocService.getOrderDetail(orderId);
+            	detailData = tradeDocService.getContractDetail(orderId);
                 break;
         }
           	

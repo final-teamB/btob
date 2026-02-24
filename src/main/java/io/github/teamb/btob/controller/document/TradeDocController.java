@@ -14,8 +14,10 @@ import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.document.DocumentListDTO;
 import io.github.teamb.btob.dto.document.DocumentMemoActionDTO;
 import io.github.teamb.btob.dto.document.DocumentPreviewDTO;
+import io.github.teamb.btob.dto.trade.ContractDetailDTO;
 import io.github.teamb.btob.dto.trade.EstimateDetailDTO;
 import io.github.teamb.btob.dto.trade.OrderDetailDTO;
+import io.github.teamb.btob.dto.trade.TransactionDetailDTO;
 import io.github.teamb.btob.service.document.TradeDocService;
 import lombok.RequiredArgsConstructor;
 
@@ -78,12 +80,20 @@ public class TradeDocController {
 	            return "document/previewOrder";
 
 	        case "CONTRACT":
-	            // 계약서 전용 데이터가 있다면 여기서 추가 조회
-	            // 예: DocumentDTO에 추가한 doc_content, due_date 등 활용
+	        	ContractDetailDTO ctDetail = tradeDocService.getContractDetail(orderId);
+	        	if (ctDetail != null) {
+	        		model.addAttribute("doc", ctDetail);
+	                model.addAttribute("info", ctDetail);
+	                model.addAttribute("itemList", ctDetail.getItemList());
+	            }
 	            return "document/previewContract";
 
 	        case "TRANSACTION":
-	            // 거래내역서 전용 데이터 조회
+	        	TransactionDetailDTO Trdetail = tradeDocService.getTransactionDetail(orderId);
+	        	if (Trdetail != null) {
+	        		model.addAttribute("doc", Trdetail);
+	                model.addAttribute("info", Trdetail);
+	            }
 	            return "document/previewTransaction";
 
 	        default:
@@ -134,17 +144,34 @@ public class TradeDocController {
 		        model.addAttribute("cartIds", cartIds);
 		    }
 
-
 	    return "document/previewOrder";
 	}
 	
 	@GetMapping("/previewContract")
-	public String previewContract() {
+	public String previewContract(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		ContractDetailDTO detail = tradeDocService.getContractDetail(orderId);
+		
+		if (detail != null) {
+	
+	        model.addAttribute("doc", detail); 
+	        model.addAttribute("info", detail); 
+	
+	        model.addAttribute("itemList", detail.getItemList());
+	    }
+		
 		return "document/previewContract";
 	}
 	
 	@GetMapping("/previewTransaction")
-	public String previewTransaction() {
+	public String previewTransaction(@RequestParam(value="orderId", required=false) Integer orderId, Model model) {
+		TransactionDetailDTO detail = tradeDocService.getTransactionDetail(orderId);
+		if (detail != null) {
+			
+	        model.addAttribute("doc", detail); 
+	        model.addAttribute("info", detail); 
+
+	    }
+		
 		return "document/previewTransaction";
 	}
 	
