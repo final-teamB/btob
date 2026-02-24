@@ -235,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { header: '사업자번호', name: 'bizNumber', align: 'center' },
             { header: '통관번호', name: 'customsNum', align: 'center' },
             { header: '대표자명', name: 'userName', align: 'center' },
+            { header: '아이디', name: 'userId', align: 'center' },
             { header: '승인상태', name: 'appStatus', align: 'center', renderer: { type: CustomStatusRenderer, options: { theme: 'appStatus' } } },
             { 
                 header: '가입승인', 

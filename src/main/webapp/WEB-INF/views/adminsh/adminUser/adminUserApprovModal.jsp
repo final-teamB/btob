@@ -131,16 +131,20 @@ function submitUserApproval() {
     })
     .then(res => res.text())
     .then(res => {
-        if (res === 'OK') {
+const result = res.trim(); 
+        
+        if (result === 'OK' || result.includes('OK')) { 
             alert(status === 'APPROVED' ? '정상적으로 승인되었습니다.' : '반려 처리가 완료되었습니다.');
             closeUserModal();
-            location.reload();
+            location.reload(); // 화면 새로고침으로 테이블 반영 확인
         } else {
-            alert('처리 중 오류가 발생했습니다.');
+            // 실제 서버에서 넘어온 에러 메시지를 확인하기 위해 로그 출력
+            console.log("Server Response:", result);
+            alert('처리 중 오류가 발생했습니다. (사유: ' + result + ')');
         }
     })
     .catch(err => {
-        console.error(err);
+        console.error("Fetch Error:", err);
         alert('서버와 통신 중 오류가 발생했습니다.');
     });
 }

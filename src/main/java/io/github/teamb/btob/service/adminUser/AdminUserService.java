@@ -32,7 +32,7 @@ public class AdminUserService {
         if (update > 0) {
             saveHistory(userId, prevStatus, "APPROVED", "가입 승인", "관리자 승인 처리", adminId);
             
-            notificationService.send(userId, "SYSTEM", 0, "회원가입 신청이 승인되었습니다. 다시 로그인해주세요.", adminId);
+            notificationService.send(userId, "APPROVAL", 0, "회원가입 신청이 승인되었습니다. 다시 로그인해주세요.", adminId);
             return true;
         }
         return false;

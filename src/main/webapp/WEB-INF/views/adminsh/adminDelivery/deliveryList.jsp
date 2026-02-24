@@ -66,6 +66,67 @@ input.direct-edit-el {
 .tui-grid-body-area .tui-grid-cell .custom-action-btn {
     cursor: auto;
 }
+
+/* [핵심] 현재 상태 열의 두 줄 간격 최소화 */
+
+/* 1. 본문 셀 내부 컨텐츠의 줄 간격 조절 */
+.tui-grid-body-area .tui-grid-cell-content {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    /* 줄 간격을 평소보다 좁게(1.0) 설정하여 두 줄 사이 공백 제거 */
+    line-height: 1.0 !important; 
+    padding: 0 !important;
+}
+
+/* 2. 상단 텍스트(strong)와 하단 텍스트(small) 사이 간격 미세 조정 */
+.tui-grid-body-area .tui-grid-cell-content strong {
+    display: block;
+    margin-bottom: 2px !important; /* 위아래 글자 사이의 간격을 2px로 제한 */
+}
+
+.tui-grid-body-area .tui-grid-cell-content small {
+    display: block;
+    font-size: 11px !important;
+    color: #94a3b8 !important; /* 약간 연한 회색으로 처리하여 가독성 향상 */
+    margin-top: 0 !important;
+}
+
+/* 3. 행 높이 고정 (이미지 상 어긋남 방지용) */
+.tui-grid-body-area .tui-grid-cell {
+    height: 55px !important; 
+    box-sizing: border-box !important;
+}
+
+/* 1. 본문 셀 컨텐츠 설정: 줄 간격을 더 타이트하게 조정 */
+.tui-grid-body-area .tui-grid-cell-content {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    line-height: 1.0 !important; /* 💡 기존 0.9에서 1.0 정도로 살짝 조정 (필요시) */
+    padding: 0 !important;
+}
+
+/* 2. 위쪽 글자(strong) 스타일 */
+.tui-grid-body-area .tui-grid-cell-content strong {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 700 !important;
+}
+
+/* 3. 아래쪽 글자(small) 스타일: 간격 줄이기의 핵심 */
+.tui-grid-body-area .tui-grid-cell-content small {
+    display: block !important;
+    /* 💡 마이너스 마진 값을 더 크게 주어 위로 바짝 붙입니다. */
+    margin-top: -6px !important; 
+    font-size: 11px !important;
+    color: #64748b !important;
+}
 </style>
 
 <div class="mx-4 my-6 space-y-6">
@@ -144,7 +205,7 @@ class DirectSelectRenderer {
 }
 
 let deliveryGrid;
-let allOriginalData = []; // 🔧 모든 페이지 원본 데이터 저장
+let allOriginalData = []; 
 
 <c:forEach var="item" items="${deliveryList}">
 allOriginalData.push({
@@ -206,7 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let searchTimeout;
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchAllPages(), 300);
+            setTimeout(() => {
+                if (deliveryGrid && deliveryGrid.grid) {
+                    deliveryGrid.grid.refreshLayout();
+                }
+            }, 300);
         });
     }
 
@@ -262,12 +327,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 width: 120,
                 align: 'center',
                 formatter: ({ value }) => {
-                    const map = {
-                        pm001: '1차결제요청<br><span style="font-size: 11px; color: #666;">(pm001)</span>',
-                        pm002: '1차결제완료<br><span style="font-size: 11px; color: #666;">(pm002)</span>',
-                        pm003: '2차결제요청<br><span style="font-size: 11px; color: #666;">(pm003)</span>',
-                        pm004: '2차결제완료<br><span style="font-size: 11px; color: #666;">(pm004)</span>'
-                    };
+                	const map = {
+                            pm001: '1차결제요청<br><span style="display:inline-block; margin-top:4px; font-size: 11px; color: #666;">(pm001)</span>',
+                            pm002: '1차결제완료<br><span style="display:inline-block; margin-top:4px; font-size: 11px; color: #666;">(pm002)</span>',
+                            pm003: '2차결제요청<br><span style="display:inline-block; margin-top:4px; font-size: 11px; color: #666;">(pm003)</span>',
+                            pm004: '2차결제완료<br><span style="display:inline-block; margin-top:4px; font-size: 11px; color: #666;">(pm004)</span>'
+                        }
                     return map[value] || value;
                 }
             },
@@ -279,6 +344,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderer:{ type: CustomActionRenderer, options:{ btnText:'저장' } }
             }
         ],
+        scrollY: false,
+    	bodyHeight: 'auto',
+    	rowHeight: 60,         
+        columnOptions: {
+            resizable: true
+        },
         pageOptions: { useClient: true, perPage: 10 }
     });
 
@@ -292,7 +363,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// 🔧 모든 input/select 요소 초기화 (현재 보이는 데이터만)
+function syncGridHeight() {
+    setTimeout(() => {
+        if (deliveryGrid && deliveryGrid.grid) {
+            deliveryGrid.grid.refreshLayout();
+        }
+    }, 500); 
+}
+
 function clearAllInputSelects() {
     const currentRows = deliveryGrid.grid.getData();
     currentRows.forEach(row => {
