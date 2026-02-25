@@ -180,13 +180,26 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 			System.out.println("루프 몇 번 도는지 확인 합니다. : " + i + " 번");
 		}
 		
+		
+		// 반려 시 작성된 발주서,견적서 N 처리
+		String LoginUserId = loginUserProvider.getLoginUserId();
+		log.info("▶ 결정 상태: {}, 주문ID: {}, 수정자: {}", approvalStatus, ordId, LoginUserId);
+		if ("REJECTED".equals(approvalStatus)) {
+	        try {
+	            // tradeDocMapper에 해당 주문건의 문서들을 N처리하는 메서드 호출
+	            // 관리자나 시스템이 수정하는 것이므로 수정자 ID 등을 같이 넘겨주면 좋습니다.
+	            int updatedCnt = tradeDocMapper.updateDocUseYnByOrderId(ordId, "N", LoginUserId);
+	        } catch (Exception e) {
+	        	log.error("▶ 반려 시 관련 문서 N 처리 중 오류 발생: {}", e.getMessage());
+	        }
+	    }
+		
 		// [추가 부분] 문서 자동 생성 로직 (try-catch로 감싸서 안전하게 추가)
 		try {
 			if (resultDto != null) {
 				String orderNo = tradeDocMapper.selectOrderNo(ordId);
 				Integer baseAmt = tradeDocMapper.selectOrderTotalAmt(orderNo);
 				Integer totalAmt = (baseAmt != null ? baseAmt : 0) + 7500000;
-				String LoginUserId = loginUserProvider.getLoginUserId();
 				
 				DocumentInsertDTO docDto = new DocumentInsertDTO();
 				docDto.setOrderId(ordId);

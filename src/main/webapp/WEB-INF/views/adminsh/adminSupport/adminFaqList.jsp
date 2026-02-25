@@ -194,7 +194,17 @@
                     }
                 },
                 { header: '질문', name: 'question', align: 'left' },
-                { header: '등록일', name: 'regDtime', width: 180, align: 'center' },
+                { 
+                    header: '등록일', 
+                    name: 'regDtime', 
+                    width: 180, 
+                    align: 'center',
+                    formatter: function(props) {
+                        let val = props.value || '';
+                        // 'T'를 공백으로 바꾸고, 밀리초(.000Z 등)가 있다면 잘라버림
+                        return val.replace('T', ' ').split('.')[0];
+                    }
+                },
                 {
                     header: '관리',
                     name: 'manage',
@@ -210,8 +220,14 @@
                     }
                 }
             ],
-            data: rawData
+            data: rawData,
+            pageOptions: { 
+                useClient: true, 
+                perPage: 10 
+            }
         });
+        
+        faqGrid.grid.resetData(rawData.slice(0, 10));
 
         // [3] datagrid.jsp의 조회 버튼 클릭 시 필터링 로직 연결
         document.getElementById('dg-btn-search').addEventListener('click', function() {
@@ -223,7 +239,14 @@
                 const matchKey = !keyword || item.question.toLowerCase().includes(keyword);
                 return matchCat && matchKey;
             });
-            faqGrid.grid.resetData(filtered);
+            const perPage = 10;
+            faqGrid.grid.resetData(filtered.slice(0, perPage)); 
+
+            // 페이징 버튼 보일지 말지 결정
+            const paginationEl = document.querySelector('.tui-pagination');
+            if (paginationEl) {
+                paginationEl.style.display = (filtered.length <= perPage) ? 'none' : 'block';
+            }
         });
 
         // [4] 행 클릭(수정) 및 삭제 버튼 이벤트

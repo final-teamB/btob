@@ -32,21 +32,6 @@ public class UserManagementController {
 	private final LoginUserProvider loginUserProvider;
 	private final ExcelService excelService;
 
-    // 전체 사원 목록 페이지
-    @GetMapping("/test")
-    public String test(
-    		@RequestParam(required = false) String accStatus,
-    		@RequestParam(required = false) String keyword,
-    		Model model) {
-    	
-    	List<UserListDTO> userList = userService.getUserList(accStatus, keyword);
-    	
-    	model.addAttribute("userList", userList);
-    	model.addAttribute("pageTitle", "사원리스트");  
-    	model.addAttribute("content", "users/test.jsp"); 
-    	return "layout/layout";
-    }
-    
     
     @GetMapping("/pendingCount")
     @ResponseBody
