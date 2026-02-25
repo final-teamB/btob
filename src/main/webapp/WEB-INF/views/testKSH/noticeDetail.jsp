@@ -35,28 +35,29 @@
             </div>
         </div>
 
-        <%-- [4] 첨부파일 영역 (파일이 있을 때만 노출) --%>
-        <c:if test="${not empty files}">
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
-                    <span class="mr-2">📎</span> 첨부파일
-                </h3>
-                <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <c:forEach var="file" items="${files}">
-                        <li>
-                            <%-- 기존 컨트롤러에 있는 /notice/download/{fileName} 경로 활용 --%>
-                            <a href="/notice/download/${file.savedFileName}" 
-                               class="flex items-center p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 transition-all group">
-                                <span class="text-sm truncate flex-1 font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-600">
-                                    ${file.originName}
-                                </span>
-                                <span class="ml-2 text-xs text-blue-500 font-bold">다운로드</span>
-                            </a>
-                        </li>
-                    </c:forEach>
-                </ul>
-            </div>
-        </c:if>
+        <%-- [4] 첨부파일 영역 --%>
+		<c:if test="${not empty notice.noticeFiles}">
+		    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+		        <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+		            <span class="mr-2">📎</span> 첨부파일
+		        </h3>
+		        <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+		            <c:forEach var="file" items="${notice.noticeFiles}">
+		                <c:if test="${file.useYn eq 'Y'}">
+		                    <li>
+		                        <a href="/notice/download/${file.storedFileName}" 
+		                           class="flex items-center p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all group">
+		                            <span class="text-sm truncate flex-1 font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-600">
+		                                ${file.originFileName}
+		                            </span>
+		                            <span class="ml-2 text-xs text-blue-500 font-bold">다운로드</span>
+		                        </a>
+		                    </li>
+		                </c:if>
+		            </c:forEach>
+		        </ul>
+		    </div>
+		</c:if>
 
         <%-- [5] 하단 버튼 --%>
         <div class="flex justify-center pt-6">

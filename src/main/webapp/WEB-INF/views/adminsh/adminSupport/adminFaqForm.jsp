@@ -1,72 +1,149 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="mx-4 my-6 space-y-6">
+<script src="https://cdn.ckeditor.com/ckeditor5/34.0.0/classic/ckeditor.js"></script>
+
+<style>
+    /* 1. 에디터 높이를 크게 고정 (이미지처럼 시원하게) */
+    .ck-editor__editable {
+        min-height: 200px !important;
+        max-height: 400px !important;
+    }
     
-    <%-- [1. 타이틀 영역] 중앙 정렬 통일 --%>
-    <div class="px-5 py-4 text-left">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            <c:choose>
-                <c:when test="${faq.faqId > 0}">FAQ 수정</c:when>
-                <c:otherwise>FAQ 신규 등록</c:otherwise>
-            </c:choose>
-        </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">사용자가 자주 묻는 질문에 대한 정확한 정보를 입력해 주세요.</p>
+    /* 2. 에디터 테두리 및 라운딩 디자인 (이미지 톤) */
+    .ck.ck-editor__main>.ck-editor__editable {
+        border-radius: 0 0 8px 8px !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    .ck.ck-toolbar {
+        border-radius: 8px 8px 0 0 !important;
+        border-bottom: none !important;
+        background-color: #ffffff !important;
+    }
+
+    /* 3. 레이블 디자인 일치 */
+    .section-label { 
+        display: block;
+        font-size: 14px; 
+        font-weight: 600; 
+        color: #374151; 
+        margin-bottom: 6px; 
+    }
+</style>
+
+<div class="p-2 space-y-4">
+    <div class="px-2 pb-2 border-b">
+        <h3 class="font-bold text-blue-600 text-sm uppercase">FAQ 상세 정보</h3>
+        <p class="text-[12px] text-gray-400 mt-1">* 답변 내용을 상세히 입력해주세요.</p>
     </div>
 
-    <%-- [2. 입력 폼 영역] --%>
-    <section class="p-8 bg-white rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-        <form action="/support/admin/${faq.faqId > 0 ? 'modifyFaq' : 'registerFaq'}" method="post" class="space-y-6">
-            <c:if test="${faq.faqId > 0}">
-                <input type="hidden" name="faqId" value="${faq.faqId}">
-            </c:if>
+    <section class="bg-white px-2">
+        <form id="faqSubmitForm" class="space-y-3" autocomplete="off">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            <input type="hidden" name="faqId" value="${faq.faqId}">
 
-            <%-- 카테고리 선택 --%>
-            <div class="grid grid-cols-1 md:grid-cols-6 items-center gap-2">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300">카테고리 <span class="text-red-500">*</span></label>
-                <div class="md:col-span-3">
-                    <select name="category" required 
-                            class="w-full md:w-1/3 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all">
+            <div class="grid grid-cols-1 gap-y-3">
+                <%-- 카테고리 --%>
+                <div>
+                    <label class="section-label">카테고리 <span class="text-red-500">*</span></label>
+                    <select name="category" required
+                            class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 transition-all">
                         <option value="DELIVERY" ${faq.category=='DELIVERY'?'selected':''}>배송</option>
                         <option value="PAYMENT" ${faq.category=='PAYMENT'?'selected':''}>결제</option>
                         <option value="PRODUCT" ${faq.category=='PRODUCT'?'selected':''}>상품</option>
                         <option value="ETC" ${faq.category=='ETC'?'selected':''}>기타</option>
                     </select>
                 </div>
-            </div>
 
-            <%-- 질문 입력 --%>
-            <div class="grid grid-cols-1 md:grid-cols-6 items-center gap-2 border-t border-gray-50 pt-6 dark:border-gray-700">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300">질문 (Question) <span class="text-red-500">*</span></label>
-                <div class="md:col-span-5">
-                    <input type="text" name="question" value="${faq.question}" required 
-                           placeholder="사용자가 질문할 내용을 입력하세요."
-                           class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all">
+                <%-- 질문 --%>
+                <div>
+                    <label class="section-label">질문 (Question) <span class="text-red-500">*</span></label>
+                    <input type="text" name="question" value="${faq.question}" required
+                           placeholder="질문을 입력하세요"
+                           class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 transition-all">
+                </div>
+
+                <%-- 답변 (이미지처럼 크게 확장됨) --%>
+                <div>
+                    <label class="section-label">답변 (Answer) <span class="text-red-500">*</span></label>
+                    <div id="editor-container">
+                        <textarea name="answer" id="faqEditor">${faq.answer}</textarea>
+                    </div>
                 </div>
             </div>
 
-            <%-- 답변 입력 --%>
-            <div class="grid grid-cols-1 md:grid-cols-6 items-start gap-4 border-t border-gray-50 pt-6 dark:border-gray-700">
-                <label class="text-sm font-bold text-gray-700 dark:text-gray-300 mt-2">답변 (Answer) <span class="text-red-500">*</span></label>
-                <div class="md:col-span-5">
-                    <textarea name="answer" rows="12" required 
-                              placeholder="질문에 대한 상세 답변을 입력하세요."
-                              class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-900 focus:outline-none dark:bg-gray-700 dark:text-white transition-all resize-none">${faq.answer}</textarea>
-                    <p class="text-xs text-gray-400 mt-2">사용자에게 직접 노출되는 답변이므로 정확하게 작성해 주세요.</p>
-                </div>
-            </div>
-
-            <%-- [3. 하단 액션 버튼] --%>
-            <div class="flex justify-end space-x-3 pt-8 border-t border-gray-100 dark:border-gray-700">
-                <button type="button" onclick="history.back()" 
-                        class="px-6 py-2.5 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all">
-                    취소
-                </button>
-                <button type="submit" 
-                        class="px-8 py-2.5 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-800 shadow-md transition-all active:scale-95">
+            <%-- 하단 액션바 --%>
+            <div class="flex items-center justify-between p-4 border-t mt-6">
+                <button type="button" onclick="submitFaqForm()" 
+                        class="px-10 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md transition-all active:scale-95">
                     저장하기
+                </button>
+                <button type="button" onclick="closeFaqModal()"
+                        class="px-6 py-2.5 text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all shadow-sm">
+                    취소
                 </button>
             </div>
         </form>
     </section>
 </div>
+
+<script>
+    let faqEditorInstance = null;
+
+    function initFaqEditor() {
+        const el = document.querySelector('#faqEditor');
+        if (!el || typeof ClassicEditor === 'undefined') return;
+
+        ClassicEditor.create(el, {
+            placeholder: '답변 내용을 입력하세요...',
+            toolbar: {
+                items: ['bold', 'italic', 'underline', '|', 'numberedList', 'bulletedList', '|', 'removeFormat', 'undo', 'redo'],
+                shouldNotGroupWhenFull: true
+            }
+        }).then(editor => {
+            faqEditorInstance = editor;
+            // 로드 시점에 높이가 좁아지는 것을 방지
+            editor.editing.view.change(writer => {
+                writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
+            });
+        }).catch(err => console.error(err));
+    }
+
+    // 모달 로딩 시간을 고려하여 실행
+    setTimeout(initFaqEditor, 100);
+
+    function submitFaqForm() {
+        const $form = $('#faqSubmitForm');
+
+        if (faqEditorInstance) {
+            $form.find('[name=answer]').val(faqEditorInstance.getData());
+        }
+
+        const question = $form.find('[name=question]').val().trim();
+        const answer = $form.find('[name=answer]').val().trim();
+
+        if (!question || !answer) {
+            alert("모든 필수 항목을 입력해주세요.");
+            return;
+        }
+
+        if (!confirm("내용을 저장하시겠습니까?")) return;
+
+        $.ajax({
+            url: "/support/admin/saveFaq",
+            type: "POST",
+            data: $form.serialize(),
+            success: function(res) {
+                if (res === true || res === "true" || res === "OK") {
+                    alert("성공적으로 저장되었습니다.");
+                    location.reload();
+                } else {
+                    alert("저장에 실패했습니다.");
+                }
+            },
+            error: function() {
+                alert("서버 통신 에러가 발생했습니다.");
+            }
+        });
+    }
+</script>

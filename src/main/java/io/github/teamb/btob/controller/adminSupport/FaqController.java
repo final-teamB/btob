@@ -57,61 +57,40 @@ public class FaqController {
         return "layout/layout"; 
     }
 
-    // 2. 등록 
-    // 등록 폼 이동 (faqForm.jsp 리턴)
+ // 2. 등록 폼 (모달 분기)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/registerFaq")
-    public String registerFaqForm(Model model) {
-    	
-        model.addAttribute("faq", new FaqDTO()); 
+    public String registerFaqForm(Model model, @RequestParam(value="isModal", required=false) String isModal) {
+        model.addAttribute("faq", new FaqDTO());
+        if("Y".equals(isModal)) {
+            return "adminsh/adminSupport/adminFaqForm"; // .jsp 제거
+        }
         return renderLayout(model, "adminFaqForm.jsp", "FAQ 신규 등록");
     }
 
-    // 등록 처리
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/admin/registerFaq")
-    public String registerFaq(FaqDTO faqDTO, Principal principal, 
-    						  @AuthenticationPrincipal UserDetails userDetails,
-    						  RedirectAttributes reAttributes) {
-        
-    	String adminId = (userDetails != null) ? userDetails.getUsername() : "admin";
-        
-    	faqDTO.setRegId(adminId);
-        faqDTO.setUpdId(adminId);
-        
-        if (faqService.registerFaq(faqDTO)) {
-            reAttributes.addFlashAttribute("msg", "등록되었습니다.");
-        }
-        return "redirect:/support/admin/faqList";
-    }
-
-    // 3. 수정 
-    // 수정 폼 이동 (faqForm.jsp 리턴)
+    // 3. 수정 폼 (모달 분기)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/modifyFaq/{faqId}")
-    public String modifyFaq(@PathVariable("faqId") int faqId, Model model) {
-    	
+    public String modifyFaq(@PathVariable("faqId") int faqId, Model model, @RequestParam(value="isModal", required=false) String isModal) {
         model.addAttribute("faq", faqService.getFaqDetail(faqId));
+        if("Y".equals(isModal)) {
+            return "adminsh/adminSupport/adminFaqForm"; // .jsp 제거
+        }
         return renderLayout(model, "adminFaqForm.jsp", "FAQ 내용 수정");
     }
-
-    // 수정 처리
+    
+    // 4. 저장 (통합)
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/admin/modifyFaq")
-    public String modifyFaq(FaqDTO faqDTO, 
-    						@AuthenticationPrincipal UserDetails userDetails,
-    						RedirectAttributes reAttributes) {
-    	
-    	String adminId = (userDetails != null) ? userDetails.getUsername() : "admin";
+    @PostMapping("/admin/saveFaq")
+    @ResponseBody
+    public boolean saveFaq(FaqDTO faqDTO, @AuthenticationPrincipal UserDetails userDetails) {
+        String adminId = (userDetails != null) ? userDetails.getUsername() : "admin";
+        faqDTO.setRegId(adminId);
         faqDTO.setUpdId(adminId);
-        
-        if (faqService.modifyFaq(faqDTO)) {
-            reAttributes.addFlashAttribute("msg", "수정되었습니다.");
-        }
-        return "redirect:/support/admin/faqList";
+        return faqDTO.getFaqId() > 0 ? faqService.modifyFaq(faqDTO) : faqService.registerFaq(faqDTO);
     }
 
-    // 4. 삭제 처리 
+    // 5. 삭제 처리 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/removeFaq")
     @ResponseBody
