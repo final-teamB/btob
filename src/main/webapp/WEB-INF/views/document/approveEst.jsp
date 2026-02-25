@@ -167,7 +167,7 @@
                 <div class="flex gap-2">
                     <c:if test="${userType eq 'MASTER' || userType eq 'ADMIN'}">
                         <button type="button" onclick="fn_showRejectModal()" class="px-8 py-2 text-sm font-bold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition">반려하기</button>
-                        <button type="button" onclick="fn_approve()" class="px-8 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-xl transition">최종 승인하기</button>
+                        <button type="button" onclick="fn_approve()" class="px-8 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-xl transition">승인하기</button>
                     </c:if>
                     <button type="button" onclick="window.close()" class="px-8 py-2 text-sm font-bold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">닫기</button>
                 </div>

@@ -42,27 +42,22 @@
     <link href="https://cdn.jsdelivr.net/npm/flowbite@latest/dist/flowbite.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
-
-	<jsp:include page="/WEB-INF/views/layout/header.jsp" />
-	
-	<div class="flex pt-16">
-		<jsp:include page="/WEB-INF/views/layout/productViewSidebar.jsp" />
-		
-		<div class="flex flex-col flex-1 ml-64 min-h-screen">
-
-            <!-- CONTENT -->
-            <main class="p-5 flex-1 bg-gray-50 dark:bg-gray-900">
-                <jsp:include page="/WEB-INF/views/${content}" />
-            </main>
-
-            <!-- FOOTER -->
+    <jsp:include page="/WEB-INF/views/layout/header.jsp" />
+        
+    <div class="flex pt-16">
+        <jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
+        
+        <div class="flex flex-col flex-1 min-h-screen lg:pl-64 transition-all duration-300"> 
+	        <main class="p-5 flex-1 bg-gray-50 dark:bg-gray-900">
+	            <jsp:include page="/WEB-INF/views/${content}" />
+	        </main>
+	            
             <footer class="p-5 bg-gray-50 dark:bg-gray-900">
-            	<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+                <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
             </footer>
-            
         </div>
-	</div>
-	
-	<script src="https://cdn.jsdelivr.net/npm/flowbite@latest/dist/flowbite.min.js"></script>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@latest/dist/flowbite.min.js"></script>
 </body>
 </html>

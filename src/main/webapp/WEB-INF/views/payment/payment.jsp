@@ -76,14 +76,14 @@
                                     <td class="p-4 text-right text-gray-700">${item.totalQty} UNIT</td>
                                     <td class="p-4 text-right font-bold text-gray-900">
                                         <c:choose>
-									        <c:when test="${not empty item.targetProductAmt and item.targetProductAmt > 0}">
-									            <span class="text-[10px] bg-orange-100 text-orange-600 px-1 rounded mr-1">협의가</span>
-									            <fmt:formatNumber value="${item.targetProductAmt}" pattern="#,###"/>원
-									        </c:when>
-									        <c:otherwise>
-									            <fmt:formatNumber value="${item.totalPrice}" pattern="#,###"/>원
-									        </c:otherwise>
-									    </c:choose>
+										    <c:when test="${item.targetProductAmt > 0}">
+										        <span class="text-[10px] bg-orange-100 text-orange-600 px-1 rounded mr-1">협의가</span>
+										        <fmt:formatNumber value="${item.targetProductAmt}" pattern="#,###"/>원
+										    </c:when>
+										    <c:otherwise>
+										        <fmt:formatNumber value="${item.totalPrice}" pattern="#,###"/>원
+										    </c:otherwise>
+										</c:choose>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -155,8 +155,10 @@
         
         const orderNo = '${paymentView.orderNo}';
         // 2. 주문명 설정
-        const displayOrderName = '${paymentView.itemList[0].fuelNm}' + 
-    	(${fn:length(paymentView.itemList)} > 1 ? ' 외 ${fn:length(paymentView.itemList) - 1}건' : '');
+	    const firstItemName = '${not empty paymentView.itemList ? paymentView.itemList[0].fuelNm : "상품없음"}';
+		const totalItemCount = parseInt('${fn:length(paymentView.itemList)}' || '0');
+		const otherCount = totalItemCount - 1;
+		const displayOrderName = otherCount > 0 ? firstItemName + ' 외 ' + otherCount + '건' : firstItemName;
 
         // 3. 버튼 클릭 이벤트 등록
         document.getElementById('checkoutBtn').addEventListener('click', async function () {

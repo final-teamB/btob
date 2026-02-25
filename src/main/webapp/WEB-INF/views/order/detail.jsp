@@ -37,9 +37,9 @@
 			            </td>
 			            <td class="px-4 py-4 text-sm text-right text-gray-600">
 			             <c:choose>
-			                    <%-- 견적 주문인 경우 (targetTotalAmount가 있을 때) --%>
-			                    <c:when test="${not empty item.targetTotalAmount && item.targetTotalAmount > 0}">
-			                        <fmt:formatNumber value="${item.targetTotalAmount/item.totalQty}" pattern="#,###"/>원
+			                    <%-- 견적 주문인 경우 (targetProductPrc가 있을 때) --%>
+			                    <c:when test="${not empty item.targetProductPrc && item.targetProductPrc > 0}">
+			                        <fmt:formatNumber value="${item.targetProductPrc}" pattern="#,###"/>원
 			                    </c:when>
 			                    <%-- 바로 주문인 경우 (totalPrice 사용) --%>
 			                    <c:otherwise>
@@ -52,9 +52,9 @@
 			            </td>
 			            <td class="px-4 py-4 text-sm text-right font-bold text-gray-900">
 			                <c:choose>
-			                    <%-- 견적 주문인 경우 (targetTotalAmount가 있을 때) --%>
-			                    <c:when test="${not empty item.targetTotalAmount && item.targetTotalAmount > 0}">
-			                        <fmt:formatNumber value="${item.targetTotalAmount}" pattern="#,###"/>원
+			                    <%-- 견적 주문인 경우 (targetProductAmt가 있을 때) --%>
+			                    <c:when test="${not empty item.targetProductAmt && item.targetProductAmt > 0}">
+			                        <fmt:formatNumber value="${item.targetProductAmt}" pattern="#,###"/>원
 			                    </c:when>
 			                    <%-- 바로 주문인 경우 (totalPrice 사용) --%>
 			                    <c:otherwise>

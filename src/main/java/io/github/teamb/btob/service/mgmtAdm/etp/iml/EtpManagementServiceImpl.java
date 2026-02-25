@@ -20,6 +20,7 @@ import io.github.teamb.btob.dto.mgmtAdm.etp.EtpApprovRejctRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO;
 import io.github.teamb.btob.mapper.document.TradeDocMapper;
 import io.github.teamb.btob.mapper.mgmtAdm.EtpMgmtAdmMapper;
+import io.github.teamb.btob.mapper.trade.TradeApprovalMapper;
 import io.github.teamb.btob.service.BizWorkflow.BizWorkflowServiceAdm;
 import io.github.teamb.btob.service.common.CommonService;
 import io.github.teamb.btob.service.mgmtAdm.etp.EtpManagementService;
@@ -36,6 +37,7 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 	private final CommonService commonService;
 	private final BizWorkflowServiceAdm bizWorkflowServiceAdm;
 	private final TradeDocMapper tradeDocMapper;
+	private final TradeApprovalMapper tradeApprovalmapper;
 	private final LoginUserProvider loginUserProvider;
 
 	/**
@@ -145,6 +147,8 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 		boolean isEstimateTarget = false; 
 		boolean isContractTarget = false;
 		boolean isPurchaseOrderTarget = false;
+		Integer estId = tradeApprovalmapper.getEstIdByOrderId(ordId);
+		boolean hasEstimate = (estId != null && estId > 0);
 		
 		// 연속 승인 처리가 필요할때
 		// 견적요청을 마스터 직급 사용자가 했을 경우
@@ -154,14 +158,15 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 				paramOrderStatus.equals("et002") ) {
 			loopCnt = 3;
 			isEstimateTarget = true; // 견적서 생성
-			isContractTarget = true; // 계약서 생성
 			System.out.println("요청한 사람이 마스터 이고 현재 견적요청상태이면 여기 탑니다.");
 		// 구매요청(현재상태) -> 구매승인 -> 1차결제요청
 		} else if ( approvalStatus.equals("APPROVED") && paramOrderStatus.equals("pr001") ) {
 			loopCnt = 2;
 			isContractTarget = true;
-			isPurchaseOrderTarget = true;
-			System.out.println("요청한 사람이 마스터 이고 현재 구매요청상태이면 여기 탑니다.");
+			if (paramUserType.equals("MASTER") && !hasEstimate) {
+		        isPurchaseOrderTarget = true;
+		        log.info("▶ MASTER의 직접 구매요청 승인: 발주서 자동 생성 대상");
+			}
 		} else if (approvalStatus.equals("APPROVED") && paramOrderStatus.equals("et002") ) {
             // [추가] 일반 USER의 견적요청 건 대응
             isEstimateTarget = true; 

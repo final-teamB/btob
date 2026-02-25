@@ -47,6 +47,15 @@ public class UserManagementController {
     	return "layout/layout";
     }
     
+    
+    @GetMapping("/pendingCount")
+    @ResponseBody
+    public int getPendingUserCount() {
+         int userNo = loginUserProvider.getLoginUserNo();
+    	 int count = userService.getPendingUserCount(userNo);
+        return count;
+    }
+    
     // 전체 사원 목록 페이지
     @GetMapping("/list")
     public String userList(

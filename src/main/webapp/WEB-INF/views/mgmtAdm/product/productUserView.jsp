@@ -1,96 +1,71 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- 1. 스타일 정의 --%>
+<%-- 1. 스타일 정의 (원본 유지) --%>
 <style>
-    .product-card {
-        transition: transform 0.2s, shadow 0.2s;
-        cursor: pointer;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-    .img-wrapper {
-        position: relative;
-        padding-top: 75%; /* 4:3 비율 */
-        overflow: hidden;
-        border-radius: 0.75rem 0.75rem 0 0;
-        background-color: #f3f4f6;
-    }
-    .img-wrapper img {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        object-fit: cover;
-    }
-    .status-badge {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    /* 페이징 버튼 스타일 */
-    .pagination-btn {
-        padding: 0.5rem 1rem;
-        margin: 0 0.25rem;
-        border-radius: 0.375rem;
-        border: 1px solid #e5e7eb;
-        background: white;
-        transition: all 0.2s;
-    }
-    .pagination-btn.active {
-        background-color: #2563eb;
-        color: white;
-        border-color: #2563eb;
-    }
-    .pagination-btn:disabled {
-        background-color: #f9fafb;
-        color: #d1d5db;
-        cursor: not-allowed;
+    .product-card { transition: transform 0.2s, shadow 0.2s; cursor: pointer; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .img-wrapper { position: relative; padding-top: 75%; overflow: hidden; border-radius: 0.75rem 0.75rem 0 0; background-color: #f3f4f6; }
+    .img-wrapper img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    .status-badge { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .pagination-btn { padding: 0.5rem 1rem; margin: 0 0.25rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; background: white; transition: all 0.2s; }
+    .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+    .pagination-btn:disabled { background-color: #f9fafb; color: #d1d5db; cursor: not-allowed; }
+    .content-area {
+        flex: 1;
+        min-width: 0;
+        /* 사이드바 너비가 변하는 속도(0.4s)와 동일하게 맞춰줍니다 */
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 </style>
 
-<div class="max-w-screen-2xl mx-auto px-4 py-8">
-    <%-- 상단 헤더 및 검색 --%>
-    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
-        <div>
-            <div class="flex items-center gap-3">
-                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
-                <%-- [추가] 실시간 건수 표시 배지 --%>
-                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
-                    총 <span id="user-total-count">0</span>건
-                </span>
+<div class="w-full pl-0 pr-4 py-8"> 
+    <div class="flex flex-col lg:flex-row gap-8 items-start justify-start">
+    
+        <div class="w-full lg:w-auto flex-shrink-0 lg:sticky lg:top-32 z-10 self-start transition-all duration-400 mb-6 lg:mb-0">
+		     <jsp:include page="/WEB-INF/views/layout/productViewSidebar.jsp" />
+		</div>
+    
+        <div class="content-area flex-1 min-w-0 w-full">
+            
+            <%-- 상단 헤더 및 검색 (문구/ID 유지) --%>
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">상품 카탈로그</h2>
+                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                            총 <span id="user-total-count">0</span>건
+                        </span>
+                    </div>
+                    <p class="text-gray-500 mt-2">다양한 유류 상품을 확인해 보세요.</p>
+                </div>
+                
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="text" id="user-search-input" 
+                           class="flex-1 md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                           placeholder="상품명 또는 국가 검색...">
+                    <button onclick="loadUserProducts(0)" 
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        검색
+                    </button>
+                </div>
             </div>
-            <p class="text-gray-500 mt-2">다양한 유류 상품을 확인해 보세요.</p>
+
+            <%-- 상품 리스트 영역 --%>
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+                </div>
+
+            <%-- 데이터 없음 표시 --%>
+            <div id="no-data" class="hidden py-20 text-center">
+                <p class="text-gray-400 text-lg">조회된 상품이 없습니다.</p>
+            </div>
+
+            <%-- 페이징 영역 --%>
+            <div class="flex justify-center items-center mt-12 gap-2" id="user-pagination">
+                </div>
         </div>
         
-        <div class="flex gap-2 w-full md:w-auto">
-            <input type="text" id="user-search-input" 
-                   class="flex-1 md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                   placeholder="상품명 또는 국가 검색...">
-            <button onclick="loadUserProducts(0)" 
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                검색
-            </button>
-        </div>
     </div>
-
-    <%-- 상품 리스트 영역 (4x5 그리드 지향) --%>
-    <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-        </div>
-
-    <%-- 데이터 없음 표시 --%>
-    <div id="no-data" class="hidden py-20 text-center">
-        <p class="text-gray-400 text-lg">조회된 상품이 없습니다.</p>
-    </div>
-
-    <%-- 페이징 영역 --%>
-    <div class="flex justify-center items-center mt-12 gap-2" id="user-pagination">
-        </div>
 </div>
 
 <jsp:include page="productUserViewDetail.jsp" />
@@ -117,17 +92,16 @@
         }
 
         // [추가] 2. 사이드바 필터 체크박스 실시간 감지
-        // aside 태그(사이드바) 내의 체크박스가 변경될 때마다 자동 로드
-        var sidebar = document.querySelector('aside');
-        if (sidebar) {
-            sidebar.addEventListener('change', function(e) {
-                if (e.target.type === 'checkbox') {
-                    console.log("사이드바 필터 변경 감지...");
-                    loadUserProducts(0);
-                }
-            });
-        }
-        
+        // filterSidebar (사이드바의 고유 ID) 내의 체크박스가 변경될 때마다 자동 로드
+        var sidebar = document.getElementById('filterSidebar');
+			if (sidebar) {
+			    sidebar.addEventListener('change', function(e) {
+			        if (e.target.type === 'checkbox') {
+			            console.log("필터 변경 감지: ", e.target.name, " -> ", e.target.value);
+			            loadUserProducts(0);
+			        }
+			    });
+			}
         // 엔터키 검색 이벤트
         document.getElementById('user-search-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') loadUserProducts(0);
@@ -184,16 +158,26 @@
     /**
      * 필터 초기화 함수 (사이드바 resetFilters 호출용)
      */
-    function resetFilters() {
-        // 모든 체크박스 해제
-        document.querySelectorAll('aside input[type="checkbox"]').forEach(function(cb) {
-            cb.checked = false;
-        });
-        // 검색어 초기화
-        document.getElementById('user-search-input').value = '';
-        // 1페이지부터 다시 로드
-        loadUserProducts(0);
-    }
+     function resetFilters() {
+    	    // 1. [수정] id="filterSidebar" 안에 있는 모든 체크박스를 직접 타겟팅
+    	    const sidebar = document.getElementById('filterSidebar');
+    	    if (sidebar) {
+    	        const checkboxes = sidebar.querySelectorAll('input[type="checkbox"]');
+    	        checkboxes.forEach(function(cb) {
+    	            cb.checked = false;
+    	        });
+    	    }
+
+    	    // 2. 검색어 초기화
+    	    const searchInput = document.getElementById('user-search-input');
+    	    if (searchInput) {
+    	        searchInput.value = '';
+    	    }
+
+    	    // 3. 데이터 로드 (첫 페이지부터)
+    	    loadUserProducts(0);
+    	   
+    	}
 
      /**
       * 그리드 렌더링 (상태별 색상 완벽 적용 버전)
@@ -288,4 +272,9 @@
     	// 페이지 이동 대신 모달 오픈 함수 호출 (productUserViewDetail.jsp에 정의한 함수)
         openProductDetail(fuelId);
     }
+    
+ // 페이지 로드 완료 후 첫 데이터 호출
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUserProducts(0); 
+    });
 </script>

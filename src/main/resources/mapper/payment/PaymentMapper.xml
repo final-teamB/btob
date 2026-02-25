@@ -54,7 +54,7 @@
 	        m.order_id,
 	        m.order_no,
 	        o.fuel_nm,	
-	        SUM(COALESCE(e.target_total_amount, c.total_price)) OVER() AS totalPrice_main,  
+	        COALESCE(MAX(e.target_total_amount) OVER(), SUM(c.total_price) OVER()) AS totalPrice_main,
 		    c.total_qty,       
 		    c.total_price AS item_price,        
 		    c.total_qty AS item_qty,           
@@ -83,7 +83,7 @@
 	        LEFT OUTER JOIN TB_USERS master_u ON cp.master_id = master_u.user_id
 	        LEFT OUTER JOIN TB_EST_DOC e ON m.est_id = e.est_doc_id
 	    WHERE m.order_no = #{orderNo}
-	      AND m.order_status = 'pr002'
+	      AND m.order_status = 'pm001'
 	      AND m.use_yn = 'Y'
 	</select>
 	

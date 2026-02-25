@@ -513,7 +513,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 				if ( result > 0 ) {
 					
 					// 감소 처리 한 후 현재 수량이 만약 0이면 제품상태코드를 품절로 변경한다.
-					if ( productMgmtAdmMapper.selectProductCurrVolById(fuelId) != null ||
+					if ( productMgmtAdmMapper.selectProductCurrVolById(fuelId) != null &&
 							productMgmtAdmMapper.selectProductCurrVolById(fuelId) == 0 ) {
 						
 						productMgmtAdmMapper.itemSttsChgSoldOut(fuelId);
