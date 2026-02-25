@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderer: {
                     type: CustomActionRenderer,
                     options: {
-                        buttons: [ { text: '열기', action: 'OPEN_DETAIL', color: 'text-indigo-600 font-bold' } ]
+                        buttons: [ { text: '열기', action: 'OPEN_DETAIL', color: 'text-blue-500' } ]
                     }
                 }
             }

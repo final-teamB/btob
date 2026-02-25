@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/admin/stats/**").hasRole("ADMIN")
                 .requestMatchers("/support/admin/**").hasRole("ADMIN")
                 .requestMatchers("/admin/user/**").hasRole("ADMIN")
+                .requestMatchers("/users/**", "/trade/**").hasRole("MASTER")
                 .anyRequest().permitAll()
             )
             // 사용자 인증 설정
