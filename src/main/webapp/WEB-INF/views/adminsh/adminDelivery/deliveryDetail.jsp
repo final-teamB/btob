@@ -120,6 +120,17 @@
                 const val = $(this).val();
                 if (val === 'dv006' || val === 'dv007') $(this).prop('disabled', true);
             });
+        } else if (orderStatus === 'pm004') {
+            // pm004: dv006, dv007만 활성화 (나머지 전부 비활성화)
+            $deliverySelect.find("option").each(function() {
+                const val = $(this).val();
+                if (val !== 'dv006' && val !== 'dv007') $(this).prop('disabled', true);
+            });
+            // 현재 선택값이 비활성화 대상이면 dv006으로 강제 이동
+            const currentVal = $deliverySelect.val();
+            if (currentVal !== 'dv006' && currentVal !== 'dv007') {
+                $deliverySelect.val('dv006');
+            }
         }
     });
 
