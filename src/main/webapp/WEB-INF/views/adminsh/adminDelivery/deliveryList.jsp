@@ -1,146 +1,136 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
-<style>
-/* 그리드 셀 내부 여백 제거 */
-.tui-grid-cell-content {
-    padding: 0 !important;
-}
-
-/* 1. 기본 상태: 수정 가능한 곳임을 암시하는 연한 회색 배경 + 연필 아이콘 */
-.direct-edit-el {
-    pointer-events: auto !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 38px;
-    padding: 0 12px !important;
-    border: 1px solid transparent !important;
-    box-sizing: border-box !important;
-    outline: none !important;
-    transition: all 0.2s;
-    cursor: text;
-}
-
-/* 2. 배송상태(Select) 전용 스타일 */
-select.direct-edit-el {
-    text-align: center !important;
-    text-align-last: center !important;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 14px;
-}
-
-/* 3. 운송장번호(Input) 전용 스타일: 연필 아이콘 추가 */
-input.direct-edit-el {
-    text-align: left !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d1d5db'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 12px;
-}
-
-/* 4. 마우스 올렸을 때(hover): 테두리를 살짝 보여줌 */
-.direct-edit-el:hover {
-    background-color: #f3f4f6 !important;
-    border: 1px solid #d1d5db !important;
-}
-
-/* 5. 클릭(focus): 확실하게 "나 지금 고치는 중!" 표시 */
-.direct-edit-el:focus {
-    background-color: #fff !important;
-    border: 1px solid #64748b !important;
-    box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1) !important;
-    background-image: none !important;
-}
-
-/* 그리드 바디의 데이터 셀에 마우스 올리면 포인터로 변경 */
-.tui-grid-body-area .tui-grid-cell {
-    cursor: pointer;
-}
-
-/* 직접 수정 영역과 관리 버튼 위에서는 기본 커서 유지 */
-.tui-grid-body-area .tui-grid-cell .direct-edit-el,
-.tui-grid-body-area .tui-grid-cell .custom-action-btn {
-    cursor: auto;
-}
-
-/* [핵심] 현재 상태 열의 두 줄 간격 최소화 */
-
-/* 1. 본문 셀 내부 컨텐츠의 줄 간격 조절 */
-.tui-grid-body-area .tui-grid-cell-content {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    /* 줄 간격을 평소보다 좁게(1.0) 설정하여 두 줄 사이 공백 제거 */
-    line-height: 1.0 !important; 
-    padding: 0 !important;
-}
-
-/* 2. 상단 텍스트(strong)와 하단 텍스트(small) 사이 간격 미세 조정 */
-.tui-grid-body-area .tui-grid-cell-content strong {
-    display: block;
-    margin-bottom: 2px !important; /* 위아래 글자 사이의 간격을 2px로 제한 */
-}
-
-.tui-grid-body-area .tui-grid-cell-content small {
-    display: block;
-    font-size: 11px !important;
-    color: #94a3b8 !important; /* 약간 연한 회색으로 처리하여 가독성 향상 */
-    margin-top: 0 !important;
-}
-
-/* 3. 행 높이 고정 (이미지 상 어긋남 방지용) */
-.tui-grid-body-area .tui-grid-cell {
-    height: 55px !important; 
-    box-sizing: border-box !important;
-}
-
-/* 1. 본문 셀 컨텐츠 설정: 줄 간격을 더 타이트하게 조정 */
-.tui-grid-body-area .tui-grid-cell-content {
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    line-height: 1.0 !important; /* 💡 기존 0.9에서 1.0 정도로 살짝 조정 (필요시) */
-    padding: 0 !important;
-}
-
-/* 2. 위쪽 글자(strong) 스타일 */
-.tui-grid-body-area .tui-grid-cell-content strong {
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-weight: 700 !important;
-}
-
-/* 3. 아래쪽 글자(small) 스타일: 간격 줄이기의 핵심 */
-.tui-grid-body-area .tui-grid-cell-content small {
-    display: block !important;
-    /* 💡 마이너스 마진 값을 더 크게 주어 위로 바짝 붙입니다. */
-    margin-top: -6px !important; 
-    font-size: 11px !important;
-    color: #64748b !important;
-}
-</style>
-
-<div class="mx-4 my-6 space-y-6">
-<div class="px-5 py-4 pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
-    <div class="text-left">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">배송 관리 시스템 (Admin)</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">모든 페이지에서 배송 상태와 운송장을 즉시 수정하고 저장할 수 있습니다.</p>
-    </div>
-</div>
-
 <c:set var="showSearchArea" value="true" scope="request" />
 <c:set var="showPerPage" value="true" scope="request" />
 <c:set var="showAddBtn" value="false" scope="request" />
-<jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp" />
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+	#dg-container { width: 100%; margin-top: 1rem; }
+	.grid-relative-wrapper { position: relative; width: 100%; }
+	
+	/* 직접 수정 input/select 톤 통일 */
+	.direct-edit-el {
+	    pointer-events: auto !important;
+	    width: 90% !important;
+	    height: 36px !important;
+	    border: 1px solid #e2e8f0 !important;
+	    border-radius: 6px !important;
+	    background-color: #ffffff !important;
+	    font-size: 13px !important;
+	    transition: border-color 0.2s ease;
+	}
+	
+	.direct-edit-el:focus {
+	    border-color: #3b82f6 !important;
+	    outline: none !important;
+	}
+	
+	/* select 가운데 정렬 */
+	select.direct-edit-el {
+	    text-align: center !important;
+	    text-align-last: center !important;
+	    appearance: none;
+	    background-position: right 8px center;
+	}
+	
+	select.direct-edit-el option {
+	    text-align: center;
+	}
+	
+	/* 상태 표시 strong/small 정리 */
+	.tui-grid-body-area .tui-grid-cell-content {
+	    line-height: 1.1 !important;
+	    padding: 0 !important;
+	}
+	
+	.tui-grid-body-area .tui-grid-cell-content strong {
+	    display: block;
+	    font-weight: 700;
+	}
+	
+	.tui-grid-body-area .tui-grid-cell-content small {
+	    display: block;
+	    font-size: 11px;
+	    color: #64748b;
+	    margin-top: -4px;
+	}
+	
+	/* 필터, 검색 영역 사이즈 통일 */
+	#dg-common-filter-wrapper select, 
+	#dg-search-input {
+	    padding-left: 1rem !important;
+	    padding-right: 2.5rem !important;
+	}
+	
+	.tui-grid-body-area td[data-column-name="manage"] button {
+	    padding: 0.1rem 0.75rem !important;   /* px-3 py-1 */
+	    font-size: 0.75rem !important;         /* text-xs */
+	    font-weight: 700 !important;           /* font-bold */
+	    color: #1d4ed8 !important;             /* text-blue-700 */
+	    background-color: #ffffff !important;
+	    border: 1px solid #60a5fa !important;  /* border-blue-400 */
+	    border-radius: 0.375rem !important;    /* rounded-md */
+	    transition: all 0.2s ease !important;
+	    text-decoration: none !important;
+	}
+	
+	.tui-grid-body-area td[data-column-name="manage"] button:hover {
+	    background-color: #eff6ff !important;  /* hover:bg-blue-50 */
+	}
+</style>
+
+<div class="max-w-screen-2xl mx-auto">
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+        
+        <!-- ===== 상단 타이틀 영역 (사용자 관리와 동일 구조) ===== -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        배송 관리
+                    </h2>
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                        ADMIN
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">
+                    모든 주문의 배송 상태와 운송장을 즉시 수정하고 저장할 수 있습니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- ===== 데이터그리드 영역 ===== -->
+        <div class="grid-relative-wrapper">
+            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                <jsp:param name="showSearchArea" value="true" />
+                <jsp:param name="showPerPage" value="true" />
+            </jsp:include>
+        </div>
+
+    </div>
+</div>
+
+<div id="deliveryDetailModal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 overflow-y-auto">
+    <div class="relative w-full max-w-3xl p-4">
+        <div class="relative bg-white rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">배송 상세 정보 관리</h3>
+                <button type="button" onclick="closeDeliveryModal()" class="text-gray-400 hover:text-gray-900 ml-auto p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="deliveryModalContent">
+                <div class="flex justify-center py-10">
+                    <span>데이터를 불러오는 중...</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -344,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderer:{ type: CustomActionRenderer, options:{ btnText:'저장' } }
             }
         ],
-        scrollY: false,
     	bodyHeight: 'auto',
     	rowHeight: 60,         
         columnOptions: {
@@ -357,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ev.columnName !== 'manage' && ev.columnName !== 'deliveryStatus' && ev.columnName !== 'trackingNo') {
             const rowData = deliveryGrid.grid.getRow(ev.rowKey);
             if (rowData && rowData.deliveryId) {
-                location.href = '/admin/delivery/detail/' + rowData.deliveryId;
+                openDeliveryModal(rowData.deliveryId); 
             }
         }
     });
@@ -429,4 +418,29 @@ window.handleGridAction = function(rowData) {
     })
     .catch(err => alert('오류: ' + err));
 };
+
+function openDeliveryModal(deliveryId) {
+    const modal = document.getElementById('deliveryDetailModal');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    $.ajax({
+        url: "/admin/delivery/detail/" + deliveryId + "?modal=Y",
+        type: "GET",
+        success: function(html) {
+            $('#deliveryModalContent').html(html);
+        },
+        error: function() {
+            alert("데이터를 불러오지 못했습니다.");
+            closeDeliveryModal();
+        }
+    });
+}
+function closeDeliveryModal() {
+    const modal = document.getElementById('deliveryDetailModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
 </script>

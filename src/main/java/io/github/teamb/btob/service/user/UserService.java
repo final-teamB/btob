@@ -172,5 +172,9 @@ public class UserService {
         
         return cleanPhone; // 형식이 맞지 않으면 숫자만이라도 반환
     }
+
+	public int getPendingUserCount(int userNo) {
+		return userMapper.getPendingUserCount(userNo);
+	}
 	
 }

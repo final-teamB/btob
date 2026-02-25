@@ -48,7 +48,8 @@ public class TradeApprovalService {
 	    // 팝업에서 넘어온 PK (order_id) - String일 경우 Integer로 변환
 	    Object orderIdObj = params.get("orderId");
 	    if (orderIdObj == null) throw new Exception("식별 번호(ID)가 누락되었습니다.");
-	    requestDto.setRefId(Integer.parseInt(orderIdObj.toString()));
+	    int orderId = Integer.parseInt(orderIdObj.toString());
+	    requestDto.setRefId(orderId);
 	    String rejectReason = (String) params.get("rejectReason");
 	    
 	    // 승인(od002) / 반려(od999) 판단
@@ -69,35 +70,38 @@ public class TradeApprovalService {
 
 	    // 3. 공통 워크플로우 서비스 호출 (자동으로 TB_ORDER_MST 업데이트 + 이력 생성)
 	    bizWorkflowServiceImpl.modifyEtpStatusAndLogHist(requestDto);
-	    
+	    	    
 	    if ("od002".equals(status)) {
 	        try {
-	            // 1. 문서 번호 생성 (PO-회사코드-날짜-순번)
-	            String docNo = tradeDocMapper.selectFormattedDocNo("PO", receiverId);
-	            
-	            // 2. DTO 객체 생성 및 데이터 빌드
-	            DocumentInsertDTO docDto = new DocumentInsertDTO();
-	            
-	            docDto.setDocNo(docNo);
-	            docDto.setDocType("PURCHASE_ORDER");
-	            
-	            // [선택하신 제목 형식] [주문번호] 물품 공급 발주서
-	            String orderNo = (String) params.get("orderNo");
-	            docDto.setDocTitle("[" + orderNo + "] 물품 공급 발주서");
-	            
-	            docDto.setOrderId(Integer.parseInt(orderIdObj.toString()));
-	            docDto.setOwnerUserId(receiverId); // 문서를 조회할 권한을 가진 유저(발주자)
-	          	            
-	            docDto.setRegId(loginUserId);
-	            
-	            // 3. Mapper 호출 (TB_DOCUMENT_MST에 최종 인서트)
-	            tradeDocMapper.insertDocument(docDto);
-	            
-	            System.out.println("발주서 생성 완료: " + docNo);
+	            // [추가] 견적서 ID 존재 여부 확인 (params에 estId가 담겨온다고 가정)
+	            // 만약 params에 없다면 DB에서 order_id로 est_id를 조회하는 과정이 필요할 수 있습니다.
+	        	Integer estId = tradeApprovalmapper.getEstIdByOrderId(orderId); 
+	            boolean isFromEstimate = (estId != null);
+
+	            if (!isFromEstimate) {
+	                // 1. 문서 번호 생성 (PO-회사코드-날짜-순번)
+	                String docNo = tradeDocMapper.selectFormattedDocNo("PO", receiverId);
+	                
+	                // 2. DTO 객체 생성 및 데이터 빌드
+	                DocumentInsertDTO docDto = new DocumentInsertDTO();
+	                docDto.setDocNo(docNo);
+	                docDto.setDocType("PURCHASE_ORDER");
+	                
+	                String orderNo = (String) params.get("orderNo");
+	                docDto.setDocTitle("[" + orderNo + "] 물품 공급 발주서");
+	                docDto.setOrderId(orderId);
+	                docDto.setOwnerUserId(receiverId); 
+	                docDto.setRegId(loginUserId);
+	                
+	                // 3. Mapper 호출
+	                tradeDocMapper.insertDocument(docDto);
+	                System.out.println("일반 주문 승인 - 발주서 생성 완료: " + docNo);
+	            } else {
+	                System.out.println("견적 기반 주문 - 발주서 생성을 건너뜁니다. (estId: " + estId + ")");
+	            }
 	            
 	        } catch (Exception e) {
-	            // 예외 로그 남기기 (필요 시 RuntimeException으로 던져 트랜잭션 롤백)
-	            System.err.println("발주서(PO) 자동 생성 중 오류 발생: " + e.getMessage());
+	            System.err.println("발주서(PO) 생성 중 오류 발생: " + e.getMessage());
 	            e.printStackTrace();
 	        }
 	    }

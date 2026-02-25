@@ -3,7 +3,6 @@ package io.github.teamb.btob.controller.notice;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,10 +19,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
 
 import io.github.teamb.btob.entity.Notice;
+import io.github.teamb.btob.entity.NoticeFile;
 import io.github.teamb.btob.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
 
@@ -70,25 +71,30 @@ public class NoticeController {
         
         notice.setRegId(userDetails.getUsername());
         notice.setUpdId(userDetails.getUsername());
-        
-        // 글 저장 실행
-        noticeService.saveNotice(notice);
 
-        // 첨부파일 저장 로직
         if (files != null && !files.isEmpty()) {
-            File dir = new File(uploadPath);
-            if (!dir.exists()) dir.mkdirs();
-
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     String originalFileName = file.getOriginalFilename();
                     String savedFileName = UUID.randomUUID().toString() + "_" + originalFileName;
-                    file.transferTo(new File(uploadPath + savedFileName));
                     
-                    // DB에 파일 정보 저장 로직 필요 (예: noticeService.saveFileInfo(notice.getNoticeId(), originalFileName, savedFileName))
+                    File dir = new File(uploadPath);
+                    if (!dir.exists()) dir.mkdirs();
+                    file.transferTo(new File(uploadPath + savedFileName));
+
+                    // NoticeFile 객체 생성 및 연결
+                    NoticeFile noticeFile = NoticeFile.builder()
+                            .originFileName(originalFileName)
+                            .storedFileName(savedFileName)
+                            .regId(userDetails.getUsername())
+                            .notice(notice) // 부모 객체 연결
+                            .build();
+                    
+                    notice.getNoticeFiles().add(noticeFile);
                 }
             }
         }
+        noticeService.saveNotice(notice);
         
         return "redirect:/notice";
     }
@@ -105,33 +111,67 @@ public class NoticeController {
                 .body(resource);
     }
     
-    // 수정 페이지 이동
+    // 수정 페이지 이동 (모달 대응)
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable("id") Integer id, Model model) {
-    	Notice notice;
-        
-        if (id == null || id == 0) {
-            notice = new Notice(); 
-        } else {
-            notice = noticeService.getNoticeDetail(id);
-        }
-
+    public String editForm(@PathVariable("id") Integer id, 
+                           @RequestParam(value="isModal", defaultValue="N") String isModal, 
+                           Model model) {
+        Notice notice = (id == null || id == 0) ? new Notice() : noticeService.getNoticeDetail(id);
         model.addAttribute("notice", notice);
         
-        if (model.getAttribute("files") == null) {
-            model.addAttribute("files", new ArrayList<>());
+        // 모달 요청인 경우 레이아웃 없이 JSP만 리턴
+        if ("Y".equals(isModal)) {
+            return "testKSH/noticeEdit"; 
         }
-
+        
         model.addAttribute("content", "testKSH/noticeEdit.jsp");
         return "layout/layout";
     }
 
     // 수정 실행
     @PostMapping("/update")
-    public String update(Notice notice, @AuthenticationPrincipal UserDetails userDetails) {
+    public String update(Notice notice, 
+                         @RequestParam(value = "files", required = false) List<MultipartFile> files, // 이거 추가!
+                         @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+        
+        if (userDetails == null) return "redirect:/home/index";
         notice.setUpdId(userDetails.getUsername());
+
+        // 파일 업데이트 로직 추가
+        if (files != null && !files.isEmpty()) {
+        	for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String originalFileName = file.getOriginalFilename();
+                    String savedFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+                    
+                    File dir = new File(uploadPath);
+                    if (!dir.exists()) dir.mkdirs();
+                    file.transferTo(new File(uploadPath + savedFileName));
+
+                    // 새로운 파일 객체 생성 및 연결
+                    NoticeFile noticeFile = NoticeFile.builder()
+                            .originFileName(originalFileName)
+                            .storedFileName(savedFileName)
+                            .regId(userDetails.getUsername())
+                            .notice(notice) // 부모 연결
+                            .useYn("Y")
+                            .build();
+                    
+                    // 엔티티의 리스트에 추가
+                    notice.getNoticeFiles().add(noticeFile);
+                }
+            }
+        }
         noticeService.updateNotice(notice);
-        return "redirect:/notice/edit/" + notice.getNoticeId();
+        return "redirect:/notice"; // 수정 후 목록으로 이동
+    }
+    
+    // 파일 삭제
+    @PostMapping("/file/delete/{fileId}")
+    @ResponseBody
+    public ResponseEntity<String> deleteFile(@PathVariable Integer fileId) {
+        noticeService.deleteNoticeFile(fileId);
+        return ResponseEntity.ok("success");
     }
 
     // 삭제 실행

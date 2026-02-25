@@ -122,8 +122,12 @@
 	</select>
 		
 	<select id="selectOrderTotalAmt" resultType="int">
-	    SELECT IFNULL(SUM(total_price), 0)
-	   		 FROM TB_CART
+	    SELECT 
+	        IFNULL(
+	            SUM(IFNULL(target_product_amt, total_price)), 
+	            0
+	        )
+	    FROM TB_CART
 	    WHERE order_no = #{orderNo}
 	</select>
 		

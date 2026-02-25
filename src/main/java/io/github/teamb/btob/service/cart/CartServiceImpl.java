@@ -64,7 +64,7 @@ public class CartServiceImpl implements CartService {
 	        }
 	    }
 	    
-	   /* if (dto.getTotalQty() < 1) {
+	  if (dto.getTotalQty() < 1) {
 	        throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
 	    }
 
@@ -78,7 +78,7 @@ public class CartServiceImpl implements CartService {
 	    } catch (Exception e) {
 	        throw new RuntimeException("재고 수정 실패: " + e.getMessage());
 	    }
-	    */
+	   
 
 	    // 1. 이미 담긴 상품인지 확인
 	    CartItemInsertDTO existItem = cartMapper.selectExistingCartItem(dto);
@@ -102,13 +102,18 @@ public class CartServiceImpl implements CartService {
 	    
 	    // 1. 기존 장바구니 정보를 조회하여 이전 수량 확인 (Mapper에 해당 메서드 필요)
 	    // 예: selectCartItemOne(cartId)
-	    /*
-	    CartItemDTO currentItem = cartMapper.selectCartItemById(dto.getCartId()); 
+	    CartItemDTO currentItem = cartMapper.selectCartItemById(dto.getCartId());
+	    
+	    // [추가] 조회된 데이터가 없는지 확인
+	    if (currentItem == null) {
+	        throw new RuntimeException("장바구니 항목을 찾을 수 없습니다. CartID: " + dto.getCartId());
+	    }
+	    
 	    int diffQty = dto.getTotalQty() - currentItem.getTotalQty();
 
 	    if (diffQty != 0) {
 	        UpdateProductCurrVolDTO volDTO = new UpdateProductCurrVolDTO();
-	        volDTO.setFuelId(dto.getFuelId());
+	        volDTO.setFuelId(currentItem.getFuelId());
 	        volDTO.setOrderQty(Math.abs(diffQty)); // 차이값의 절대값만큼 조정
 	        
 	        // 늘어났으면 DOWN(차감), 줄어들었으면 UP(복구)
@@ -125,14 +130,13 @@ public class CartServiceImpl implements CartService {
 	            throw new RuntimeException("재고 수정 중 오류 발생: " + e.getMessage());
 	        }
 	    }
-        */
+       
 	    cartMapper.updateCartItem(dto);    
 	}
 
 	@Override
 	public void deleteCartItem(int cartId) {
 	    // 1. 삭제 전 수량을 알아야 재고를 복구하므로 먼저 조회
-		/*
 	    CartItemDTO item = cartMapper.selectCartItemById(cartId);
 	    
 	    if (item != null) {
@@ -148,7 +152,6 @@ public class CartServiceImpl implements CartService {
 	        	throw new RuntimeException("재고 복구 실패: " + e.getMessage());
 	        }
 	    }
-	    */
 
 	    cartMapper.deleteCartItem(cartId, loginUserProvider.getLoginUserId());        
 	}

@@ -123,14 +123,22 @@
     <select id="checkUserId" parameterType="string" resultType="int">
         SELECT COUNT(*) 
        	 	FROM TB_USERS
-        	WHERE user_id = #{userId}
+       	WHERE user_id = #{userId}
     </select>
 
 	<!-- 대표아이디 회사코드찾기 -->
 	<select id="getCompanyCdByMasterId">
 		SELECT company_cd
 			FROM TB_USERS
-			WHERE user_no = #{userNo}
+		WHERE user_no = #{userNo}
+	</select>
+	
+	<select id="getPendingUserCount">
+		SELECT COUNT(*)
+			FROM TB_USERS
+		WHERE company_cd = (SELECT company_cd FROM TB_USERS	WHERE user_no = #{userNo})
+			AND app_status = 'PENDING'
+			AND use_yn = 'Y'
 	</select>
 	
 </mapper>

@@ -36,9 +36,13 @@
                                 <button type="button" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded shadow-sm hover:bg-gray-100"
                                         onclick="decreaseQty(${c.cartId}, ${c.baseUnitPrc})">−</button>
                                 
-                                <input type="number" id="qty-${c.cartId}" value="${c.totalQty}" min="1"
-                                       class="w-12 text-center bg-transparent font-bold text-gray-900 dark:text-white focus:outline-none"
-                                       onchange="updateCartQty(${c.cartId}, this.value, ${c.baseUnitPrc})">
+                                <input type="number" id="qty-${c.cartId}" 
+							       value="${c.totalQty}" 
+							       data-prev-val="${c.totalQty}" 
+							       data-fuel-id="${c.fuelId}" 
+							       min="1"
+							       class="w-12 text-center bg-transparent font-bold text-gray-900 dark:text-white focus:outline-none"
+							       onchange="updateCartQty(${c.cartId}, this.value, ${c.baseUnitPrc})">
 
                                 <button type="button" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-gray-600 rounded shadow-sm hover:bg-gray-100"
                                         onclick="increaseQty(${c.cartId}, ${c.baseUnitPrc})">+</button>
@@ -193,7 +197,12 @@ function decreaseQty(cartId, unitPrice) {
 }
 
 function updateCartQty(cartId, qty, unitPrice) {
+    const qtyInput = document.getElementById('qty-' + cartId);
+    if(!qtyInput) return;
+    
     const calculatedPrice = unitPrice * qty;
+    const oldQty = qtyInput.getAttribute('data-prev-val');
+    const fuelId = qtyInput.getAttribute('data-fuel-id');
     
     $.ajax({
         url: contextPath + "/cart/update",
@@ -201,7 +210,8 @@ function updateCartQty(cartId, qty, unitPrice) {
         data: { 
             cartId: cartId, 
             totalQty: qty,
-            totalPrice: calculatedPrice
+            totalPrice: calculatedPrice,
+            fuelId: fuelId
         },
         success: function(res) {
             // 서버에서 성공(success) 응답을 받아야만 화면 금액을 업데이트함
@@ -210,15 +220,22 @@ function updateCartQty(cartId, qty, unitPrice) {
                 if(totalEl) {
                     totalEl.innerText = '₩' + calculatedPrice.toLocaleString();
                 }
+                qtyInput.setAttribute('data-prev-val', qty); // 성공 시 현재 값을 이전 값으로 저장
                 updateFinalTotal();
                 console.log("DB 저장 완료:", cartId, qty);
             } else {
-                alert("저장에 실패했습니다: " + (res.message || "알 수 없는 오류"));
+            	alert("알림: " + (res.message || "수량 변경에 실패했습니다."));
+                qtyInput.value = oldQty;
             }
         },
-        error: function(xhr, status, error) {
-            console.error("AJAX 오류:", error);
-            alert("서버 통신 중 오류가 발생했습니다.");
+        error: function(xhr) {
+        	// 서버에서 보낸 RuntimeException 메시지 추출
+            let errorMsg = "재고 확인 중 오류가 발생했습니다.";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            }
+            alert(errorMsg); 
+            qtyInput.value = oldQty; // 오류 시 복구
         }
     });
 }

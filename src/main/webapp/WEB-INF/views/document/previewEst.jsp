@@ -269,15 +269,21 @@
             $(this).find('.target-amt-display').text(rowTargetAmt.toLocaleString());
         });
 
-        // B2B 표준 계산 (공급가액 + 부가세 10% = 합계)
-        const vat = Math.floor(totalSupply * 0.1); // 부가세 10%
-        const finalTotal = totalSupply + vat;      // 최종 합계액
-
-        // 하단 검은색 요약 박스 업데이트
-        $('#baseTotalVal').text('₩' + totalBase.toLocaleString());     // 기존가 총합
-        $('#supplyAmtVal').text('₩' + totalSupply.toLocaleString());   // 희망 공급가액
-        $('#vatVal').text('₩' + vat.toLocaleString());               // 부가세
-        $('#finalTotalVal').text('₩' + finalTotal.toLocaleString());    // 최종 견적가
+        // B2B 표준 계산
+        // 1. 사용자가 입력한 값의 합계가 곧 최종 금액 (20,300원 예시)
+	    const finalTotal = totalSupply; 
+	
+	    // 2. 부가세는 최종 금액에서 10%를 역산 (포함 개념)
+	    const vat = Math.floor(finalTotal - (finalTotal / 1.1)); 
+	    
+	    // 3. 순수 공급가액 (최종금액 - 부가세)
+	    const pureSupplyAmt = finalTotal - vat;
+	
+	    // 하단 요약 박스 업데이트
+	    $('#baseTotalVal').text('₩' + totalBase.toLocaleString());     // 기존가 총합
+	    $('#supplyAmtVal').text('₩' + pureSupplyAmt.toLocaleString()); // 부가세 제외 순수 공급가
+	    $('#vatVal').text('₩' + vat.toLocaleString());               // 포함된 부가세
+	    $('#finalTotalVal').text('₩' + finalTotal.toLocaleString());    // 최종 견적가 (입력 합계와 일치)
     }
 
     function fn_confirmOrder() {
