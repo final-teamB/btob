@@ -6,58 +6,106 @@
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
 <style>
-    /* 유류명칭 링크 스타일 고도화 */
-	.fuel-link { 
-	    color: #1e293b; /* 깊은 네이비 색상 */
-	    font-weight: 600; 
-	    cursor: pointer; 
-	    transition: all 0.2s ease; /* 부드러운 전환 효과 */
-	    padding: 4px 8px;
-	    border-radius: 4px;
-	    display: inline-block;
-	}
-	
-	.fuel-link:hover { 
-	    color: #2563eb; /* 호버 시 밝은 블루 */
-	    background-color: #eff6ff; /* 호버 시 아주 연한 배경색 */
-	    text-decoration: none !important; /* 밑줄 대신 배경색으로 강조 */
-	}
-    .input-edit { background-color: #ffffff !important; color: #111827 !important; cursor: text !important; }
-    #dg-container { width: 100%; margin-top: 1rem; }
-    .grid-relative-wrapper { position: relative; width: 100%; }
+    /* 배경색 및 전체 컨테이너 설정 */
+    body { background-color: #f9fafb; }
+    
+    /* [수정] 푸터와 더 가깝게 붙도록 여백 및 최소 높이 조정 */
+    .admin-main-container { 
+        width: 100%; 
+        min-height: calc(100vh - 100px); /* 최소 높이를 조금 더 확보하여 푸터 위치 조정 */
+        padding-bottom: 1rem; /* 하단 안쪽 여백 축소 (3rem -> 1rem) */
+    }
+
+    /* 공통 버튼 스타일 */
+    .btn-outline-custom {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #4b5563;
+        background-color: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+    }
+    .btn-outline-custom:hover { background-color: #f9fafb; border-color: #9ca3af; }
+    
+    .btn-excel { min-width: 150px; }
+
+    .btn-primary-custom {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #ffffff;
+        background-color: #2563eb;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        min-width: 140px;
+    }
+    .btn-primary-custom:hover { background-color: #1d4ed8; transform: translateY(-1px); }
+
+    /* 기존 스타일 유지 */
+    .fuel-link { color: #1e293b; font-weight: 600; cursor: pointer; transition: all 0.2s ease; padding: 4px 8px; border-radius: 4px; }
+    .fuel-link:hover { color: #2563eb; background-color: #eff6ff; text-decoration: none !important; }
+    
+    /* [수정] 그리드 카드 하단 여백 축소 */
+    .grid-card { 
+        background-color: #ffffff; 
+        border: 1px solid #e5e7eb; 
+        border-radius: 0.75rem; 
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem; /* 하단 바깥 여백 축소 (2rem -> 1rem) */
+    }
+    
+    /* 그리드 높이 확보 */
+    #dg-container { width: 100%; margin-top: 0; min-height: 500px; }
 </style>
 
-<div class="max-w-screen-2xl mx-auto">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-			    <div class="flex items-center gap-3">
-			        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">상품 관리</h2>
-			        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-			            전체 <span id="total-count-display">0</span>건
-			        </span>
-			    </div>
-			    <p class="text-sm text-gray-500 mt-1">등록된 유류 상품의 상세 정보를 조회하고 관리할 수 있습니다.</p>
-			</div>
-            <div class="flex flex-wrap items-center gap-2">
-                <button type="button" 
-                onclick="ProductExcelHandler.downloadBatchTemplate()" 
-                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄양식 다운로드</button>
-                <button type="button" 
-                onclick="ProductExcelHandler.openUploadModal()"
-                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">일괄 업로드</button>
-                <button type="button"
-                onclick="ProductExcelHandler.downloadProductExcel()"
-                class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">엑셀 다운로드</button>
-                <button type="button" onclick="handleAddAction()" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95">+ 신규 등록</button>
+<div class="admin-main-container my-6 space-y-6">
+    
+    <div class="px-5 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full text-left"> 
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">상품 관리</h1>
+                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                    전체 <span id="total-count-display">0</span>건
+                </span>
             </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">등록된 유류 상품의 상세 정보를 실시간으로 모니터링하고 관리합니다.</p>
         </div>
+        
+        <div class="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+            <button type="button" onclick="ProductExcelHandler.downloadBatchTemplate()" class="btn-outline-custom">
+                <i class="fas fa-download mr-2 text-gray-400"></i>일괄양식
+            </button>
+            <button type="button" onclick="ProductExcelHandler.openUploadModal()" class="btn-outline-custom">
+                <i class="fas fa-upload mr-2 text-gray-400"></i>일괄 업로드
+            </button>
+            <button type="button" onclick="ProductExcelHandler.downloadProductExcel()" class="btn-outline-custom btn-excel">
+                <i class="fas fa-file-excel mr-2 text-green-600"></i>엑셀 다운로드
+            </button>
+            <button type="button" onclick="handleAddAction()" class="btn-primary-custom">
+                <i class="fas fa-plus mr-2"></i>신규 상품 등록
+            </button>
+        </div>
+    </div>
 
-        <div class="grid-relative-wrapper">
-            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
-                <jsp:param name="showSearchArea" value="true" />
-                <jsp:param name="showPerPage" value="true" />
-            </jsp:include>
+    <div class="px-5" style="margin-top: 1rem !important;">
+        <div class="grid-card p-4">
+            <div class="grid-relative-wrapper">
+                <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                    <jsp:param name="showSearchArea" value="true" />
+                    <jsp:param name="showPerPage" value="true" />
+                </jsp:include>
+            </div>
         </div>
     </div>
 </div>

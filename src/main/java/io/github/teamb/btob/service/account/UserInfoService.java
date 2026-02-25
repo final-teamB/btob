@@ -46,4 +46,7 @@ public interface UserInfoService {
     
     // 10.1 이메일 사용자 밴 체크 시 사용  ( 비밀번호 쪽 )
     boolean checkUserBanPwExists(String userName, String userId, String email) throws Exception;
+    
+    // 11. 회원가입시 사용자 ID 중복 체크
+    boolean userIdDuplicationChk(String userId) throws Exception;
 }	

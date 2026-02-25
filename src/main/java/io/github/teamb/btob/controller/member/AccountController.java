@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.github.teamb.btob.common.security.LoginUserProvider;
@@ -77,6 +78,49 @@ public class AccountController {
         return ResponseEntity.ok(userInfoService.registerCompanySelectBoxList());
     }
 
+    
+    /**
+     * * [API] 회원가입 시 아이디 중복 체크
+     * @author GD
+     * @since 2026. 2. 25.
+     * @param userId
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 25.  GD       최초 생성
+     */
+    @GetMapping("/api/check-duplicate-id")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkUserIdDuplication(@RequestParam("userId") String userId) {
+        
+    	Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 파라미터 유효성 검사 (공백 등)
+            if (userId == null || userId.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "아이디를 입력해주세요.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // 서비스 호출 (중복 시 Exception 발생)
+            userInfoService.userIdDuplicationChk(userId);
+            
+            response.put("success", true);
+            response.put("message", "사용 가능한 아이디입니다.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            // 서비스에서 던진 "중복된 ID로 사용이 불가능합니다." 메시지가 잡힘
+            log.warn("아이디 중복 체크 결과: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            // 중복은 클라이언트 입장에서 에러가 아닌 '체크 결과'이므로 200 OK로 보내거나 409 Conflict를 사용합니다.
+            // 여기서는 프론트 로직 편의상 200(OK)으로 응답하되 success를 false로 줍니다.
+            return ResponseEntity.ok(response);
+        }
+    }
+    
     /**
      * 
      * [API] 인증번호 발송
@@ -121,6 +165,8 @@ public class AccountController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
             
+            // 서비스가 정상이면 true, 밴이면 false를 리턴하므로 
+            // !isExistBan 즉, false(밴 상태)일 때 이 블록이 실행되어야 합니다.
             if (!isExistBan) {
                 response.put("success", false);
                 // 비밀번호 찾기 시 아이디 정보까지 확인하라는 메시지 추가
@@ -150,7 +196,8 @@ public class AccountController {
             log.error("인증번호 발송 에러 발생: ", e);
             response.put("success", false);
             // [수정] 사용자에게는 정제된 메시지만 보여줍니다.
-            response.put("message", "입력하신 정보가 올바르지 않거나 시스템 오류가 발생했습니다.");
+            String errorMsg = (e.getMessage() != null) ? e.getMessage() : "시스템 오류가 발생했습니다.";
+            response.put("message", errorMsg); 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

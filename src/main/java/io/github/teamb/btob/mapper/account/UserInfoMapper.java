@@ -51,4 +51,7 @@ public interface UserInfoMapper {
     
     // 11.1. 사용자 벤체크 ( 비밀번호 찾기 쪽 )
     String selectUserPwBanChk(UserInfoDTO userInfoDTO);
+    
+    // 12. 사용자 ID 중복 체크 ( 회원가입 )
+    Integer selectUserIdDuplicateChk(String userId);
 }

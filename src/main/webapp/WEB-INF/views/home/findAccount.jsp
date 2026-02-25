@@ -80,6 +80,7 @@
     </button>
 </div>
 
+<jsp:include page="/WEB-INF/views/home/homeAlert.jsp" />
 <script>
     var findMode = 'ID'; 
     var isVerified = false;
@@ -89,6 +90,10 @@
         findMode = mode;
         isVerified = false;
         if(timerInterval) clearInterval(timerInterval);
+        
+     	// 알림창이 떠있다면 탭 전환 시 숨김
+        const alertEl = document.getElementById('customAlert');
+        if(alertEl) alertEl.classList.add('hidden');
         
         document.getElementById('inputFormArea').classList.remove('hidden');
         document.getElementById('findIdResultArea').classList.add('hidden');
@@ -131,9 +136,9 @@
         const email = document.getElementById('targetEmail').value.trim();
         const userId = document.getElementById('findUserId').value.trim();
 
-        if(!userName) { alert("성함을 입력해주세요."); return; }
-        if(!email) { alert("이메일 주소를 입력해주세요."); return; }
-        if(findMode === 'PW' && !userId) { alert("아이디를 입력해주세요."); return; }
+        if(!userName) { showAlert("성함을 입력해주세요.", 'error'); return; }
+        if(!email) { showAlert("이메일 주소를 입력해주세요.", 'error'); return; }
+        if(findMode === 'PW' && !userId) { showAlert("아이디를 입력해주세요.", 'error'); return; }
 
         const btnMail = document.getElementById('btnSendMail');
         btnMail.disabled = true;
@@ -147,7 +152,7 @@
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                alert(data.message);
+            	showAlert(data.message, 'success'); // 성공 알림
                 document.getElementById('authCodeArea').classList.remove('hidden');
                 document.getElementById('authCode').disabled = false;
                 document.getElementById('authCode').focus();
@@ -155,20 +160,20 @@
                 btnMail.innerText = "재발송";
                 btnMail.disabled = false;
             } else {
-                alert(data.message);
+            	showAlert(data.message, 'error'); // 실패 알림
                 btnMail.disabled = false;
                 btnMail.innerText = "인증번호 발송";
             }
         })
         .catch(err => {
-            alert("서버 통신 중 오류가 발생했습니다.");
+        	showAlert("서버 통신 중 오류가 발생했습니다.", 'error');
             btnMail.disabled = false;
         });
     }
 
     function verifyCode() {
         const authCode = document.getElementById('authCode').value.trim();
-        if(authCode.length < 6) { alert("인증번호 6자리를 입력해주세요."); return; }
+        if(authCode.length < 6) { showAlert("인증번호 6자리를 입력해주세요.", 'error'); return; }
 
         fetch('/account/api/verify-auth-num', {
             method: 'POST',
@@ -189,17 +194,17 @@
                 if(findMode === 'ID') {
                     handleFindComplete(); // 아이디 찾기는 즉시 최종 단계 실행
                 } else {
-                    alert("인증되었습니다. 새 비밀번호를 설정해주세요.");
+                	showAlert("인증되었습니다. 새 비밀번호를 설정해주세요.", 'success');
                     document.getElementById('newPwArea').classList.remove('hidden');
                     // 비밀번호 재설정 모드일 때만 '재설정 완료' 버튼 노출
                     document.getElementById('btnFinalAction').classList.remove('hidden');
                 }
             } else {
-                alert(data.message);
+            	showAlert(data.message, 'error');
                 isVerified = false;
             }
         })
-        .catch(err => alert("인증 처리 중 오류가 발생했습니다."));
+        .catch(err => showAlert("인증 처리 중 오류가 발생했습니다.", 'error'));
     }
 
     function handleFindComplete() {
@@ -218,8 +223,13 @@
         if(findMode === 'PW') {
             const newPw = document.getElementById('findNewPw').value;
             const newPwConfirm = document.getElementById('findNewPwConfirm').value;
-            if(!newPw || newPw.length < 8) { alert("새 비밀번호를 8자 이상 입력해주세요."); return; }
-            if(newPw !== newPwConfirm) { alert("비밀번호가 일치하지 않습니다."); return; }
+         	// 비밀번호 유효성 검사 (정규식 추가 적용 추천)
+            var pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()])[A-Za-z\d!@#$%^&*()]{8,20}$/;
+            if(!pwRegex.test(newPw)) { 
+                showAlert("새 비밀번호는 8~20자, 대/소문자, 숫자, 특수문자를 포함해야 합니다.", 'error'); 
+                return; 
+            }
+            if(newPw !== newPwConfirm) { showAlert("비밀번호가 일치하지 않습니다.", 'error'); return; }
             
             // [중요] 서비스 코드의 userInfoDTO.getNewPassword()와 매칭
             payload.newPassword = newPw; 
@@ -242,21 +252,18 @@
                     document.getElementById('foundIdText').innerText = formattedResult;
                     if(window.lucide) lucide.createIcons();
                 } else {
-                    alert("비밀번호 변경이 완료되었습니다. 다시 로그인해주세요.");
+                	showAlert("비밀번호 변경이 완료되었습니다. 다시 로그인해주세요.", 'success');
                     
                 	 // [수정] 강제 페이지 이동 대신, 기존 UI 내의 로그인 탭으로 전환
-                    if(typeof switchTab === 'function') {
-                        switchTab('login'); 
-                    } else {
-                        // switchTab을 못 찾을 경우를 대비한 안전장치 (메인으로 이동)
-                        location.href = "/home/index";
-                    }
+                    setTimeout(() => {
+                        if(typeof switchTab === 'function') switchTab('login'); 
+                    }, 2200); // 사용자 읽을 시간을 위해 2.2초 후 이동
                 }
             } else {
-                alert(data.message);
+            	showAlert(data.message, 'error');
             }
         })
-        .catch(err => alert("요청 처리 중 오류가 발생했습니다."));
+        .catch(err => showAlert("요청 처리 중 오류가 발생했습니다.", 'error'));
     }
 
     function startTimer(duration) {
@@ -272,6 +279,7 @@
                 display.textContent = "만료";
                 display.classList.replace('text-blue-400', 'text-red-500');
                 document.getElementById('authCode').disabled = true;
+                showAlert("인증 시간이 만료되었습니다. 다시 시도해주세요.", 'error');
                 isVerified = false;
             }
         }, 1000);

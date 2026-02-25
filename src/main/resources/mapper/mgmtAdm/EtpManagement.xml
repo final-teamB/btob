@@ -18,6 +18,8 @@
 		ON a.order_status = g.etp_stts_cd
 		AND g.reject_yn = 'Y'
 		AND g.system_id IN ('ESTIMATE', 'PURCHASE')
+		LEFT OUTER JOIN COMM_TBL h
+		ON b.user_type = h.comm_no
 	
 	</sql>
 
@@ -55,6 +57,7 @@
 				,b.user_id
 				,c.company_name
 				,b.user_type
+				,h.comm_name AS userTypeNm
 				,b.user_name
 				,a.reg_dtime
 				,a.reg_id

@@ -631,12 +631,17 @@ public class UserInfoServiceImpl implements UserInfoService{
 	        throw new Exception("입력 정보가 누락되었습니다.");
 	    }
 		
-		boolean result = false;
-		
-		if (!(userInfoMapper.selectUserBanChk(dto).equals("BANNED"))) {
-			result = true;
-		}
-		return result;
+		// 1. DB에서 상태값을 먼저 가져옵니다.
+	    String status = userInfoMapper.selectUserBanChk(dto);
+	    
+	    // 2. 일치하는 사용자가 없는 경우(null) 처리
+	    if (status == null) {
+	        throw new Exception("입력하신 정보와 일치하는 사용자를 찾을 수 없습니다.");
+	    }
+	    
+	    // 3. "BANNED".equals(status) 순서로 비교하여 안전성 확보
+	    // BANNED가 아니면 true를 반환합니다.
+	    return !("BANNED".equalsIgnoreCase(status.trim()));
 	}
 	
 	/**
@@ -695,11 +700,41 @@ public class UserInfoServiceImpl implements UserInfoService{
 	        throw new Exception("입력 정보가 누락되었습니다.");
 	    }
 		
+		// 1. 상태값을 먼저 받습니다.
+	    String status = userInfoMapper.selectUserPwBanChk(dto);
+	    
+	    // 2. 만약 조회가 안 되었다면(null), 정보가 틀린 것입니다.
+	    if (status == null) {
+	        throw new Exception("입력하신 정보와 일치하는 사용자를 찾을 수 없습니다.");
+	    }
+	    
+	    // BANNED가 아니면 true(정상) 반환
+	    return !("BANNED".equalsIgnoreCase(status.trim()));
+	}
+
+	/**
+	 * 
+	 * 회원가입시 중복 아이디 체크
+	 * @author GD
+	 * @since 2026. 2. 25.
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 25.  GD       최초 생성
+	 */
+	@Override
+	public boolean userIdDuplicationChk(String userId) throws Exception{
+		
 		boolean result = false;
 		
-		if (!(userInfoMapper.selectUserPwBanChk(dto).equals("BANNED"))) {
+		if (userInfoMapper.selectUserIdDuplicateChk(userId) > 0) {
+			throw new Exception("중복된 ID로 사용이 불가능합니다.");
+		} else {
 			result = true;
 		}
+
 		return result;
 	}
 	

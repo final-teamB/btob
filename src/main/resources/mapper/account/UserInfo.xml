@@ -302,5 +302,18 @@
 					AND email = #{email}
 		
 		</select>
+		
+		<!-- 사용자 ID 중복 체크 ( 회원가입 ) -->
+		<select id="selectUserIdDuplicateChk"
+			parameterType="String"
+			resultType="int">
+			
+					SELECT 
+						COUNT(user_id)
+					FROM 
+						TB_USERS
+					WHERE user_id = #{userId} 
+		
+		</select>
 
 </mapper>

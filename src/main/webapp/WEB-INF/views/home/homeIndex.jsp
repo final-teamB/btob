@@ -60,15 +60,17 @@
                     <i data-lucide="layers" class="text-white w-6 h-6"></i>
                 </div>
                 <div>
-                    <span class="text-xl font-black text-slate-900 tracking-tighter">GDJ-A TradeHuB</span>
+                    <span class="text-xl font-black text-slate-900 tracking-tighter">GDJ95-A TradeHuB</span>
                     <p class="text-[10px] text-blue-600 font-bold -mt-1 tracking-tight">GLOBAL OIL TRADING</p>
                 </div>
             </div>
             
             <div class="flex items-center gap-8">
+                <!-- 사용안해서 주석 처리 
                 <a href="#" class="text-sm font-bold text-gray-600 hover:text-blue-600 flex items-center gap-2 transition-colors">
                     <i data-lucide="megaphone" class="w-4 h-4 text-gray-400"></i> 공지사항
                 </a>
+                 -->
                 <button onclick="openAuthModal()" class="min-w-[110px] h-11 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2">
 			    	<i data-lucide="log-in" class="w-4 h-4"></i>
 			    <span>로그인</span>
