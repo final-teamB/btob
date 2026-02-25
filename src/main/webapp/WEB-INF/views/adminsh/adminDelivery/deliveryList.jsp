@@ -257,10 +257,10 @@ class DirectSelectRenderer {
         ];
 
         let allowedStatus = list;
-        if (orderStatus === 'pm004') {
+        if (orderStatus === 'pm004' || orderStatus === 'pm003') {
             // dv005(통관완료)는 비활성화 옵션으로 포함, dv006/dv007은 선택 가능
             allowedStatus = list.filter(s => ['dv005', 'dv006', 'dv007'].includes(s.v));
-        } else if (orderStatus === 'pm002') allowedStatus = list.filter(s => ['dv001','dv002','dv003','dv004','dv005'].includes(s.v));
+        } else if (orderStatus === 'pm002' || orderStatus === 'pm001') allowedStatus = list.filter(s => ['dv001','dv002','dv003','dv004','dv005'].includes(s.v));
 
         allowedStatus.forEach(i => {
             const o = document.createElement('option');
@@ -268,7 +268,7 @@ class DirectSelectRenderer {
             o.textContent = i.t;
             if (i.v === currentValue) o.selected = true;
 
-            if (i.v === 'dv005' && orderStatus === 'pm004') {
+            if (i.v === 'dv005' && (orderStatus === 'pm004' || orderStatus === 'pm003')) {
                 o.disabled = true;
                 o.style.color = '#aaa';
             }
@@ -287,6 +287,7 @@ allOriginalData.push({
     deliveryId: "${item.deliveryId}",
     regDtime: "${item.regDtime}".replace('T',' '),
     orderId: "${item.orderId}",
+    orderNo: "${item.orderNo}",
     orderStatus: "${item.orderStatus}",
     statusDisplay: '<strong>${item.statusName}</strong><br><small>(${item.deliveryStatus})</small>',
     deliveryStatus: "${item.deliveryStatus}",
@@ -391,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         perPageId: 'dg-per-page',
         data: allOriginalData, // 초기 데이터도 전역 데이터 사용
         columns: [
-            { header:'주문번호', name:'orderId', width:130, align:'center' },
+            { header:'주문번호', name:'orderNo', width:170, align:'center' },
             { header:'주문일시', name:'regDtime', width:160, align:'center' },
             {
                 header: '주문상태',
@@ -408,9 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     return map[value] || value;
                 }
             },
-            { header:'현재 상태', name:'statusDisplay', width:150, align:'center' },
-            { header:'배송상태(수정)', name:'deliveryStatus', width:150, align:'center', renderer:{ type: DirectSelectRenderer } },
-            { header:'운송장번호', name:'trackingNo', align:'left', renderer:{ type: DirectInputRenderer } },
+            { header:'배송상태(수정)', name:'deliveryStatus', width:120, align:'center', renderer:{ type: DirectSelectRenderer } },
+            { header:'운송장번호', name:'trackingNo', align:'center', renderer:{ type: DirectInputRenderer } },
             {
                 header:'관리', name:'manage', width:90, align:'center',
                 renderer:{ type: CustomActionRenderer, options:{ btnText:'저장' } }
@@ -514,14 +514,24 @@ window.handleGridAction = function(rowData) {
             // ✅ 저장된 행 input에 운송장번호 즉시 반영
             if (trackingEl) trackingEl.value = savedTrackingNo;
 
-            // ✅ '현재 상태' 셀만 업데이트 (다른 행 건드리지 않음)
-            const rowKey = deliveryGrid.grid.getData().findIndex(
-                r => String(r.deliveryId) === String(deliveryId)
-            );
-            if (rowKey !== -1) {
-                deliveryGrid.grid.setValue(rowKey, 'statusDisplay', newDisplay);
-            }
+         	// ✅ '현재 상태' 셀 즉시 업데이트 (정확한 rowKey 사용)
+            const rows = deliveryGrid.grid.getData();
 
+			let targetRowKey = null;
+			
+			const dataLength = deliveryGrid.grid.getRowCount();
+
+			for (let i = 0; i < dataLength; i++) {
+			    const row = deliveryGrid.grid.getRowAt(i);
+			    if (row && String(row.deliveryId) === String(deliveryId)) {
+			        targetRowKey = row.rowKey;   
+			        break;
+			    }
+			}
+
+			if (targetRowKey !== null) {
+			    deliveryGrid.grid.setValue(targetRowKey, 'statusDisplay', newDisplay);
+			}
             alert('저장되었습니다.');
         } else {
             alert('실패: ' + res.message);
