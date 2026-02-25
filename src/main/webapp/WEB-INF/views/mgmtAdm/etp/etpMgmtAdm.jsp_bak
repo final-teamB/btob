@@ -196,7 +196,7 @@
                     }
                 },
                 { header: '회사명', name: 'companyName', width: 150, align: 'left' },
-                { header: '직급', name: 'userType', width: 100, align: 'center' },
+                { header: '사용자권한', name: 'userTypeNm', width: 100, align: 'center' },
                 { header: '요청자', name: 'userName', width: 120, align: 'center' },
                 { header: '주문일자', name: 'orderDate', width: 110, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },
                 { header: '등록일시', name: 'regDtime', width: 160, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },

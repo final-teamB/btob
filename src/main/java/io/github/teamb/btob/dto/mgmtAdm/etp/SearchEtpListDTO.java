@@ -43,4 +43,5 @@ public class SearchEtpListDTO {
 	private Integer ordYear;		// 연도 셀렉박스
 	
 	private String etpSttsCd;		// 진행상태코드
+	private String userTypeNm;		// 사용자권한명
 }

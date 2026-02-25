@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.dto.common.PagingResponseDTO;
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
@@ -42,6 +43,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	private final CommonService commonService;
 	private final FileService fileService;
 	private final ProductMgmtAdmMapper productMgmtAdmMapper;
+	private final LoginUserProvider loginUserProvider;
 
 	/**
 	 * 
@@ -162,6 +164,12 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	@Override
 	public Integer registerProduct(ProductRegisterRequestDTO requestDTO) throws Exception {
 	    
+		if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
+		String loginUserId = loginUserProvider.getLoginUserId();
+		
 	    // 1. 상품 기본 정보 등록
 		// 유류코드 자동생성 fuel_cd
 		String fuelCatCd = requestDTO.getProductBase().getFuelCatCd();
@@ -175,6 +183,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		int year = LocalDate.now().getYear(); 
 		String fuelCd = year + "-" + fuelCatCd + "-" + fuelCntryCd + "-" + objId;
 		requestDTO.getProductBase().setFuelCd(fuelCd);
+		requestDTO.getProductBase().setRegId(loginUserId);
 
 	    // Insert 후 Mybatis의 selectKey 등을 통해 requestDTO.getProductBase().getFuelId()에 값이 채워져야 합니다.
 	    Integer result = productMgmtAdmMapper.insertProductAdm(requestDTO.getProductBase());
@@ -195,6 +204,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	                fileDto.setOrgFileNm(tempName);   // 미리보기 시 서버에 저장된 임시 파일명
 	                fileDto.setSystemId("PRODUCT_M"); // 메인 이미지 구분값
 	                fileDto.setRefId(fuelId);         // 생성된 상품 fuelId 연결
+	                fileDto.setRegId(loginUserId);	  // 사용자 등록
 	                
 	                // 파일 서비스의 이동 로직 호출
 	                fileService.registerInternalImgFile(fileDto);
@@ -210,6 +220,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 	                fileDto.setOrgFileNm(tempName);   // 임시 파일명
 	                fileDto.setSystemId("PRODUCT_S"); // 서브 이미지 구분값
 	                fileDto.setRefId(fuelId);         // 생성된 상품 fuelId 연결
+	                fileDto.setRegId(loginUserId);	  // 사용자 등록
 	                
 	                fileService.registerInternalImgFile(fileDto);
 	            }
@@ -253,12 +264,20 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 						            ,List<String> subRemainNames
 						            ,List<MultipartFile> subFiles) throws Exception {
 		
+		if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
+		String loginUserId = loginUserProvider.getLoginUserId();
+		
+		
 		if ( !(commonService.nullEmptyChkValidate(requestDTO)) ) {
 			throw new Exception("유효 하지 않은 파라미터 입니다.");
 		}
 		
 		Integer fuelId = requestDTO.getProductBase().getFuelId();
 		String useYn = requestDTO.getProductBase().getUseYn();
+		requestDTO.getProductBase().setUpdId(loginUserId);
 
 		// 상품 기본 정보 수정
 		Integer result = productMgmtAdmMapper.updateProductAdm(requestDTO.getProductBase());
@@ -313,6 +332,8 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		       // [추가] 서브 이미지 기존 파일들도 상태 동기화
 		       syncExistingFilesStatus(fuelId, "PRODUCT_S", useYn);
 			    
+		       
+		       requestDTO.getProductDetail().setUpdId(loginUserId);		// 수정자 ID 추가
 		       // 상품 상세 정보 수정
 		       Integer detailResult = productMgmtAdmMapper.updateProductDetailInfoAdm(requestDTO.getProductDetail());
 		       
@@ -346,6 +367,14 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 			throw new Exception("유효 하지 않은 파라미터 입니다.");
 		}
 		
+		if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
+		
+		String loginUserId = loginUserProvider.getLoginUserId();
+		requestDTO.setUpdId(loginUserId);
+		
 		// 상품 기본 정보 미사용
 		Integer result = productMgmtAdmMapper.deleteProductByIdAdm(requestDTO);
 		
@@ -362,7 +391,7 @@ public class ProductManagementServiceImpl implements ProductManagementService{
 		       List<Integer> refIds = new ArrayList<>();
 		       refIds.add(requestDTO.getFuelId());
 		       
-		       fileService.updateUnuseAtchFile(refIds, requestDTO.getUserId());
+		       fileService.updateUnuseAtchFile(refIds, requestDTO.getUpdId());
 		   } else {
 		       throw new Exception("상품 기본 정보 미사용 수정에 실패했습니다.");
 		   }

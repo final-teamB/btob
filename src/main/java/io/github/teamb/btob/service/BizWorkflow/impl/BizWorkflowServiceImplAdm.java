@@ -1,5 +1,6 @@
 package io.github.teamb.btob.service.BizWorkflow.impl;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.bizworkflow.*;
 import io.github.teamb.btob.dto.mgmtAdm.product.UpdateProductCurrVolDTO;
 import io.github.teamb.btob.service.mgmtAdm.product.ProductManagementService;
@@ -23,6 +24,7 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 	private final BizWorkflowMapperAdm bizWorkflowMapperAdm;
 	private final CommonService commonService;
 	private final ProductManagementService productManagementService;
+	private final LoginUserProvider loginUserProvider;
 
 	
 	/**
@@ -42,9 +44,14 @@ public class BizWorkflowServiceImplAdm implements BizWorkflowServiceAdm {
 		if ( !commonService.nullEmptyChkValidate(approvalDecisionRequestDTO) ) {
 			throw new Exception("승인/반려 요청 파라미터 오류입니다.");
 		}
-
+		
+		if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
 		// 테스트 임시 컨텍스트나 세션에서 로그인 사용자 가져와야함
-		String loginUserId = "admin@gmail.com";
+		// String loginUserId = "admin@gmail.com";
+		String loginUserId = loginUserProvider.getLoginUserId();
 
 		String currentSystemId = approvalDecisionRequestDTO.getSystemId();				// 현재 시스템 ID
 		Integer orderId = approvalDecisionRequestDTO.getOrderId();						// 식별번호는 주문 식별자만 받습니다.

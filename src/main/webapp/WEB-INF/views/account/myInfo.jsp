@@ -98,9 +98,14 @@
                             <p class="font-semibold text-indigo-600">${userInfo.accSttsNm}</p>
                         </div>
                         <div class="p-4 border border-gray-100 rounded-lg bg-gray-50/30">
-                            <p class="text-xs text-gray-500 font-bold mb-1">사용자 유형</p>
-                            <p class="font-semibold text-gray-800">${userInfo.userType}</p>
-                        </div>
+						    <p class="text-xs text-gray-500 font-bold mb-1">사용자 유형</p>
+						    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold 
+						        ${userInfo.userType eq 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
+						          userInfo.userType eq 'MASTER' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}">
+						        <i class="bi bi-person-badge mr-1"></i>
+						        ${userInfo.userTypeNm}
+						    </span>
+						</div>
                     </div>
                 </div>
             </div>
@@ -114,63 +119,68 @@
                     </h3>
                 </div>
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                    
                     <%-- 왼쪽 컬럼: 기본 정보 --%>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">회사명</label>
-                            <input type="text" name="companyName" value="${userInfo.companyName}" 
-                                   ${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? '' : 'disabled'} 
-                                   class="${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                        </div>
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">사업자번호</label>
-                            <input type="text" name="bizNumber" value="${userInfo.bizNumber}" 
-                                   ${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? '' : 'disabled'} 
-                                   class="${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                        </div>
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">대표자명</label>
-                            <input type="text" value="${userInfo.masterNm}" disabled 
-                                   class="col-span-3 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">
-                            <input type="hidden" name="masterId" value="${userInfo.masterId}">
-                        </div>
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">회사번호</label>
-                            <input type="text" name="companyPhone" value="${userInfo.companyPhone}" 
-                                   ${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? '' : 'disabled'} 
-                                   class="${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                        </div>
-                    </div>
-
-                    <%-- 오른쪽 컬럼: 주소 정보 --%>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">통관번호</label>
-                            <input type="text" name="customsNum" value="${userInfo.customsNum}" 
-                                   ${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? '' : 'disabled'} 
-                                   class="${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                        </div>
-                        <div class="grid grid-cols-4 gap-2 items-center">
-                            <label class="text-sm font-semibold text-gray-600">우편번호</label>
-                            <div class="col-span-3 flex gap-2">
-                                <input type="text" id="zipCode" name="zipCode" value="${userInfo.zipCode}" readonly 
-                                       class="w-32 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">
-                                <button type="button" id="searchAddrBtn" onclick="execPostcode()" 
-                                        class="hidden px-4 py-2 bg-gray-800 text-white rounded-lg text-xs font-bold hover:bg-black transition">주소 검색</button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">한글 주소</label>
-                            <input type="text" id="addrKor" name="addrKor" value="${userInfo.addrKor}" readonly 
-                                   class="col-span-3 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">
-                        </div>
-                        <div class="grid grid-cols-4 items-center">
-                            <label class="text-sm font-semibold text-gray-600">영문 주소</label>
-                            <input type="text" id="addrEng" name="addrEng" value="${userInfo.addrEng}" 
-                                   ${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? '' : 'disabled'} 
-                                   class="${(userInfo.userType eq 'MASTER' || userInfo.userType eq 'ADMIN') ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" placeholder="English Address">
-                        </div>
-                    </div>
+			        <div class="space-y-4">
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">회사명</label>
+			                <%-- ADMIN 조건 제거: 오직 MASTER만 가능 --%>
+			                <input type="text" name="companyName" value="${userInfo.companyName}" 
+			                       ${userInfo.userType eq 'MASTER' ? '' : 'disabled'} 
+			                       class="${userInfo.userType eq 'MASTER' ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+			            </div>
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">사업자번호</label>
+			                <input type="text" name="bizNumber" value="${userInfo.bizNumber}" 
+			                       ${userInfo.userType eq 'MASTER' ? '' : 'disabled'} 
+			                       class="${userInfo.userType eq 'MASTER' ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+			            </div>
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">대표자명</label>
+			                <input type="text" value="${userInfo.masterNm}" disabled 
+			                       class="col-span-3 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">
+			                <input type="hidden" name="masterId" value="${userInfo.masterId}">
+			            </div>
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">회사번호</label>
+			                <input type="text" name="companyPhone" value="${userInfo.companyPhone}" 
+			                       ${userInfo.userType eq 'MASTER' ? '' : 'disabled'} 
+			                       class="${userInfo.userType eq 'MASTER' ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+			            </div>
+			        </div>
+			
+			        <%-- 오른쪽 컬럼: 주소 정보 --%>
+			        <div class="space-y-4">
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">통관번호</label>
+			                <input type="text" name="customsNum" value="${userInfo.customsNum}" 
+			                       ${userInfo.userType eq 'MASTER' ? '' : 'disabled'} 
+			                       class="${userInfo.userType eq 'MASTER' ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+			            </div>
+			            <div class="grid grid-cols-4 gap-2 items-center">
+			                <label class="text-sm font-semibold text-gray-600">우편번호</label>
+			                <div class="col-span-3 flex gap-2">
+			                    <input type="text" id="zipCode" name="zipCode" value="${userInfo.zipCode}" readonly 
+			                           class="w-32 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">
+			                    <%-- 주소 검색 버튼은 JS에서 userType을 체크하여 노출 여부를 결정하므로 ID만 유지 --%>
+			                    <button type="button" id="searchAddrBtn" onclick="execPostcode()" 
+			                            class="hidden px-4 py-2 bg-gray-800 text-white rounded-lg text-xs font-bold hover:bg-black transition">주소 검색</button>
+			                </div>
+			            </div>
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">한글 주소</label>
+			                <input type="text" id="addrKor" name="addrKor" value="${userInfo.addrKor}" readonly 
+			                       class="col-span-3 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500">
+			            </div>
+			            <div class="grid grid-cols-4 items-center">
+			                <label class="text-sm font-semibold text-gray-600">영문 주소</label>
+			                <input type="text" id="addrEng" name="addrEng" value="${userInfo.addrEng}" 
+			                       ${userInfo.userType eq 'MASTER' ? '' : 'disabled'} 
+			                       class="${userInfo.userType eq 'MASTER' ? 'editable' : ''} col-span-3 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg" placeholder="English Address">
+			            </div>
+			        </div>
+                    
+                    
                 </div>
             </div>
             </c:if>
@@ -201,7 +211,7 @@
         
         // 권한 체크 후 주소 검색 버튼 노출
         const userType = "${userInfo.userType}";
-        if(userType === 'MASTER' || userType === 'ADMIN') {
+        if(userType === 'MASTER') {
             const searchBtn = document.getElementById('searchAddrBtn');
             if(searchBtn) searchBtn.classList.remove('hidden');
         }
@@ -265,8 +275,24 @@
     }
 
     function reApplyAuth() {
-        if(confirm("권한 재신청을 진행하시겠습니까?")) {
-            alert("재신청 처리가 완료되었습니다.");
+        if(confirm("권한 재신청을 진행하시겠습니까? 현재 '반려' 상태에서 '승인 대기' 상태로 변경됩니다.")) {
+            fetch('/account/api/re-apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.success) {
+                    alert(res.message);
+                    location.reload(); // 상태 반영을 위해 새로고침
+                } else {
+                    alert("재신청 실패: " + res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버와 통신 중 오류가 발생했습니다.");
+            });
         }
     }
 </script>

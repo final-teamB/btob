@@ -85,11 +85,18 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
             } 
             // 2. 이미 계정이 잠겨 있는 상태에서 로그인 시도 (LockedException)
             else if (exception instanceof LockedException) {
-                errorMessage = "비밀번호 5회 이상 누적 실패로 계정이 잠금되었습니다. 관리자에게 문의하세요.";
+                errorMessage = "비밀번호 5회 이상 누적 실패로 계정이 잠금되었습니다. 비밀번호를 재설정해주세요.";
             } 
             // 3. 기타 비활성화 상태 (BANNED, DELETED 등)
             else if (exception instanceof DisabledException) {
-                errorMessage = "정책에 의해 사용이 제한된 계정입니다. 관리자에게 문의하세요.";
+                // DB를 다시 조회하거나 세션/컨텍스트 정보를 통해 상태 확인
+                LoginValidateDTO userDetails = loginMapper.findLoginValidationUser(userId);
+                
+                if (userDetails != null && "BANNED".equals(userDetails.getAccStatus())) {
+                    errorMessage = "계정 상태가 밴(BANNED) 처리되었습니다. 관리자에게 문의하세요.";
+                } else {
+                    errorMessage = "정책에 의해 사용이 제한된 계정입니다. 관리자에게 문의하세요.";
+                }
             }
             else {
                 errorMessage = exception.getMessage();

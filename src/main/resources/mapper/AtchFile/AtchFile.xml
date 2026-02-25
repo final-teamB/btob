@@ -17,7 +17,7 @@
 	            file_path, 
 	            file_ext, 
 	            file_size,
-	            upd_dtime
+	            reg_id
 	        ) VALUES (
 	            #{systemId}, 
 	            #{refId}, 
@@ -26,7 +26,7 @@
 	            #{filePath}, 
 	            #{fileExt}, 
 	            #{fileSize},
-	            #{updDtime}
+	            #{regId}
 	        )
         
     </insert>
@@ -96,7 +96,7 @@
     		SET 
     			use_yn = 'N'
         		,upd_dtime = CURRENT_TIMESTAMP
-        		,upd_id = #{userNo}
+        		,upd_id = #{updId}
     		WHERE 1=1
     		AND ref_id = #{refId}
       		AND system_id = #{systemId}
@@ -143,7 +143,9 @@
 			UPDATE
 				TB_ATCH_FILE_MST
 			SET
-				use_yn = #{useYn}
+				use_yn = #{useYn},
+				upd_dtime = CURRENT_TIMESTAMP,
+				upd_id = #{updId}
 			WHERE file_id = #{fileId}
 			AND str_file_nm = #{strFileNm}
 	
@@ -162,7 +164,9 @@
 			WHERE 1=1
 			AND ref_id = #{refId}
 			AND system_id = #{systemId}
-			AND use_yn = 'Y'
+            -- AND use_yn = 'Y'
+        	ORDER BY reg_dtime DESC 
+        	LIMIT 1
 		
 	</select>
 </mapper>

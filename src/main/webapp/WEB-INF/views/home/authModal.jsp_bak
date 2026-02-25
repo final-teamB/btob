@@ -16,6 +16,7 @@
         </div>
 
         <div class="p-10 md:p-14">
+        
             <div id="loginForm" class="space-y-8">
                 <div class="text-left mb-8">
                     <h2 class="text-3xl font-black text-white mb-3">반가워요! 👋</h2>
@@ -40,6 +41,23 @@
                 <button onclick="handleLogin()" class="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xl rounded-2xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-[0.98]">
                     로그인
                 </button>
+                
+                <div id="loginLockedArea" class="hidden space-y-4 p-6 bg-red-500/10 border border-red-500/30 rounded-2xl animate-fade-in">
+				    <div class="flex items-start gap-3">
+				        <i data-lucide="lock" class="w-6 h-6 text-red-500 mt-1"></i>
+				        <div>
+				            <p class="text-white font-bold text-lg">계정이 잠금되었습니다</p>
+				            <p class="text-gray-400 text-sm leading-relaxed">
+				                비밀번호 5회 이상 누적 실패로 보안을 위해 계정이 잠금되었습니다. 본인 인증 후 비밀번호를 재설정하여 잠금을 해제하세요.
+				            </p>
+				        </div>
+				    </div>
+				    <button onclick="switchTab('find'); setTimeout(() => switchFindMode('PW'), 100);" 
+				            class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg">
+				        비밀번호 재설정하러 가기
+				    </button>
+				</div>
+                
             </div>
 
             <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
@@ -82,9 +100,17 @@
                 <div id="regStep3" class="hidden space-y-6 max-h-[550px] overflow-y-auto pr-4 custom-scroll">
                     <div class="grid grid-cols-2 gap-6">
                         <div class="col-span-2">
-                            <label class="text-blue-400 text-xs font-bold ml-1 mb-1 block">아이디 (Gmail 주소 형식)</label>
-                            <input type="text" id="regId" placeholder="example@gmail.com" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
-                        </div>
+						    <label class="text-blue-400 text-xs font-bold ml-1 mb-1 block">아이디 (Gmail 주소 형식)</label>
+						    <div class="flex gap-3">
+						        <input type="text" id="regId" placeholder="example@gmail.com" 
+						               class="flex-1 bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg focus:outline-none focus:border-blue-500 transition-all">
+						        <button type="button" onclick="checkDuplicateId()" 
+						                class="px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95">
+						            중복 확인
+						        </button>
+						    </div>
+						    <p id="idCheckMsg" class="text-xs mt-2 ml-1 hidden"></p>
+						</div>
                         <div>
                             <label class="text-blue-400 text-xs font-bold ml-1 mb-1 block">비밀번호 (8~20자, 대/소문자, 숫자, 특수문자 포함)</label>
                             <input type="password" id="regPw" placeholder="비밀번호" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
@@ -104,7 +130,7 @@
 						</div>
                         <div class="col-span-1">
                              <label class="text-blue-400 text-xs font-bold ml-1 mb-1 block">휴대폰 번호</label>
-                             <input type="text" id="regPhone" oninput="autoHyphen(this)" maxlength="13" placeholder="010-0000-0000" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
+                             <input type="text" id="regPhone" oninput="autoHyphen(this)" maxlength="13" placeholder="01X-0000-0000" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
                         </div>
                         
                         <div class="col-span-2">
@@ -148,26 +174,67 @@
                     </div>
                 </div>
             </div>
-
-            <div id="findForm" class="hidden space-y-8 text-center">
-                <div class="text-left mb-10">
-                    <h2 class="text-3xl font-black text-white mb-3">정보 찾기</h2>
-                    <p class="text-gray-400 text-lg">등록된 이메일로 임시 정보를 발송해 드립니다.</p>
-                </div>
-                <input type="email" id="findEmail" placeholder="가입 시 등록한 이메일 (@gmail.com)" class="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white text-lg focus:outline-none focus:border-blue-500 transition-all">
-                <button onclick="alert('서비스 준비 중입니다.')" class="w-full py-5 bg-blue-600 text-white font-black text-xl rounded-2xl hover:bg-blue-700 transition-all shadow-lg">임시 비밀번호 발급</button>
-                <button onclick="switchTab('login')" class="text-lg text-gray-500 hover:text-white transition-colors block mx-auto">로그인 화면으로 돌아가기</button>
-            </div>
+           
+           <div id="findForm" class="hidden">
+			    <jsp:include page="/WEB-INF/views/home/findAccount.jsp" />
+			</div>
         </div>
     </div>
 </div>
 
+<jsp:include page="/WEB-INF/views/home/homeAlert.jsp" />
 <script>
     /* -----------------------------------------------------------
      * [변수 관리]
      * ----------------------------------------------------------- */
     var currentRegStep = 1;
     var selectedUserType = 'USER';
+    var isIdChecked = false; // 중복 확인 완료 여부
+    var checkedId = "";      // 중복 확인 완료된 아이디 보관
+    
+ 	// [추가] 페이지 로드 후 아이디 입력 감지 이벤트 등록
+    document.addEventListener('DOMContentLoaded', function() {
+        var regIdInput = document.getElementById('regId');
+        if(regIdInput) {
+            regIdInput.addEventListener('input', function() {
+                isIdChecked = false;
+                var msgEl = document.getElementById('idCheckMsg');
+                if(msgEl) msgEl.classList.add('hidden');
+            });
+        }
+    });
+    
+    /* [추가] 아이디 중복 확인 */
+    function checkDuplicateId() {
+        var userId = document.getElementById('regId').value.trim();
+        var msgEl = document.getElementById('idCheckMsg');
+        var gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+        if (!userId) { showAlert('아이디를 입력해주세요.', 'error'); return; }
+        if (!gmailRegex.test(userId)) { showAlert('아이디는 @gmail.com 형식이어야 합니다.', 'error'); return; }
+
+        fetch('/account/api/check-duplicate-id?userId=' + encodeURIComponent(userId))
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                msgEl.classList.remove('hidden');
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    msgEl.innerText = "✓ " + data.message;
+                    msgEl.className = "text-xs mt-2 ml-1 text-green-400 font-bold";
+                    isIdChecked = true;
+                    checkedId = userId;
+                } else {
+                    showAlert(data.message, 'error');
+                    msgEl.innerText = "✕ " + data.message;
+                    msgEl.className = "text-xs mt-2 ml-1 text-red-500 font-bold";
+                    isIdChecked = false;
+                }
+            })
+            .catch(function(error) {
+                console.error("중복 체크 에러:", error);
+                showAlert("서버 통신 중 오류가 발생했습니다.", 'error');
+            });
+    }
 
     /* 모달 제어 */
     function openAuthModal() {
@@ -180,26 +247,55 @@
         document.getElementById('authModal').classList.add('hidden');
         document.body.style.overflow = 'auto';
         resetRegisterStep();
+        
+     	// [추가] 정보 찾기 중이었을 경우 타이머 중지 및 폼 초기화
+        if(typeof timerInterval !== 'undefined') clearInterval(timerInterval);
     }
 
     /* 탭 전환 */
-    function switchTab(type) {
-        var forms = ['loginForm', 'registerForm', 'findForm'];
-        forms.forEach(function(f) { document.getElementById(f).classList.add('hidden'); });
-        document.getElementById(type + 'Form').classList.remove('hidden');
-
-        var loginTab = document.getElementById('loginTab');
-        var registerTab = document.getElementById('registerTab');
-
-        if (type === 'login' || type === 'find') {
-            loginTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
-            registerTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
-        } else {
-            registerTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
-            loginTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
-            resetRegisterStep();
+	function switchTab(type) {
+    	
+		// 알림창 숨기기
+	    const alertEl = document.getElementById('customAlert');
+	    if(alertEl) alertEl.classList.add('hidden');
+    	
+		// [추가] 로그인 잠금 안내 영역 초기화
+	    var lockedArea = document.getElementById('loginLockedArea');
+	    if(lockedArea) lockedArea.classList.add('hidden');
+	    
+	 	// 입력창 빨간 테두리 초기화
+        var pwInput = document.getElementById('loginPw');
+        if(pwInput) {
+            pwInput.classList.remove('border-red-500');
+            pwInput.classList.add('focus:border-blue-500');
         }
-    }
+    	
+	    var forms = ['loginForm', 'registerForm', 'findForm'];
+	    forms.forEach(function(f) { 
+	        document.getElementById(f).classList.add('hidden'); 
+	    });
+	    
+	    document.getElementById(type + 'Form').classList.remove('hidden');
+	
+	    var loginTab = document.getElementById('loginTab');
+	    var registerTab = document.getElementById('registerTab');
+	
+	    // 스타일 제어
+	    if (type === 'login' || type === 'find') {
+	        loginTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
+	        registerTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
+	    } else {
+	        registerTab.className = "flex-1 py-6 text-lg font-bold text-blue-400 border-b-4 border-blue-400 transition-all";
+	        loginTab.className = "flex-1 py-6 text-lg font-bold text-white/40 hover:text-white/60 transition-all border-b-4 border-transparent";
+	        resetRegisterStep();
+	    }
+	
+	    // [추가] 정보 찾기 탭 클릭 시 include 된 파일 내부의 아이콘/상태 초기화
+	    if(type === 'find') {
+	        if(window.lucide) lucide.createIcons();
+	        if(typeof switchFindMode === 'function') switchFindMode('ID'); // 기본 모드를 ID찾기로 설정
+	    }
+	}
 
     /* -----------------------------------------------------------
      * [유틸리티: 휴대폰 번호 자동 하이픈]
@@ -221,7 +317,7 @@
 
     function nextStep(step) {
         if(step === 2 && !document.getElementById('agreeTerms').checked) {
-            alert('이용약관 및 개인정보 처리방침에 동의해주세요.');
+        	showAlert('이용약관 및 개인정보 처리방침에 동의해주세요.');
             return;
         }
         
@@ -300,7 +396,9 @@
         var userId = document.getElementById('loginId').value;
         var password = document.getElementById('loginPw').value;
 
-        if(!userId || !password) { alert('아이디와 비밀번호를 입력해주세요.'); return; }
+        if(!userId || !password) { showAlert('아이디와 비밀번호를 입력해주세요.', 'error'); return; }
+        
+        document.getElementById('loginLockedArea').classList.add('hidden');
 
         var params = new URLSearchParams();
         params.append('userId', userId);
@@ -313,10 +411,24 @@
         })
         .then(function(res) { return res.json(); })
         .then(function(result) {
-            if(result.success) location.href = result.redirectUrl;
-            else alert(result.message);
-        })
-        .catch(function() { alert('로그인 중 오류가 발생했습니다.'); });
+        if(result.success) {
+            location.href = result.redirectUrl;
+        } else {
+            // [수정] 계정 잠금 메시지인 경우 별도 UI 노출
+            if(result.message.includes("계정이 잠금되었습니다")) {
+                document.getElementById('loginLockedArea').classList.remove('hidden');
+             	// 2. 입력창 강조 (빨간 테두리 추가)
+                var pwInput = document.getElementById('loginPw');
+                pwInput.value = "";
+                pwInput.classList.add('border-red-500'); // 테두리 빨간색
+                pwInput.classList.remove('focus:border-blue-500'); // 파란색 강조 제거
+                if(window.lucide) lucide.createIcons(); // 아이콘 렌더링
+            } else {
+            	showAlert(result.message, 'error');
+            }
+        }
+    })
+    .catch(function() { showAlert('로그인 중 오류가 발생했습니다.', 'error'); });
     }
 
     function handleRegister() {
@@ -328,41 +440,61 @@
         var phone = document.getElementById('regPhone').value;
         var email = document.getElementById('regEmail').value;
 
+        if (!isIdChecked || userId !== checkedId) {
+            showAlert("아이디 중복 확인을 진행해주세요.", 'error');
+            return;
+        }
+        
         // 유효성 검사
         var gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
         var pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()])[A-Za-z\d!@#$%^&*()]{8,20}$/;
-        var phoneRegex = /^010-\d{3,4}-\d{4}$/;
+        var phoneRegex = /^01[016789]-\d{3,4}-\d{4}$/;
 
-        if (!gmailRegex.test(userId)) { alert("아이디는 @gmail.com 형식이어야 합니다."); return; }
+     	// 3. 필수 입력값 및 형식 체크 (순차적으로 검사)
+        if (!userId) { showAlert("아이디(Gmail)를 입력해주세요.", 'error'); return; }
+        if (!gmailRegex.test(userId)) { showAlert("아이디는 @gmail.com 형식이어야 합니다.", 'error'); return; }
+        
+        if (!password) { showAlert("비밀번호를 입력해주세요.", 'error'); return; }
         if (!pwRegex.test(password)) { 
-            alert("비밀번호는 8~20자 이내이며, 영어 대문자, 소문자, 숫자, 특수문자를 모두 포함해야 합니다."); 
+            showAlert("비밀번호는 8~20자 이내이며, 영어 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.", 'error'); 
             document.getElementById('regPw').focus();
             return; 
         }
-        if (password !== pwConfirm) { alert("비밀번호가 일치하지 않습니다."); return; }
-        if (!userName) { alert("담당자 이름을 입력해주세요."); return; }
-        if (!position) { alert("직급을 입력해주세요."); return; }
-        if (!phoneRegex.test(phone)) { alert("휴대폰 번호 형식을 확인해주세요."); return; }
+        if (password !== pwConfirm) { showAlert("비밀번호 확인이 일치하지 않습니다.", 'error'); return; }
+
+        if (!userName) { showAlert("담당자 이름을 입력해주세요.", 'error'); return; }
+        if (!position) { showAlert("직급을 입력해주세요.", 'error'); return; }
+        
+        if (!phone) { showAlert("휴대폰 번호를 입력해주세요.", 'error'); return; }
+        if (!phoneRegex.test(phone)) { showAlert("휴대폰 번호 형식을 확인해주세요. (01X-0000-0000)", 'error'); return; }
+        
+        if (!email) { showAlert("이메일 주소를 입력해주세요.", 'error'); return; }
+        if (!gmailRegex.test(email)) { showAlert("이메일은 @gmail.com 형식이어야 합니다.", 'error'); return; }
 
         // 회사 정보 설정
         var finalCompanyName = "";
         var finalCompanyCd = "";
         var finalCompanyPhone = "";
+        var zipCode = document.getElementById('zipNo').value;
+        var addrKor = document.getElementById('addrRoad').value;
+        var addrEng = document.getElementById('addrEng').value;
+        var bizNo = document.getElementById('bizNo').value;
+        var customsNo = document.getElementById('customsNo').value;
 
-        if(selectedUserType === 'MASTER') {
-            finalCompanyName = document.getElementById('ownerCompanyName').value;
-            finalCompanyPhone = document.getElementById('ownerCompanyPhone').value; // [추가]
+        if (selectedUserType === 'MASTER') {
+            finalCompanyName = document.getElementById('ownerCompanyName').value.trim();
+            finalCompanyPhone = document.getElementById('ownerCompanyPhone').value.trim();
             
-            if(!finalCompanyName) { alert("등록할 회사명을 입력해주세요."); return; }
-            if(!finalCompanyPhone) { alert("회사 연락처를 입력해주세요."); return; } // [추가] 유효성 검사
+            if (!finalCompanyName) { showAlert("등록할 회사명을 입력해주세요.", 'error'); return; }
+            if (!finalCompanyPhone) { showAlert("회사 연락처를 입력해주세요.", 'error'); return; }
+            if (!zipCode || !addrKor) { showAlert("주소 찾기를 통해 회사 주소를 입력해주세요.", 'error'); return; }
+            if (!bizNo) { showAlert("사업자 등록번호를 입력해주세요.", 'error'); return; }
         } else {
             var select = document.getElementById('companySelect');
-            if(!select.value) { alert("소속 회사를 선택해주세요."); return; }
+            if (!select.value) { showAlert("소속 회사를 선택해주세요.", 'error'); return; }
             
-            // DB 데이터 연동: 선택된 텍스트와 값을 그대로 사용
             finalCompanyName = select.options[select.selectedIndex].text;
             finalCompanyCd = select.value;
-            finalCompanyPhone = "";
         }
 
         var data = {
@@ -395,16 +527,16 @@
         })
         .then(function(res) { return res.json(); })
         .then(function(result) {
-            if(result.success) {
-                alert('회원가입 신청이 완료되었습니다.\n관리자 승인 후 로그인이 가능합니다.');
-                switchTab('login');
+        	if (result.success) {
+                showAlert('회원가입 신청이 완료되었습니다.\n관리자 승인 후 로그인이 가능합니다.', 'success');
+                setTimeout(() => { switchTab('login'); }, 2200);
             } else {
-                alert(result.message || '가입 처리 중 오류가 발생했습니다.');
+                showAlert(result.message || '가입 처리 중 오류가 발생했습니다.', 'error');
             }
         })
         .catch(function(err) {
             console.error(err);
-            alert('서버와 통신 중 오류가 발생했습니다.');
+            showAlert('서버와 통신 중 오류가 발생했습니다.', 'error');
         });
     }
 </script>

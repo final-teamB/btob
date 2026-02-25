@@ -7,10 +7,13 @@
         <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
             <div class="bg-white px-6 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="flex items-center mb-4">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <i class="bi bi-shield-lock text-indigo-600"></i>
-                    </div>
-                    <h3 class="ml-3 text-lg leading-6 font-bold text-gray-900">비밀번호 변경</h3>
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-2xl bg-indigo-50 border border-indigo-100 shadow-inner sm:mx-0 sm:h-12 sm:w-12">
+					    <i class="bi bi-shield-lock-fill text-2xl text-indigo-600"></i>
+					</div>
+					<div class="ml-4 text-left">
+					    <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">비밀번호 변경</h3>
+					    <p class="text-xs text-gray-500 mt-1">계정 보안을 위해 주기적인 변경을 권장합니다.</p>
+					</div>
                 </div>
                 
                 <form id="passwordForm" class="space-y-4" onsubmit="event.preventDefault(); submitPasswordChange();">
@@ -49,7 +52,7 @@
         </div>
     </div>
 </div>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const newPwdInput = document.getElementById('newPassword');
