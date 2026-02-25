@@ -49,6 +49,7 @@ public class UserInfoDTO {
     
     private String appSttsNm;			// 권한 상태 코드 명칭
     private String accSttsNm;			// 계정 상태 코드 명칭
+    private String userTypeNm;			// 권한 명칭
     
     //TB_COMPANIES
     private Integer companySeq;             // 식별자

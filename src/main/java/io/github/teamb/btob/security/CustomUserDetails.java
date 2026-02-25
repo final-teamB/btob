@@ -133,7 +133,10 @@ public class CustomUserDetails implements UserDetails {
 		 @Override
 		 public boolean isEnabled() {
 		
-		     return "ACTIVE".equals(loginValidateDTO.getAccStatus());
+		     return ("ACTIVE".equals(loginValidateDTO.getAccStatus()))
+		    		 && !("BANNED".equals(loginValidateDTO.getAccStatus()))
+		    		 && !("DELETED".equals(loginValidateDTO.getAccStatus()))
+		    		 && !("INACTIVE".equals(loginValidateDTO.getAccStatus()));
 		 }
 		
 		 /**
@@ -184,13 +187,7 @@ public class CustomUserDetails implements UserDetails {
 			*/
 			 
 		     // 2. 행정적 제한 상태 체크
-		     boolean isNotRestricted = !("INACTIVE".equals(loginValidateDTO.getAccStatus()) ||
-		                             		"LOCKED".equals(loginValidateDTO.getAccStatus()) ||
-		                             		"SLEEP".equals(loginValidateDTO.getAccStatus()) ||
-		                             		"DELETED".equals(loginValidateDTO.getAccStatus()) ||
-		                             		"BANNED".equals(loginValidateDTO.getAccStatus()) ||
-		                             		"EXPIRED".equals(loginValidateDTO.getAccStatus())
-		                             	);
+		     boolean isNotRestricted = !("LOCKED".equals(loginValidateDTO.getAccStatus()));
 		
 		     // 3. 보안 정책 체크 (실패 횟수) 5회미만
 		     boolean isFailCountValid = loginValidateDTO.getUserLoginFailCnt() < 5;

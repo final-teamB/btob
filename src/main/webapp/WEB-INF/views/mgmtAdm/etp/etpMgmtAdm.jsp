@@ -4,57 +4,86 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <style>
+    /* 배경색 및 전체 컨테이너 설정 */
+    body { background-color: #f9fafb; }
+
+    /* [최종 수정] 푸터와 최대한 가깝게 붙도록 여백 최소화 */
+    .admin-main-container { 
+        width: 100%; 
+        /* min-height를 줄여 데이터가 적어도 푸터가 아래에 너무 멀리 있지 않게 함 */
+        min-height: auto; 
+        /* 하단 안쪽 여백을 거의 제거 (1rem -> 0.25rem) */
+        padding-bottom: 0.25rem; 
+        margin-bottom: 0 !important;
+    }
+    
+    /* 그리드 카드 스타일 */
+    .grid-card { 
+        background-color: #ffffff; border: 1px solid #e5e7eb; 
+        border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); 
+        margin-bottom: 1rem; /* [수정] 카드 하단 마진 축소 */
+    }
+
+    /* 상태 배지 스타일 */
     .stts-badge { padding: 3px 10px !important; border-radius: 9999px !important; font-size: 11px !important; font-weight: 700 !important; display: inline-block !important; text-align: center !important; min-width: 95px !important; }
-
-    /* [견적: et] 보라색 */
     .stts-et { background-color: #f5f3ff !important; color: #7c3aed !important; border: 1px solid #ddd6fe !important; } 
-    
-    /* [주문: od] 파란색 */
     .stts-od { background-color: #eff6ff !important; color: #2563eb !important; border: 1px solid #bfdbfe !important; }
-
-    /* [구매: pr] 청록색 (Teal) - 추가 분리 */
     .stts-pr { background-color: #ecfeff !important; color: #0891b2 !important; border: 1px solid #a5f3fc !important; }
-    
-    /* [결제: pm] 에메랄드색 */
     .stts-pm { background-color: #ecfdf5 !important; color: #059669 !important; border: 1px solid #a7f3d0 !important; } 
-
-    /* [배송: dv] 주황/노랑색 */
     .stts-dv { background-color: #fffbeb !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
-
-    /* [반려: 999] 붉은색 */
     .stts-reject { background-color: #fef2f2 !important; color: #dc2626 !important; border: 1px solid #fecaca !important; }
-
-    /* [기본] 회색 */
     .stts-default { background-color: #f9fafb !important; color: #4b5563 !important; border: 1px solid #e5e7eb !important; }
 
     /* 그리드 영역 보호 */
-    .grid-relative-wrapper { min-height: 400px; position: relative; }
+    .grid-relative-wrapper { min-height: 400px; position: relative; width: 100%; }
+
+    /* 버튼 스타일 */
+	.btn-outline-custom {
+	    padding: 0.5rem 1.5rem;
+	    font-size: 0.875rem;
+	    font-weight: 600;
+	    color: #4b5563;
+	    background-color: #ffffff;
+	    border: 1px solid #d1d5db;
+	    border-radius: 0.5rem;
+	    transition: all 0.2s;
+	    white-space: nowrap;
+	    display: inline-flex;
+	    align-items: center;
+	    justify-content: center;
+	    min-width: 140px;
+	}
+    .btn-outline-custom:hover { background-color: #f9fafb; border-color: #9ca3af; }
 </style>
 
-<div class="max-w-screen-2xl mx-auto">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">견적/주문/구매/결제 관리</h2>
-                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
-                        전체 <span id="total-count-display">0</span>건
-                    </span>
-                </div>
-                <p class="text-sm text-gray-500 mt-1">단계별 프로세스를 모니터링하고 관리자 승인/반려 처리를 수행합니다.</p>
+<div class="admin-main-container my-6 space-y-6">
+    
+    <div class="px-5 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full text-left">
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">견적/주문/구매/결제 관리</h1>
+                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                    전체 <span id="total-count-display">0</span>건
+                </span>
             </div>
-            <div class="flex items-center gap-2">
-                <button type="button" onclick="EtpExcelHandler.downloadExcel()" class="px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
-                    <i class="fas fa-file-excel mr-1 text-green-600"></i> 엑셀 다운로드
-                </button>
-            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">단계별 프로세스를 모니터링하고 관리자 승인/반려 처리를 수행합니다.</p>
         </div>
 
-        <div class="grid-relative-wrapper">
-            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
-                <jsp:param name="showSearchArea" value="true" />
-                <jsp:param name="showPerPage" value="true" />
-            </jsp:include>
+        <div class="flex items-center gap-2 mt-4 md:mt-0">
+		    <button type="button" onclick="EtpExcelHandler.downloadExcel()" class="btn-outline-custom">
+		        <i class="fas fa-file-excel mr-2 text-green-600"></i> 엑셀 다운로드
+		    </button>
+		</div>
+    </div>
+
+    <div class="px-5" style="margin-top: 1rem !important;">
+        <div class="grid-card p-4">
+            <div class="grid-relative-wrapper">
+                <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                    <jsp:param name="showSearchArea" value="true" />
+                    <jsp:param name="showPerPage" value="true" />
+                </jsp:include>
+            </div>
         </div>
     </div>
 </div>
@@ -196,7 +225,7 @@
                     }
                 },
                 { header: '회사명', name: 'companyName', width: 150, align: 'left' },
-                { header: '직급', name: 'userType', width: 100, align: 'center' },
+                { header: '사용자권한', name: 'userTypeNm', width: 100, align: 'center' },
                 { header: '요청자', name: 'userName', width: 120, align: 'center' },
                 { header: '주문일자', name: 'orderDate', width: 110, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },
                 { header: '등록일시', name: 'regDtime', width: 160, align: 'center', formatter: (v) => v.value ? v.value.replace('T', ' ').split('.')[0] : '-' },

@@ -3,8 +3,10 @@
 <!DOCTYPE html>
 <html>
 <body>
-<div id="editModal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black/50">
-    <div class="relative w-full max-w-5xl mx-auto mt-5">
+<%-- 배경에 backdrop-blur-sm 추가 --%>
+<div id="editModal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black/50 backdrop-blur-sm">
+    <%-- 창 크기를 max-w-5xl에서 max-w-7xl로 크게 확장했습니다 --%>
+    <div class="relative w-full max-w-7xl mx-auto mt-5 mb-5">
         <form id="editForm" onsubmit="return false;" class="relative bg-white rounded-xl shadow-lg border">
             <div class="flex items-center justify-between p-4 border-b">
                 <h2 class="text-xl font-bold">상품 정보 수정</h2>
@@ -15,8 +17,9 @@
 
             <input type="hidden" id="editFuelId" name="fuelId">
 
-            <div class="p-6 grid grid-cols-12 gap-6">
-                <div class="col-span-12 md:col-span-6 space-y-4 border-r pr-6">
+            <%-- p-6에서 p-8로 여백을 넓히고 간격(gap)을 조정했습니다 --%>
+            <div class="p-8 grid grid-cols-12 gap-8">
+                <div class="col-span-12 md:col-span-6 space-y-4 border-r pr-8">
                     <h3 class="font-bold text-blue-600 border-b pb-1 text-sm uppercase">기본 정보 수정</h3>
                     
                     <div>
@@ -41,9 +44,11 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-500 mb-1">단가 (₩)</label>
-                            <input type="number" id="editBaseUnitPrc" class="w-full border rounded-lg p-2 text-sm font-bold text-blue-700">
-                        </div>
+						    <label class="block text-[11px] font-bold text-gray-500 mb-1">단가 (₩)</label>
+						    <input type="number" id="editBaseUnitPrc" step="1" inputmode="numeric"
+						           oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+						           class="w-full border rounded-lg p-2 text-sm font-bold text-blue-700">
+						</div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-500 mb-1">원산지 국가</label>
                             <select id="editOriginCntryCd" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
@@ -56,13 +61,17 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-500 mb-1">현재 재고량</label>
-                            <input type="number" id="editCurrStockVol" class="w-full border rounded-lg p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-500 mb-1">안전 재고량</label>
-                            <input type="number" id="editSafeStockVol" class="w-full border rounded-lg p-2 text-sm">
-                        </div>
+					        <label class="block text-[11px] font-bold text-gray-500 mb-1">현재 재고량</label>
+					        <input type="number" id="editCurrStockVol" step="1" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded-lg p-2 text-sm">
+					    </div>
+					    <div>
+					        <label class="block text-[11px] font-bold text-gray-500 mb-1">안전 재고량</label>
+					        <input type="number" id="editSafeStockVol" step="1" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded-lg p-2 text-sm">
+					    </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -92,10 +101,11 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 pt-2 border-t">
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t">
                         <div>
 						    <label class="block text-[11px] font-bold text-gray-500 mb-1">메인 이미지</label>
-						    <div id="editMainImgContainer" class="w-full h-32 bg-gray-50 rounded-lg border border-dashed flex items-center justify-center overflow-hidden mb-2"></div>
+						    <%-- h-32에서 h-40으로 키워 창 크기와 밸런스를 맞췄습니다 --%>
+						    <div id="editMainImgContainer" class="w-full h-40 bg-gray-50 rounded-lg border border-dashed flex items-center justify-center overflow-hidden mb-2"></div>
 						    <input type="file" id="mainFile" accept="image/*" class="text-[10px] w-full" 
 						           onchange="handleImageChange(this, 'editMainImgContainer', 'editMainRemainName')">
 						    <input type="hidden" id="editMainRemainName">
@@ -103,7 +113,7 @@
 						
 						<div>
 						    <label class="block text-[11px] font-bold text-gray-500 mb-1">서브 이미지</label>
-						    <div id="editSubImgContainer" class="w-full h-32 bg-gray-50 rounded-lg border border-dashed flex items-center justify-center overflow-hidden mb-2"></div>
+						    <div id="editSubImgContainer" class="w-full h-40 bg-gray-50 rounded-lg border border-dashed flex items-center justify-center overflow-hidden mb-2"></div>
 						    <input type="file" id="subFile" accept="image/*" class="text-[10px] w-full" 
 						           onchange="handleImageChange(this, 'editSubImgContainer', 'editSubRemainName')">
 						    <input type="hidden" id="editSubRemainName">
@@ -113,39 +123,50 @@
 
                 <div class="col-span-12 md:col-span-6 space-y-4">
                     <h3 class="font-bold text-blue-600 border-b pb-1 text-sm uppercase">기술 제원 수정</h3>
-                    <div class="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-xl border border-gray-100">
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">API GRV</label>
-                            <input type="number" step="0.01" id="editApiGrv" class="w-full border rounded p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Sulfur (%)</label>
-                            <input type="number" step="0.01" id="editSulfurPCnt" class="w-full border rounded p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Flash Pt</label>
-                            <input type="number" step="0.1" id="editFlashPnt" class="w-full border rounded p-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Viscosity</label>
-                            <input type="number" step="0.1" id="editViscosity" class="w-full border rounded p-2 text-sm">
-                        </div>
-                        <div class="col-span-2">
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Density 15C</label>
-                            <input type="number" step="0.0001" id="editDensity15c" class="w-full border rounded p-2 text-sm">
-                        </div>
+					        <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">API GRV</label>
+					        <input type="number" id="editApiGrv" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded p-2 text-sm bg-white">
+					    </div>
+					    <div>
+					        <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Sulfur (%)</label>
+					        <input type="number" id="editSulfurPCnt" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded p-2 text-sm bg-white">
+					    </div>
+					    <div>
+					        <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Flash Pt</label>
+					        <input type="number" id="editFlashPnt" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded p-2 text-sm bg-white">
+					    </div>
+					    <div>
+					        <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Viscosity</label>
+					        <input type="number" id="editViscosity" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded p-2 text-sm bg-white">
+					    </div>
+					    <div class="col-span-2">
+					        <label class="block text-[11px] font-bold text-gray-600 mb-1 uppercase">Density 15C</label>
+					        <input type="number" id="editDensity15c" inputmode="numeric"
+					               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+					               class="w-full border rounded p-2 text-sm bg-white">
+					    </div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2 uppercase">상품 상세 설명 (Editor)</label>
-                        <div id="editQuillEditor" class="bg-white border rounded-lg" style="height: 220px;"></div>
+                        <%-- 에디터 높이를 300px로 조금 더 키웠습니다 --%>
+                        <div id="editQuillEditor" class="bg-white border rounded-lg" style="height: 300px;"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center p-4 border-t gap-2 justify-end bg-gray-50 rounded-b-xl">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-gray-500 border bg-white rounded-lg hover:bg-gray-100">취소</button>
-                <button type="button" onclick="saveProductEdit()" class="px-6 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md">정보 수정 완료</button>
+            <div class="flex items-center p-6 border-t gap-2 justify-end bg-gray-50 rounded-b-xl">
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-sm font-medium text-gray-500 border bg-white rounded-lg hover:bg-gray-100 transition">취소</button>
+                <button type="button" onclick="saveProductEdit()" class="px-8 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md transition active:scale-95">정보 수정 완료</button>
             </div>
         </form>
     </div>

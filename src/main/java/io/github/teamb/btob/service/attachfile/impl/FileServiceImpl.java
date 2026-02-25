@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.attachfile.AtchFileDto;
 import io.github.teamb.btob.mapper.attachfile.AtchFileMapper;
 import io.github.teamb.btob.service.attachfile.FileService;
@@ -50,6 +51,7 @@ public class FileServiceImpl implements FileService {
 
     private final CommonService commonService;
     private final AtchFileMapper fileMapper;
+    private final LoginUserProvider loginUserProvider;
 
     /**
      * 
@@ -104,6 +106,13 @@ public class FileServiceImpl implements FileService {
     public AtchFileDto uploadFile(MultipartFile file, 
     								String systmeId, 
     								Integer refId) throws Exception {
+    	
+    	if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
+    	String loginUserId = loginUserProvider.getLoginUserId();
+    	
     	// 원본파일명
         String orgFileNm = file.getOriginalFilename();
         // 확장자
@@ -136,6 +145,7 @@ public class FileServiceImpl implements FileService {
         dto.setFileSize(file.getSize());
         dto.setSystemId(systmeId);
         dto.setRefId(refId);
+        dto.setRegId(loginUserId);
 
         fileMapper.insertFile(dto);
         return dto;
@@ -205,10 +215,18 @@ public class FileServiceImpl implements FileService {
     						Integer refId, 
     						List<String> remainingFileNames) throws Exception {
     	
+    	if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
+		
+    	String loginUserId = loginUserProvider.getLoginUserId();
+    	
         Map<String, Object> params = new HashMap<>();
         params.put("systemId", systemId);
         params.put("refId", refId);
         params.put("remainingFileNames", remainingFileNames);
+        params.put("updId", loginUserId);
 
         // 매퍼 호출 (결과값인 수정된 행의 수는 필요에 따라 로깅)
         fileMapper.updateUnusedFilesExceptRemaining(params);
@@ -390,6 +408,7 @@ public class FileServiceImpl implements FileService {
 	    resultDto.setFileSize(targetFile.length());  // 파일크기
 	    resultDto.setSystemId(fileDto.getSystemId());// 시스템ID (PRODUCT_M 등)
 	    resultDto.setRefId(fileDto.getRefId());       // 참조ID (fuelId)
+	    resultDto.setRegId(fileDto.getRegId());		// 등록자ID
 
 	    // 5. DB 등록 (기존 uploadFile과 동일한 매퍼 호출)
 	    fileMapper.insertFile(resultDto);
@@ -414,10 +433,18 @@ public class FileServiceImpl implements FileService {
 	@Override
 	public void updateUseYnByDetailChg(String useYn, Integer fileId, String strFileNm) throws Exception {
 		
+		if ( !(commonService.nullEmptyChkValidate(loginUserProvider.getLoginUserId())) ) {
+			throw new Exception("로그인 사용자가 존재하지 않습니다.");
+		}
+		
+		
+		String loginUserId = loginUserProvider.getLoginUserId();
+		
 		Map<String, Object> useYnparams = new HashMap<>();
 	    useYnparams.put("useYn", useYn);
 	    useYnparams.put("fileId", fileId);
 	    useYnparams.put("strFileNm", strFileNm);
+	    useYnparams.put("updId", loginUserId);
 	    
 		fileMapper.updateUseYnByDetailInfoChg(useYnparams);
 	}

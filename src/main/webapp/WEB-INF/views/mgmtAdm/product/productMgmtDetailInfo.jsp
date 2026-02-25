@@ -2,8 +2,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<div id="detailModal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-[calc(100%-1rem)] max-h-full bg-black/50">
-    <div class="relative w-full max-w-5xl max-h-full mx-auto">
+<%-- 모달 배경에 blur 효과 추가 및 전체 높이 조정 --%>
+<div id="detailModal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black/50 backdrop-blur-sm">
+    <%-- max-w-5xl에서 max-w-7xl로 변경하여 창 크기를 키웠습니다 --%>
+    <div class="relative w-full max-w-7xl mx-auto mt-5 mb-5">
         <div class="relative bg-white rounded-xl shadow-2xl border border-gray-200">
             <div class="flex items-center justify-between p-4 border-b">
                 <h2 class="text-xl font-bold text-gray-900">상품 상세 정보 조회</h2>
@@ -14,8 +16,9 @@
                 </button>
             </div>
             
-            <div class="p-6 grid grid-cols-12 gap-6">
-                <div class="col-span-12 md:col-span-6 space-y-4 border-r pr-6">
+            <%-- 내부 여백과 그리드 간격을 살짝 넓혀 가독성을 높였습니다 --%>
+            <div class="p-8 grid grid-cols-12 gap-8">
+                <div class="col-span-12 md:col-span-6 space-y-4 border-r pr-8">
                     <div class="flex justify-between items-center border-b pb-1">
                         <h3 class="font-bold text-blue-600 text-sm uppercase">기본 정보</h3>
                         <span id="detailUseYnBadge" class="text-[10px] px-2 py-0.5 rounded-full font-bold"></span>
@@ -65,12 +68,12 @@
                     <div class="grid grid-cols-2 gap-4 pt-2">
                         <div>
                             <label class="block text-[11px] font-bold text-gray-500 mb-2">메인 이미지</label>
-                            <div id="detMainImgContainer" class="w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-dashed flex items-center justify-center">
+                            <div id="detMainImgContainer" class="w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-dashed flex items-center justify-center">
                                 </div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-gray-500 mb-2">서브 이미지</label>
-                            <div id="detSubImgContainer" class="w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-dashed flex items-center justify-center">
+                            <div id="detSubImgContainer" class="w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-dashed flex items-center justify-center">
                                 </div>
                         </div>
                     </div>
@@ -117,15 +120,16 @@
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">상품 상세 설명</label>
-                        <div id="detFuelMemo" class="w-full min-h-[150px] p-4 border rounded-lg bg-gray-50 text-sm overflow-y-auto">
+                        <%-- 창이 커진만큼 에디터 영역의 최소 높이도 250px로 조정했습니다 --%>
+                        <div id="detFuelMemo" class="w-full min-h-[250px] p-4 border rounded-lg bg-gray-50 text-sm overflow-y-auto">
                             </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center p-6 border-t gap-2">
-                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition">정보 수정</button>
-                <button type="button" onclick="closeDetailModal()" class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border rounded-lg ml-auto">닫기</button>
+            <div class="flex items-center p-6 border-t gap-2 bg-gray-50 rounded-b-xl">
+                <button type="button" id="btnGoEdit" class="px-6 py-2 text-sm font-bold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition shadow-md">정보 수정</button>
+                <button type="button" onclick="closeDetailModal()" class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border rounded-lg ml-auto hover:bg-gray-100">닫기</button>
             </div>
         </div>
     </div>
