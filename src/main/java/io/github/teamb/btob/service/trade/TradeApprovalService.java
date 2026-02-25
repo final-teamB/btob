@@ -76,7 +76,7 @@ public class TradeApprovalService {
 	            // [추가] 견적서 ID 존재 여부 확인 (params에 estId가 담겨온다고 가정)
 	            // 만약 params에 없다면 DB에서 order_id로 est_id를 조회하는 과정이 필요할 수 있습니다.
 	        	Integer estId = tradeApprovalmapper.getEstIdByOrderId(orderId); 
-	            boolean isFromEstimate = (estId != null);
+	        	boolean isFromEstimate = (estId != null && estId > 0);
 
 	            if (!isFromEstimate) {
 	                // 1. 문서 번호 생성 (PO-회사코드-날짜-순번)

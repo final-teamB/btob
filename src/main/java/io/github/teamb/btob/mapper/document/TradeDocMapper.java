@@ -37,5 +37,7 @@ public interface TradeDocMapper {
 	ContractDetailDTO getContractDetail(Integer orderId);
 
 	TransactionDetailDTO getTransactionDetail(Integer orderId);
+	
+	int updateDocUseYnByOrderId(Integer orderId, String useYn, String userId);
 
 }

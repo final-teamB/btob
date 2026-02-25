@@ -22,7 +22,7 @@ public class TransactionDetailDTO {
     
     public String getFormattedRegDtime() {
         if (this.regDtime == null) return "";
-        return this.regDtime.format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH:mm"));
+        return this.regDtime.format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH:mm:ss"));
     }
     
     // 2. 업체/고객 정보 (JSP의 ${info} 객체 대응)
