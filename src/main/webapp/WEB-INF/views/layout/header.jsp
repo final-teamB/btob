@@ -221,7 +221,7 @@
                     <div class="flex flex-col">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight">\${item.notificationType}</span>
-                            <span class="text-[9px] text-gray-400">\${item.regDtime}</span>
+                            <span class="text-[9px] text-gray-400">\${item.regDtime.replace('T', ' ')}</span>
                         </div>
                         <p class="text-[13px] \${isUnread ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500'} leading-snug line-clamp-2">
                             \${item.message}
