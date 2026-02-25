@@ -9,6 +9,7 @@ public class DeliveryDTO {
 	
 	private int deliveryId;
 	private int orderId;
+	private String orderNo;
 	private DeliveryStatus deliveryStatus;
 	private String trackingNo;
 	private String carrierName;
