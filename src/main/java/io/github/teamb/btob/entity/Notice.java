@@ -32,6 +32,9 @@ public class Notice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notice_id")
     private Integer noticeId;
+    
+    @Column(nullable = false, length = 20)
+    private String category;
 
     @Column(nullable = false, length = 200)
     private String title;

@@ -66,7 +66,21 @@
         border-color: #2563eb !important;     /* border-blue-600 */
     }
     
-    
+    /* 1. 필터 셀렉트 박스 및 검색창 크기 확대 */
+    #dg-common-filter-wrapper select, 
+    #dg-search-category, 
+    #dg-search-input {
+        padding-left: 1rem !important;
+        padding-right: 2.5rem !important;
+    }
+
+    /* 2. '구분', '검색어' 라벨 텍스트 크기 확대 */
+    .search-group label, 
+    .filter-label,
+    div.text-sm.font-bold { 
+        margin-bottom: 0.5rem !important;
+        display: inline-block;
+    }
 </style>
 
 <div class="max-w-screen-2xl mx-auto">
@@ -129,6 +143,7 @@
         <c:forEach var="item" items="${noticeList}" varStatus="status">
         {
             noticeId: "${item.noticeId}",
+            category: "${item.category}",
             title: `<c:out value="${item.title}"/>`,
             displayRegId: "${item.displayRegId}",
             regDtime: "${item.formattedRegDate}",
@@ -138,8 +153,34 @@
     ];
 
     document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('dg-search-input');
+    	const filterWrapper = document.getElementById('dg-common-filter-wrapper');
+        const filterSelect = document.getElementById('dg-common-filter');
+        const searchInput = document.getElementById('dg-search-input'); // 여기 선언!
         const btnSearch = document.getElementById('dg-btn-search');
+
+        // [카테고리 설정]
+        if (filterWrapper && filterSelect) {
+            filterWrapper.classList.remove('hidden');
+            filterWrapper.classList.add('flex');
+
+            const categories = [
+                { val: '일반', text: '일반' },
+                { val: '안내', text: '안내' },
+                { val: '점검', text: '점검' },
+                { val: '업데이트', text: '업데이트' }
+            ];
+
+            filterSelect.innerHTML = '<option value="">전체 카테고리</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.val;
+                opt.textContent = cat.text;
+                filterSelect.appendChild(opt);
+            });
+
+            // 카테고리 변경 시 검색 실행
+            filterSelect.addEventListener('change', () => btnSearch.click());
+        }
         
         if (searchInput) {
             let searchTimeout;
@@ -159,6 +200,32 @@
             perPageId: 'dg-per-page',
             columns: [
                 { header: '번호', name: 'noticeId', width: 80, align: 'center', sortable: true },
+                { 
+                    header: '카테고리', name: 'category', width: 120, align: 'center',
+                    formatter: function(props) {
+                        const val = props.value;
+                        if (!val) return '-';
+
+                        const map = { 
+                            '일반': '일반', 
+                            '안내': '안내', 
+                            '점검': '점검', 
+                            '업데이트': '업데이트' 
+                        };
+                        const labelName = map[val] || val;
+
+                        const badgeStyles = {
+                            '일반': 'bg-gray-100 text-gray-600',
+                            '안내': 'bg-blue-50 text-blue-600',
+                            '점검': 'bg-red-50 text-red-600', 
+                            '업데이트': 'bg-green-50 text-green-600'
+                        };
+                        
+                        const styleClass = badgeStyles[val] || 'bg-gray-100 text-gray-500';
+                        
+                        return '<span class="px-2 py-1 rounded text-[11px] font-bold ' + styleClass + '">' + labelName + '</span>';
+                    }
+                },
                 { header: '제목', name: 'title', align: 'left', sortable: true },
                 { header: '작성자', name: 'displayRegId', width: 120, align: 'center' },
                 { header: '등록일', name: 'regDtime', width: 180, align: 'center', sortable: true },
@@ -175,11 +242,19 @@
 
         // [조회 버튼 필터 로직]
         document.getElementById('dg-btn-search').addEventListener('click', function() {
-            const keyword = document.getElementById('dg-search-input').value.toLowerCase();
-            const filtered = rawData.filter(item => 
-                item.title.toLowerCase().includes(keyword) || 
-                item.displayRegId.toLowerCase().includes(keyword)
-            );
+        	const catVal = document.getElementById('dg-common-filter').value;
+        	const keyword = document.getElementById('dg-search-input').value.toLowerCase();
+        	const filtered = rawData.filter(item => {
+                // 카테고리 조건: 전체, 값 일치
+                const matchCat = !catVal || item.category === catVal;
+                
+                // 검색어 조건: 검색어X, 제목 또는 작성자에 포함
+                const matchKey = !keyword || 
+                                 item.title.toLowerCase().includes(keyword) || 
+                                 item.displayRegId.toLowerCase().includes(keyword);
+                                 
+                return matchCat && matchKey; // 두 조건 모두 참(True)이어야 함
+            });
             noticeGrid.grid.resetData(filtered);
         });
 
@@ -220,5 +295,19 @@
     function closeNoticeModal() {
         $('#noticeModal').addClass('hidden');
         document.body.style.overflow = 'auto';
+    }
+    
+    function handleDelete(noticeId) {
+        $.ajax({
+            url: '/notice/delete/' + noticeId,
+            type: 'GET',
+            success: function() {
+                alert('삭제되었습니다.');
+                location.reload(); // 목록 새로고침
+            },
+            error: function() {
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        });
     }
 </script>

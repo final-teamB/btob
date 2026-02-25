@@ -34,6 +34,22 @@
 	.tui-grid-body-area td[data-column-name="manage"] button:hover {
 	    background-color: #eff6ff !important;  /* hover:bg-blue-50 */
 	}
+	
+	/* 1. 필터 셀렉트 박스 및 검색창 크기 확대 */
+    #dg-common-filter-wrapper select, 
+    #dg-search-category, 
+    #dg-search-input {
+        padding-left: 1rem !important;
+        padding-right: 2.5rem !important;
+    }
+
+    /* 2. '구분', '검색어' 라벨 텍스트 크기 확대 */
+    .search-group label, 
+    .filter-label,
+    div.text-sm.font-bold { 
+        margin-bottom: 0.5rem !important;
+        display: inline-block;
+    }
 </style>
 
 <div class="max-w-screen-2xl mx-auto">
@@ -122,6 +138,8 @@
                 { val: 'PRODUCT', text: '상품' },
                 { val: 'ETC', text: '기타' }
             ];
+            
+            filterSelect.innerHTML = '<option value="">전체 카테고리</option>';
             categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat.val;

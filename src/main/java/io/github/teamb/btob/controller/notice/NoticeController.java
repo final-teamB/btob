@@ -72,10 +72,6 @@ public class NoticeController {
         notice.setRegId(userDetails.getUsername());
         notice.setUpdId(userDetails.getUsername());
 
-        // 1. 공지사항 본문 먼저 저장 (ID를 생성하기 위해)
-        noticeService.saveNotice(notice);
-
-        // 2. 파일들 처리
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
@@ -97,9 +93,8 @@ public class NoticeController {
                     notice.getNoticeFiles().add(noticeFile);
                 }
             }
-            // 파일 정보가 추가된 상태로 한 번 더 업데이트
-            noticeService.saveNotice(notice);
         }
+        noticeService.saveNotice(notice);
         
         return "redirect:/notice";
     }

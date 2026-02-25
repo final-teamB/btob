@@ -5,7 +5,6 @@
 <c:set var="cp" value="${pageContext.request.contextPath}" />
 
 <style>
-    /* productMgmtAdm.jsp의 유류명칭 링크 스타일과 동일하게 고도화 */
     .user-link { 
         color: #1e293b;
         font-weight: 600; 

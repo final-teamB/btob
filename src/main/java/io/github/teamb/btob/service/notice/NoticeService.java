@@ -61,6 +61,7 @@ public class NoticeService {
     public void updateNotice(Notice notice) {
         Notice existing = noticeRepository.findById(notice.getNoticeId()).orElseThrow();
         // 변경된 내용 반영
+        existing.setCategory(notice.getCategory());
         existing.setTitle(notice.getTitle());
         existing.setContent(notice.getContent());
         existing.setUpdId(notice.getUpdId());
