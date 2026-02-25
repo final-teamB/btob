@@ -33,6 +33,19 @@ function updateAllBadges() {
                 cartBadge.classList.remove('hidden');        
             }).catch(e => console.warn("Cart count error:", e));
     }
+    
+ // 3. 신규 가입 관리 (Sidebar)
+    const userBadge = document.getElementById('user-pending-badge');
+    if (userBadge) {
+        fetch(window.cp + "/users/pendingCount") // 해당 컨트롤러 API가 필요합니다.
+            .then(res => res.json())
+            .then(count => {
+                userBadge.innerText = count;
+                // 0보다 크면 초록색 뱃지 노출, 아니면 숨김
+                count > 0 ? userBadge.classList.remove('hidden') : userBadge.classList.add('hidden');
+            }).catch(e => console.warn("User pending count error:", e));
+    }
+
 }
 
 // 모든 페이지 로드 시 실행

@@ -51,6 +51,8 @@ public interface UserMapper {
 	List<String> selectAllAdminIds();
 
 	String getCompanyCdByMasterId(Integer loginUserNo);
+
+	int getPendingUserCount(int userNo);
 	
 	
 

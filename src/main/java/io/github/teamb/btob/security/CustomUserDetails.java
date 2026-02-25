@@ -59,6 +59,21 @@ public class CustomUserDetails implements UserDetails {
 			     // 일반적인 권한 + 세부권한 생기는 경우 때문에 리스트로
 			     return authorities;
 		 }
+		 
+		 /**
+		  * 
+		  * 사용자 타입 검증
+		  * @author GD
+		  * @since 2026. 2. 25.
+		  * @return
+		  * 수정일        수정자       수정내용
+		  * ----------  --------    ---------------------------
+		  * 2026. 2. 25.  GD       최초 생성
+		  */
+		 public String getUserType() {
+		        return loginValidateDTO.getUserType();
+		    }
+		 
 		
 		 /**
 		  * 

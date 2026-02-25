@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <style>
    /* 모달 기본 스타일 보정 */
@@ -46,6 +47,8 @@
     <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
 
 <script>
+    const loginUserType = "<sec:authentication property='principal.userType' />";
+    
     const rawData = [
         <c:forEach var="order" items="${orderList}" varStatus="status">
         {
@@ -135,18 +138,22 @@
         ]);
     });
     
-    	window.handleGridAction = function(data, action) {
-    	    if (action === 'detail') {
-    	        // [모달 방식] 상세 페이지를 레이어 모달로 띄움 (함수는 아래 정의)
-    	        openOrderDetailModal(data.orderNo);
-    	    } 
-    	    else if (action === 'payment') {
-    	        // [팝업 방식] 결제 프로세스만 새 창으로 띄움
-    	        if(confirm('2차 결제를 진행하시겠습니까?')) {
-    	            openPaymentPopup(data.orderNo);
-    	        }
-    	    }
-    	};
+    
+    window.handleGridAction = function(data, action) {
+        if (action === 'detail') {
+            openOrderDetailModal(data.orderNo);
+        } 
+        else if (action === 'payment') {
+            // 대표 권한이거나 주문자 본인인 경우 (이미 visibleIf로 걸러졌겠지만 서버에서도 체크 필요)
+            const confirmMsg = loginUserType === 'MASTER' 
+                ? '해당 사원의 주문을 대신하여 2차 결제를 진행하시겠습니까?' 
+                : '2차 결제를 진행하시겠습니까?';
+
+            if(confirm(confirmMsg)) {
+                openPaymentPopup(data.orderNo);
+            }
+        }
+    };
 
     	// 결제 전 전용 팝업 함수
     	function openPaymentPopup(orderNo) {

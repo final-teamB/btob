@@ -22,7 +22,7 @@
 	    </div>
 	
 	    <div class="hidden lg:block w-full max-w-md ml-4">
-	        <form id="globalSearchForm" action="${cp}/product/list" method="GET" class="relative">
+	        <form id="globalSearchForm" action="${cp}/usr/productView/list" method="GET" class="relative">
 	            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
 	                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
 	                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
@@ -118,7 +118,7 @@
 			        <li>
 			            <a href="/order/list" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group">
 			                <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-			                주문 및 견적 관리
+			                주문/배송 현황
 			            </a>
 			        </li>
 			        <li>
@@ -151,7 +151,7 @@
 		        </sec:authorize>
 		        <sec:authorize access="isAnonymous()">
 		            <li>
-		                <a href="${cp}/login" class="flex items-center px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-colors group">
+		                <a href="${cp}/home/index" class="flex items-center px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-colors group">
 		                    <svg class="w-4 h-4 mr-3 text-blue-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
 		                    Sign in
 		                </a>
