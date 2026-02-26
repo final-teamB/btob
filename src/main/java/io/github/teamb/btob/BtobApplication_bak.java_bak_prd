@@ -1,0 +1,21 @@
+package io.github.teamb.btob;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+
+@SpringBootApplication
+public class BtobApplication extends SpringBootServletInitializer{
+
+	/* WAR 패키징시 추가 SpringBootServletInitializer */
+	@Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(BtobApplication_bak.class);
+    }
+	
+	public static void main(String[] args) {
+		
+		SpringApplication.run(BtobApplication.class, args);
+	}
+}

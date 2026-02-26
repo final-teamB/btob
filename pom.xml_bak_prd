@@ -12,7 +12,7 @@
 	<artifactId>btob</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<!-- 운영배포시 war 패키징 사용이 필요해 추가하였습니다. -->
-	<!--<packaging>war</packaging>-->
+	<packaging>war</packaging>
 	<name>btob</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
