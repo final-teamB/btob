@@ -71,19 +71,19 @@
         <div class="lg:col-span-5 bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-gray-700">
             <div class="flex justify-between items-center mb-8">
                 <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight italic">NOTICE</h3>
-                <a href="/notice" class="text-xs font-black text-blue-600 hover:underline">VIEW ALL +</a>
+                <a href="/notice/user/list" class="text-xs font-black text-blue-600 hover:underline">VIEW ALL +</a>
             </div>
             <div class="space-y-3">
-                <c:forEach items="${noticeList}" var="notice" end="3">
-                    <div class="group flex items-center p-4 bg-slate-50 dark:bg-gray-900 hover:bg-blue-600 rounded-[1.25rem] transition-all cursor-pointer">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold text-slate-800 dark:text-gray-200 group-hover:text-white truncate transition-colors">${notice.title}</p>
-                            <p class="text-[10px] font-bold text-slate-400 group-hover:text-blue-200 mt-1 transition-colors uppercase">${notice.getFormattedRegDate()}</p>
-                        </div>
-                        <i class="bi bi-chevron-right text-slate-300 group-hover:text-white ml-4"></i>
-                    </div>
-                </c:forEach>
-            </div>
+			    <c:forEach items="${noticeList}" var="notice" end="3">
+			        <a href="/notice/user/detail/${notice.noticeId}" class="group flex items-center p-4 bg-slate-50 dark:bg-gray-900 hover:bg-blue-600 rounded-[1.25rem] transition-all cursor-pointer block no-underline">
+			            <div class="flex-1 min-w-0">
+			                <p class="text-sm font-bold text-slate-800 dark:text-gray-200 group-hover:text-white truncate transition-colors">${notice.title}</p>
+			                <p class="text-[10px] font-bold text-slate-400 group-hover:text-blue-200 mt-1 transition-colors uppercase">${notice.getFormattedRegDate()}</p>
+			            </div>
+			            <i class="bi bi-chevron-right text-slate-300 group-hover:text-white ml-4"></i>
+			        </a>
+			    </c:forEach>
+			</div>
         </div>
     </div>
 
@@ -159,7 +159,7 @@
             </div>
             <div class="space-y-4">
                 <c:forEach items="${faqList}" var="faq" end="2">
-                    <div onclick="location.href='/faq'" class="p-5 bg-slate-50 dark:bg-gray-900 rounded-2xl border-l-4 border-purple-600 hover:bg-slate-100 dark:hover:bg-gray-850 transition-all cursor-pointer group">
+                    <div onclick="location.href='support/user/faqList'" class="p-5 bg-slate-50 dark:bg-gray-900 rounded-2xl border-l-4 border-purple-600 hover:bg-slate-100 dark:hover:bg-gray-850 transition-all cursor-pointer group">
                         <div class="flex items-center justify-between">
                             <p class="text-sm font-black text-slate-800 dark:text-gray-200 leading-snug group-hover:text-purple-700 transition-colors">
                                 <span class="text-purple-600 mr-2 font-black italic text-lg">Q.</span> ${faq.question}
