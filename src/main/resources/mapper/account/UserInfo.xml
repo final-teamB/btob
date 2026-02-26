@@ -315,5 +315,18 @@
 					WHERE user_id = #{userId} 
 		
 		</select>
+		
+		<!-- 사용자 이메일 중복 체크 ( 회원가입 ) -->
+		<select id="selectEmailDuplicateChk"
+			parameterType="String"
+			resultType="int">
+			
+					SELECT 
+						COUNT(email)
+					FROM 
+						TB_USERS
+					WHERE email = #{email} 
+		
+		</select>
 
 </mapper>

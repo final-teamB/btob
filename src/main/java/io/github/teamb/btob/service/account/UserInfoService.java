@@ -49,4 +49,7 @@ public interface UserInfoService {
     
     // 11. 회원가입시 사용자 ID 중복 체크
     boolean userIdDuplicationChk(String userId) throws Exception;
+    
+    // 12. 회원가입시 사용자 이메일 중복 체크
+    boolean userEmailDuplicationChk(String email) throws Exception;
 }	
