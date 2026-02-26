@@ -59,6 +59,8 @@
         pointer-events: auto !important; width: 95% !important; height: 34px !important;
         border: 1px solid #e2e8f0 !important; border-radius: 6px !important;
         background-color: #ffffff !important; font-size: 13px !important;
+        text-align: center;
+   		text-align-last: center;
     }
     
     .grid-relative-wrapper { position: relative; width: 100%; min-height: 400px; }
