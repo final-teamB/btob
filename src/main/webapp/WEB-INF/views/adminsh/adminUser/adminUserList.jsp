@@ -5,99 +5,105 @@
 <c:set var="cp" value="${pageContext.request.contextPath}" />
 
 <style>
-    .user-link { 
-        color: #1e293b;
-        font-weight: 600; 
-        cursor: pointer; 
-        transition: all 0.2s ease;
-        padding: 4px 8px;
-        border-radius: 4px;
-        display: inline-block;
-    }
-    .user-link:hover { 
-        color: #2563eb; 
-        background-color: #eff6ff;
-        text-decoration: none !important;
+    /* 1. etpMgmtAdm.jsp 배경 및 기본 폰트 설정 */
+    body { background-color: #f9fafb !important; color: #111827; }
+    
+    .admin-main-container { 
+        width: 100%; min-height: auto; padding-bottom: 2rem; margin-bottom: 0 !important;
     }
 
-    /* 그리드 내 입력 요소 스타일링 */
+    /* 2. etpMgmtAdm 스타일 카드 레이아웃 */
+    .grid-card { 
+        background-color: #ffffff; border: 1px solid #e5e7eb; 
+        border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); 
+        margin-bottom: 1rem; overflow: hidden;
+    }
+
+    /* 3. 상단 탭 내비게이션 (etpMgmtAdm 스타일) */
+    .tab-nav-wrapper { display: flex; border-bottom: 1px solid #e5e7eb; background-color: #ffffff; padding: 0 1.25rem; }
+    .tab-nav-item {
+        padding: 1rem 1.25rem; font-size: 0.875rem; font-weight: 500; color: #6b7280;
+        border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    .tab-nav-item:hover { color: #111827; }
+    .tab-nav-item.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; }
+
+    /* 4. 버튼 규격 (etpMgmtAdm.jsp 기준 정밀 매칭) */
+    .btn-etp-primary {
+        height: 38px !important; padding: 0 16px !important; font-size: 13px !important;
+        font-weight: 600 !important; color: #ffffff !important; background-color: #2563eb !important;
+        border-radius: 6px !important; display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px; cursor: pointer; border: none !important;
+    }
+    .btn-etp-primary:hover { background-color: #1d4ed8 !important; }
+
+    .btn-etp-outline {
+        height: 38px !important; padding: 0 16px !important; font-size: 13px !important;
+        font-weight: 600 !important; color: #4b5563 !important; background-color: #ffffff !important;
+        border: 1px solid #d1d5db !important; border-radius: 6px !important;
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    /* 그리드 내부 액션 버튼 */
+    .btn-grid-action {
+        height: 28px !important; padding: 0 10px !important; font-size: 12px !important;
+        font-weight: 700 !important; border-radius: 4px !important; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .btn-grid-blue { color: #1d4ed8 !important; border: 1px solid #60a5fa !important; background-color: #ffffff !important; }
+    .btn-grid-blue:hover { background-color: #eff6ff !important; }
+    .btn-grid-gray { color: #4b5563 !important; border: 1px solid #d1d5db !important; background-color: #ffffff !important; }
+
+    /* 5. 직접 수정 셀 디자인 */
     .direct-edit-el {
-        pointer-events: auto !important; width: 90% !important; height: 32px !important;
+        pointer-events: auto !important; width: 95% !important; height: 34px !important;
         border: 1px solid #e2e8f0 !important; border-radius: 6px !important;
         background-color: #ffffff !important; font-size: 13px !important;
-        transition: border-color 0.2s;
     }
-    .direct-edit-el:focus { border-color: #3b82f6 !important; outline: none !important; }
-
-    /* 데이터그리드 컨테이너 여백 */
-    #dg-container { width: 100%; margin-top: 1rem; }
-    .grid-relative-wrapper { position: relative; width: 100%; }
     
-    select.direct-edit-el {
-	    text-align: center !important;
-	    text-align-last: center !important; 
-	    appearance: none;                   
-	    background-position: right 8px center;
-	}
-	
-	select.direct-edit-el option {
-	    text-align: center;
-	}
-	
-	/* 1. 필터 셀렉트 박스 및 검색창 크기 확대 */
-    #dg-common-filter-wrapper select, 
-    #dg-search-category, 
-    #dg-search-input {
-        padding-left: 1rem !important;
-        padding-right: 2.5rem !important;
-    }
-
-    /* 2. '구분', '검색어' 라벨 텍스트 크기 확대 */
-    .search-group label, 
-    .filter-label,
-    div.text-sm.font-bold { 
-        margin-bottom: 0.5rem !important;
-        display: inline-block;
-    }
+    .grid-relative-wrapper { position: relative; width: 100%; min-height: 400px; }
 </style>
 
-<div class="max-w-screen-2xl mx-auto">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-        
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">사용자 관리</h2>
-                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                        ${viewType == 'COMPANY' ? '회사' : viewType == 'ADMIN' ? '관리자' : '전체'}
-                    </span>
+<div class="admin-main-container my-6 space-y-6">
+    
+    <div class="px-8 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full text-left">
+            <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-bold text-gray-900">사용자 관리</h2>
+                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                    ${viewType == 'COMPANY' ? '회사' : viewType == 'ADMIN' ? '관리자' : '전체'} ${adminUserList.size()}건
+                </span>
+            </div>
+            <p class="text-sm text-gray-500 mt-1">시스템 사용자의 권한을 관리하고 가입 승인을 처리할 수 있습니다.</p>
+        </div>
+
+        <div class="flex items-center gap-2 mt-4 md:mt-0">
+            <c:if test="${viewType == 'ADMIN'}">
+                <button type="button" onclick="handleAddAction()" class="btn-etp-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    신규 관리자 등록
+                </button>
+            </c:if>
+        </div>
+    </div>
+
+    <div class="px-5">
+        <div class="grid-card">
+            <div class="tab-nav-wrapper">
+                <a href="/admin/user/list" class="tab-nav-item ${empty viewType ? 'active' : ''}">전체</a>
+                <a href="/admin/user/list?viewType=COMPANY" class="tab-nav-item ${viewType == 'COMPANY' ? 'active' : ''}">회사 관리</a>
+                <a href="/admin/user/list?viewType=ADMIN" class="tab-nav-item ${viewType == 'ADMIN' ? 'active' : ''}">관리자 관리</a>
+                <a href="/admin/user/list?viewType=USER" class="tab-nav-item ${viewType == 'USER' ? 'active' : ''}">일반 사용자</a>
+            </div>
+
+            <div class="p-6">
+                <div class="grid-relative-wrapper">
+                    <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                        <jsp:param name="showSearchArea" value="true" />
+                        <jsp:param name="showPerPage" value="true" />
+                    </jsp:include>
                 </div>
-                <p class="text-sm text-gray-500 mt-1">시스템 사용자의 권한을 관리하고 가입 승인을 처리할 수 있습니다.</p>
             </div>
-            
-            <div class="flex flex-wrap items-center gap-2">
-                <c:if test="${viewType == 'ADMIN'}">
-                    <button type="button" onclick="handleAddAction()" 
-                            class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95 flex items-center">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        신규 관리자 등록
-                    </button>
-                </c:if>
-            </div>
-        </div>
-
-        <div class="flex space-x-1 mb-1">
-            <a href="/admin/user/list" class="px-5 py-2.5 text-sm font-medium transition-all ${empty viewType ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">전체</a>
-            <a href="/admin/user/list?viewType=COMPANY" class="px-5 py-2.5 text-sm font-medium transition-all ${viewType == 'COMPANY' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">회사 관리</a>
-            <a href="/admin/user/list?viewType=ADMIN" class="px-5 py-2.5 text-sm font-medium transition-all ${viewType == 'ADMIN' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">관리자 관리</a>
-            <a href="/admin/user/list?viewType=USER" class="px-5 py-2.5 text-sm font-medium transition-all ${viewType == 'USER' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}">일반 사용자</a>
-        </div>
-
-        <div class="grid-relative-wrapper">
-            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
-                <jsp:param name="showSearchArea" value="true" />
-                <jsp:param name="showPerPage" value="true" />
-            </jsp:include>
         </div>
     </div>
 </div>
@@ -105,18 +111,16 @@
 <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserApprovModal.jsp" />
 <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserHistModal.jsp" />
 
-<div id="adminRegModal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 overflow-y-auto">
-    <div class="relative w-full max-w-2xl p-4">
-        <div class="relative bg-white rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div id="adminRegModal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 overflow-y-auto">
+    <div class="relative w-full max-w-2xl px-4">
+        <div class="relative bg-white rounded-xl border border-gray-200 shadow-2xl overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white" id="modalTitle">신규 관리자 등록</h3>
+                <h3 class="text-xl font-bold text-gray-900" id="modalTitle">신규 관리자 등록</h3>
                 <button type="button" onclick="closeAdminRegModal()" class="text-gray-400 hover:text-gray-900 ml-auto p-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div>
+            <div class="p-0">
                 <jsp:include page="/WEB-INF/views/adminsh/adminUser/adminUserForm.jsp" />
             </div>
         </div>
