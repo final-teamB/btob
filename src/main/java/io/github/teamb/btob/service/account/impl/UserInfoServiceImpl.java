@@ -737,5 +737,31 @@ public class UserInfoServiceImpl implements UserInfoService{
 
 		return result;
 	}
+
+	/**
+	 * 
+	 * 회원가입시 중복 이메일 체크
+	 * @author GD
+	 * @since 2026. 2. 26.
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 26.  GD       최초 생성
+	 */
+	@Override
+	public boolean userEmailDuplicationChk(String email) throws Exception {
+		
+		boolean result = false;
+		
+		if (userInfoMapper.selectEmailDuplicateChk(email) > 0) {
+			throw new Exception("이미 가입된 이메일로 사용이 불가능합니다.");
+		} else {
+			result = true;
+		}
+
+		return result;
+	}
 	
 }

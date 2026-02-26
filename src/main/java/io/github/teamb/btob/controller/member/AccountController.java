@@ -122,6 +122,48 @@ public class AccountController {
     }
     
     /**
+     * * [API] 회원가입 시 이메일 중복 체크
+     * @author GD
+     * @since 2026. 2. 26.
+     * @param userId
+     * @return
+     * 수정일        수정자       수정내용
+     * ----------  --------    ---------------------------
+     * 2026. 2. 26.  GD       최초 생성
+     */
+    @GetMapping("/api/check-duplicate-email")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkUserEmailDuplication(@RequestParam("email") String email) {
+        
+    	Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 파라미터 유효성 검사 (공백 등)
+            if (email == null || email.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "이메일을 입력해주세요.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // 서비스 호출 (중복 시 Exception 발생)
+            userInfoService.userEmailDuplicationChk(email);
+            
+            response.put("success", true);
+            response.put("message", "사용 가능한 이메일입니다.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            // 서비스에서 던진 "이미 가입된 이메일로 사용이 불가능합니다." 메시지가 잡힘
+            log.warn("이메일 중복 체크 결과: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            // 중복은 클라이언트 입장에서 에러가 아닌 '체크 결과'이므로 200 OK로 보내거나 409 Conflict를 사용합니다.
+            // 여기서는 프론트 로직 편의상 200(OK)으로 응답하되 success를 false로 줍니다.
+            return ResponseEntity.ok(response);
+        }
+    }
+    
+    /**
      * 
      * [API] 인증번호 발송
      * @author GD
@@ -365,7 +407,7 @@ public class AccountController {
         
         if (loginUserId == null || loginUserId.isEmpty()) {
             // 로그인 정보가 없으면 로그인 페이지로 튕기거나 에러 처리
-            return "redirect:/login";
+            return "redirect:/home/index";
         }
 
         // 2. 서비스 레이어를 통해 사용자 정보 조회 (회사 정보 포함)
