@@ -117,7 +117,13 @@ public class DocumentPdfServiceImpl implements DocumentPdfService {
         // Playwright 엔진 구동
         try (Playwright playwright = Playwright.create()) {
             // 브라우저 실행 (Headless 모드)
-            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        	Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+        		    .setHeadless(true)
+        		    .setArgs(java.util.Arrays.asList(
+        		        "--no-sandbox", 
+        		        "--disable-setuid-sandbox",
+        		        "--disable-dev-shm-usage" // 메모리 부족 방지 (리눅스 필수)
+        		    )));
             BrowserContext context = browser.newContext();
             Page page = context.newPage();
             
