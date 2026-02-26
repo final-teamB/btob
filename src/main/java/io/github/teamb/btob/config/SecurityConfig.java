@@ -31,22 +31,45 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/loginProc" , "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
-                /* 내파트 먼저 */
-                .requestMatchers("/admin/company/**").hasRole("ADMIN")		// 개발도중폐기
-                .requestMatchers("/admin/etp/**").hasRole("ADMIN")			// 관리자 주문관리
-                .requestMatchers("/admin/etphist/**").hasRole("ADMIN")		// 관리자 히스토리 이력.
-                .requestMatchers("/admin/products/**").hasRole("ADMIN")		// 관리자 상품관리
-                .requestMatchers("/usr/productView/**").hasRole("USER")		// 가입한 사용자만 접근 가능
                 
-                .requestMatchers("/account/mypage/**").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 내정보페이지
-                .requestMatchers("/account/api/modify").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 내정보수정기능
-                .requestMatchers("/account/api/updatePassword").hasRole("ACTIVE")	// 가입한 사용자만 접근 가능 내정보비밀번호변경
-                .requestMatchers("/account/api/re-apply").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 내정보에서권한재신청
+            	// 주석했더니 / 루트 안됬음 그냥 명시적으로 선언처리함
+            	.requestMatchers("/", "/loginProc" , "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
                 
-                .requestMatchers("/main").hasAnyRole("ADMIN", "MASTER", "USER")				// 가입한 사용자만 접근 가능 메인페이지
-                .requestMatchers("/api/external/exchange-rate").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 메인페이지 환율체크
-                .requestMatchers("/api/external/oil-news").hasRole("ACTIVE")				// 가입한 사용자만 접근 가능 메인페이지 오일뉴스
+            	/* =============== JM PART =============== */
+            	// 관리자 영역
+            	.requestMatchers("/admin/company/**").hasRole("ADMIN")								// 개발도중폐기 관리자 회사관리
+                .requestMatchers("/admin/etp/**").hasRole("ADMIN")									// 관리자 주문관리
+                .requestMatchers("/admin/etphist/**").hasRole("ADMIN")								// 관리자 히스토리 이력.
+                .requestMatchers("/admin/products/**").hasRole("ADMIN")								// 관리자 상품관리
+                
+                // 내 정보 페이지
+                .requestMatchers("/account/mypage/**").hasAnyRole("ADMIN", "MASTER", "USER")			// 가입한 사용자만 접근 가능 내정보페이지
+                .requestMatchers("/account/api/modify").hasAnyRole("ADMIN", "MASTER", "USER")			// 가입한 사용자만 접근 가능 내정보수정기능
+                .requestMatchers("/account/api/updatePassword").hasAnyRole("ADMIN", "MASTER", "USER")	// 가입한 사용자만 접근 가능 내정보비밀번호변경
+                .requestMatchers("/account/api/re-apply").hasAnyRole("ADMIN", "MASTER", "USER")			// 가입한 사용자만 접근 가능 내정보에서권한재신청
+                
+                // 메인페이지
+                .requestMatchers("/main").hasAnyRole("ADMIN", "MASTER", "USER")							// 가입한 사용자만 접근 가능 메인페이지
+                .requestMatchers("/api/external/exchange-rate").hasAnyRole("ADMIN", "MASTER", "USER")	// 가입한 사용자만 접근 가능 메인페이지 환율체크
+                .requestMatchers("/api/external/oil-news").hasAnyRole("ADMIN", "MASTER", "USER")		// 가입한 사용자만 접근 가능 메인페이지 오일뉴스
+                
+                // 일반 사용자 상품 페이지
+                .requestMatchers("/usr/productView/**").hasAnyRole("ADMIN", "MASTER", "USER")			// 가입한 사용자만 접근 가능 상품 페이지
+                
+                // API 영역
+                .requestMatchers("/api/file/**").hasAnyRole("ADMIN", "MASTER", "USER")					// 첨부파일
+                /* =============== JM PART END =============== */
+                
+                
+                .requestMatchers("/notice/write", "/notice/edit/**", "/notice/update", "/notice/delete/**").hasRole("ADMIN")
+                .requestMatchers("/admin/delivery/**").hasRole("ADMIN")
+                .requestMatchers("/admin/stats/**").hasRole("ADMIN")
+                .requestMatchers("/support/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/user/**").hasRole("ADMIN")
+                .requestMatchers("/users/**", "/trade/**").hasRole("MASTER")
+                
+                .requestMatchers("/index/**").hasAnyRole("ADMIN", "MASTER", "USER")				// 테스트 페이지?
+                
                 .anyRequest().permitAll()
             )
             
