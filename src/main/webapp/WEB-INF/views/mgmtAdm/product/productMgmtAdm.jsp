@@ -71,7 +71,7 @@
 
 <div class="admin-main-container my-6 space-y-6">
     
-    <div class="px-5 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div class="px-8 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
         <div class="w-full text-left"> 
             <div class="flex items-center gap-3">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">상품 관리</h1>

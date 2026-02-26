@@ -256,14 +256,12 @@
             // 2. 알림 타입(Type)에 따른 이동 URL 분기 처리
             var moveUrl = "";
             if (type === 'DELIVERY') {
-	            moveUrl = ctx + "/admin/delivery/detail/" + targetId;
+	            moveUrl = ctx + "/order/list";
 	        } else if (type === 'ORDER') {
-	            moveUrl = ctx + "" + targetId;
+	            moveUrl = ctx + "/order/list";
 	        } else if (type === 'NOTICE') {
 	            moveUrl = ctx + "/notice/user/detail/" + targetId;
-	        } else if (type === 'APPROVAL') {
-	            moveUrl = ctx + "" + targetId;
-	        }
+	        } 
 
             // 3. 페이지 이동 혹은 목록 갱신
             if (moveUrl !== "") {

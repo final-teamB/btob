@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import io.github.teamb.btob.dto.account.LoginValidateDTO;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 //record는 자바 14에서 나온 것으로 데이터만 담는 불변 클래스

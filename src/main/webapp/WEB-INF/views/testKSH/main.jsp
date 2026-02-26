@@ -1,107 +1,177 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
-<div class="p-6 space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">내 프로필</h3>
-                <span class="px-2 py-1 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full">${member.userType}</span>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<div class="p-6 md:p-10 bg-[#f8fafc] dark:bg-gray-950 min-h-screen space-y-8">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-gray-700 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-8">
+                    <span class="px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.1em] text-blue-700 bg-blue-50 dark:bg-blue-900/40 rounded-lg border border-blue-100 dark:border-blue-800">
+                        ${member.userType} PARTNER
+                    </span>
+                    <i class="bi bi-shield-check text-blue-500 text-xl"></i>
+                </div>
+                
+                <div class="space-y-4 mb-8 text-center lg:text-left">
+                    <h4 class="text-3xl font-[900] text-slate-900 dark:text-white tracking-tight">
+                        ${member.userName} <span class="text-lg font-bold text-slate-400 ml-1">${member.position}</span>
+                    </h4>
+                    <p class="text-slate-500 dark:text-gray-400 font-semibold flex items-center justify-center lg:justify-start">
+                        <i class="bi bi-envelope-at mr-2"></i> ${member.userId}
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-gray-900/80 p-5 rounded-2xl border border-slate-100 dark:border-gray-700">
+                    <div class="flex items-center text-slate-700 dark:text-gray-200">
+                        <div class="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center shadow-sm mr-4">
+                            <i class="bi bi-building text-blue-600"></i>
+                        </div>
+                        <span class="font-black text-base">${member.companyName}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-10">
+                <button onclick="location.href='/logout'" class="py-4 text-sm font-black text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-900/30 rounded-2xl transition-all">
+                    로그아웃
+                </button>
+                <button onclick="location.href='/account/mypage'" class="py-4 text-sm font-black text-white bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 rounded-2xl shadow-lg shadow-slate-200 dark:shadow-none transition-all">
+                    정보수정
+                </button>
+            </div>
+        </div>
+
+        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-[2rem] p-8 border-2 border-blue-600 dark:border-blue-500 shadow-xl shadow-blue-50 dark:shadow-none relative overflow-hidden">
+            <div class="relative z-10 h-full flex flex-col justify-between">
+                <div>
+                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200">
+                        <i class="bi bi-currency-exchange text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-slate-400 dark:text-gray-400 text-xs font-black uppercase tracking-widest mb-1">Exchange Rate</h3>
+                    <p id="curName" class="text-slate-900 dark:text-white text-lg font-black uppercase leading-none">연동 중...</p>
+                </div>
+                
+                <div id="rateBox" class="transition-all duration-700">
+                    <div class="flex items-baseline">
+                        <span id="curRate" class="text-5xl font-[1000] text-blue-600 tracking-tighter">---</span>
+                        <span class="text-slate-900 dark:text-white font-black ml-2">KRW</span>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-100 dark:border-gray-700">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter italic">Real-time Trading Data</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight italic">NOTICE</h3>
+                <a href="/notice/user/list" class="text-xs font-black text-blue-600 hover:underline">VIEW ALL +</a>
             </div>
             <div class="space-y-3">
+			    <c:forEach items="${noticeList}" var="notice" end="3">
+			        <a href="/notice/user/detail/${notice.noticeId}" class="group flex items-center p-4 bg-slate-50 dark:bg-gray-900 hover:bg-blue-600 rounded-[1.25rem] transition-all cursor-pointer block no-underline">
+			            <div class="flex-1 min-w-0">
+			                <p class="text-sm font-bold text-slate-800 dark:text-gray-200 group-hover:text-white truncate transition-colors">${notice.title}</p>
+			                <p class="text-[10px] font-bold text-slate-400 group-hover:text-blue-200 mt-1 transition-colors uppercase">${notice.getFormattedRegDate()}</p>
+			            </div>
+			            <i class="bi bi-chevron-right text-slate-300 group-hover:text-white ml-4"></i>
+			        </a>
+			    </c:forEach>
+			</div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                    <i class="bi bi-graph-up-arrow text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-[900] text-slate-900 dark:text-white uppercase italic tracking-tight">Live Oil Market Analysis</h3>
+            </div>
+            <span class="flex items-center text-[10px] font-black text-green-600 bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full animate-pulse">
+                <span class="w-1.5 h-1.5 bg-green-600 rounded-full mr-2"></span> LIVE FEED
+            </span>
+        </div>
+
+        <div class="tradingview-widget-container" style="height: 600px;">
+            <div id="tradingview_oil_chart" style="height: 100%;"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+            <script type="text/javascript">
+                new TradingView.MediumWidget({
+                    "symbols": [
+                        ["WTI 원유 (실시간)", "TVC:USOIL"],      // WTI 원유
+                        ["브렌트유 (실시간)", "TVC:UKOIL"],
+                        ["원/달러 환율", "FX_IDC:USDKRW"],
+                        ["유로/달러", "FX_IDC:EURUSD"],
+                        ["달러/엔", "FX_IDC:USDJPY"],
+                        ["파운드/달러", "FX_IDC:GBPUSD"],
+                        ["금 (Gold)", "TVC:GOLD"],
+                        ["은 (Silver)", "TVC:SILVER"],
+                        ["백금 (Platinum)", "TVC:PLATINUM"],
+                        ["비트코인", "BINANCE:BTCUSDT"],
+                        ["이더리움", "BINANCE:ETHUSDT"],
+                    ],
+                    "chartOnly": false,
+                    "width": "100%",
+                    "height": "100%",
+                    "locale": "kr",
+                    "colorTheme": "light",
+                    "gridLineColor": "rgba(240, 243, 250, 0)",
+                    "fontColor": "#787b86",
+                    "isTransparent": true,
+                    "autosize": true,
+                    "showFloatingTooltip": true,
+                    "scalePosition": "no",
+                    "scaleMode": "Normal",
+                    "fontFamily": "Trebuchet MS, sans-serif",
+                    "noOverlays": false,
+                    "container_id": "tradingview_oil_chart"
+                });
+            </script>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                        <i class="bi bi-person text-2xl text-gray-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-gray-900 dark:text-white">${member.userName} <span class="text-gray-500 text-xs font-normal">${member.position}</span></p>
-                        <p class="text-xs text-gray-500">${member.userId}</p>
-                    </div>
+                    <i class="bi bi-newspaper text-2xl text-orange-500"></i>
+                    <h3 class="text-xl font-[900] text-slate-900 dark:text-white uppercase">Market News</h3>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2"><i class="bi bi-building mr-2"></i>${member.companyName}</p>
-                <div class="grid grid-cols-2 gap-2 pt-4">
-                    <button class="py-2 text-sm font-bold bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition" onclick="location.href='/account/mypage'">내 정보</button>
-                    <button class="py-2 text-sm font-bold bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition" onclick="location.href='/logout'">로그아웃</button>
-                </div>
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            </div>
+            <div class="grid grid-cols-1 gap-4" id="newsList">
+                <p class="text-center py-10 text-slate-400 font-bold">뉴스를 불러오는 중입니다...</p>
             </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">자주 결제하는 물품</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition cursor-pointer group">
-                    <i class="bi bi-fuel-pump text-3xl text-blue-500 mb-2 inline-block"></i>
-                    <p class="text-sm font-medium">경유(L)</p>
-                </div>
-                <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition cursor-pointer group">
-                    <i class="bi bi-droplet text-3xl text-orange-500 mb-2 inline-block"></i>
-                    <p class="text-sm font-medium">휘발유</p>
-                </div>
-                <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition cursor-pointer group">
-                    <i class="bi bi-box-seam text-3xl text-purple-500 mb-2 inline-block"></i>
-                    <p class="text-sm font-medium">요소수</p>
-                </div>
-                <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl hover:shadow-md transition cursor-pointer group">
-                    <i class="bi bi-tools text-3xl text-green-500 mb-2 inline-block"></i>
-                    <p class="text-sm font-medium">차량정비</p>
-                </div>
+        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div class="flex items-center space-x-3 mb-8">
+                <i class="bi bi-question-circle-fill text-2xl text-purple-600"></i>
+                <h3 class="text-xl font-[900] text-slate-900 dark:text-white uppercase">Help Center</h3>
             </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">공지사항</h3>
-                <a href="/notice" class="text-xs text-blue-600 font-bold hover:underline">전체보기</a>
-            </div>
-            <ul class="divide-y divide-gray-100 dark:divide-gray-700">
-                <c:forEach items="${noticeList}" var="notice" end="4">
-                    <li class="py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 px-2 rounded-lg cursor-pointer transition">
-                        <span class="text-sm text-gray-700 dark:text-gray-300 truncate mr-4">${notice.title}</span>
-                        <span class="text-xs text-gray-400 shrink-0">${notice.getFormattedRegDate()}</span>
-                    </li>
-                </c:forEach>
-            </ul>
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">자주 묻는 질문</h3>
-                <a href="/faq" class="text-xs text-blue-600 font-bold hover:underline">전체보기</a>
-            </div>
-            <div class="space-y-3">
+            <div class="space-y-4">
                 <c:forEach items="${faqList}" var="faq" end="2">
-                    <div class="p-3 bg-blue-50 dark:bg-gray-900 rounded-lg border border-blue-100 dark:border-gray-700">
-                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200"><span class="text-blue-600 mr-2">Q.</span>${faq.question}</p>
+                    <div onclick="location.href='support/user/faqList'" class="p-5 bg-slate-50 dark:bg-gray-900 rounded-2xl border-l-4 border-purple-600 hover:bg-slate-100 dark:hover:bg-gray-850 transition-all cursor-pointer group">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-black text-slate-800 dark:text-gray-200 leading-snug group-hover:text-purple-700 transition-colors">
+                                <span class="text-purple-600 mr-2 font-black italic text-lg">Q.</span> ${faq.question}
+                            </p>
+                            <i class="bi bi-plus-lg text-slate-300 group-hover:rotate-90 transition-transform"></i>
+                        </div>
                     </div>
                 </c:forEach>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                <i class="bi bi-currency-exchange mr-2 text-blue-500"></i>실시간 환율
-            </h3>
-            <div id="rateBox" class="flex flex-col items-center justify-center h-28 transition-opacity duration-700 ease-in-out">
-                <p id="curName" class="text-xs text-gray-500 font-bold uppercase mb-1">연동 중...</p>
-                <p id="curRate" class="text-3xl font-black text-blue-600">---</p>
-            </div>
-        </div>
-
-        <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                <i class="bi bi-newspaper mr-2 text-orange-500"></i>유류 시장 뉴스
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="newsList">
-                <p class="text-center py-4 text-gray-400 col-span-2">뉴스를 불러오는 중입니다...</p>
             </div>
         </div>
     </div>
 </div>
-
 <script>
     let exchangeRates = [];
     let currentIdx = 0;

@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <style>
     /* [상향] 텍스트 가독성을 위해 컬러값 조정 */
@@ -145,6 +146,9 @@
                         </div>
                         
                         <div id="actionArea" class="pt-8 border-t-2 border-gray-300 dark:border-gray-600">
+						    
+						    <%-- 1. APPROVED 권한이 있는 사용자에게만 버튼 노출 --%>
+    						<sec:authorize access="hasRole('APPROVED')">
 						    <div id="btnGroup" class="flex flex-col sm:flex-row gap-3">
 						        <button onclick="addToCart()" 
 						                class="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-white dark:bg-gray-700 text-gray-800 dark:text-white font-bold rounded-2xl border-2 border-gray-200 dark:border-gray-600 hover:bg-gray-50 transition-all shadow-sm group whitespace-nowrap">
@@ -170,6 +174,23 @@
 						            주문하기
 						        </button>
 						    </div>
+						    </sec:authorize>
+						
+    						<%-- 2. 미승인 사용자: 권한 안내 메시지 노출 (서버 사이드 제어) --%>
+						    <sec:authorize access="!hasRole('APPROVED')">
+							    <%-- principal 객체를 'user'라는 이름의 변수로 담습니다 --%>
+							    <sec:authentication property="principal" var="user" />
+							    
+							    <div class="bg-gray-50 dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-[1.5rem] p-6 text-center">
+							        <p class="text-lg font-black text-gray-700 dark:text-gray-200 mb-1">
+							            🔒 승인된 파트너만 이용 가능합니다.
+							        </p>
+							        <p class="text-blue-500 dark:text-blue-400 font-bold text-sm mb-2">
+							            🔒 접근 권한이 없습니다.
+							        </p>
+							        <p class="text-gray-400 dark:text-gray-500 text-sm font-medium">기타 문의사항은 챗봇으로 문의 부탁드립니다.</p>
+							    </div>
+							</sec:authorize>
 						
 						    <div id="statusNotice" class="hidden">
 						        <div class="bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-[1.5rem] p-6 text-center">
@@ -177,8 +198,8 @@
 						            <p class="text-gray-400 dark:text-gray-500 text-sm font-medium">기타 문의사항은 챗봇으로 문의 부탁드립니다.</p>
 						        </div>
 						    </div>
+						    
 						</div>
-                        
                     </div>
                 </div>
             </div>
@@ -231,17 +252,26 @@ function openProductDetail(fuelId) {
             const sCode = data.itemSttsCd; // 상태 코드
             const sttsText = data.itemSttsNm; // 상태 명칭
             let sttsClass = 'bg-gray-100 text-gray-600';
+         	
+            // [수정 포인트] btnGroup이 존재할 때만 제어하도록 if문 추가
+            if (btnGroup) {
+                btnGroup.classList.remove('hidden');
+            }
+            statusNotice.classList.add('hidden');
 
             // 초기 상태 리셋
-            btnGroup.classList.remove('hidden');
-            statusNotice.classList.add('hidden');
+            //btnGroup.classList.remove('hidden');
+            //statusNotice.classList.add('hidden');
 
             if (sCode === 'SA001') {
                 // 판매 중
                 sttsClass = 'bg-green-100 text-green-700 border border-green-200';
             } else {
                 // [핵심] 판매 불가 상태 처리 (SO002:품절, EX003:판매만료, DC004:단종 등)
-                btnGroup.classList.add('hidden'); // 버튼 숨김
+                // 여기서도 체크 필수
+                if (btnGroup) { 
+			        btnGroup.classList.add('hidden'); // 버튼 숨김
+			    }
                 statusNotice.classList.remove('hidden'); // 안내창 표시
                 noticeMsg.innerText = sttsText + " 상태로 현재 주문이 불가합니다."; // 문구 동적 세팅
 
