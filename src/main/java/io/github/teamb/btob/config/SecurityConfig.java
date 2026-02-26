@@ -31,16 +31,41 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/loginProc" , "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
-                .requestMatchers("/", "/account/**", "/notice", "/notice/**","/admin/products/**").permitAll()
-                .requestMatchers("/notice/write", "/notice/edit/**", "/notice/update", "/notice/delete/**").hasRole("ADMIN")
-                .requestMatchers("/admin/delivery/**").hasRole("ADMIN")
-                .requestMatchers("/admin/stats/**").hasRole("ADMIN")
-                .requestMatchers("/support/admin/**").hasRole("ADMIN")
-                .requestMatchers("/admin/user/**").hasRole("ADMIN")
-                .requestMatchers("/users/**", "/trade/**").hasRole("MASTER")
+            	.requestMatchers("/login", "/loginProc" , "/register", "/css/**", "/js/**", "/error", "/favicon.ico").permitAll()
+                /* 내파트 먼저 */
+                .requestMatchers("/admin/company/**").hasRole("ADMIN")		// 개발도중폐기
+                .requestMatchers("/admin/etp/**").hasRole("ADMIN")			// 관리자 주문관리
+                .requestMatchers("/admin/etphist/**").hasRole("ADMIN")		// 관리자 히스토리 이력.
+                .requestMatchers("/admin/products/**").hasRole("ADMIN")		// 관리자 상품관리
+                .requestMatchers("/usr/productView/**").hasRole("USER")		// 가입한 사용자만 접근 가능
+                
+                .requestMatchers("/account/mypage/**").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 내정보페이지
+                .requestMatchers("/account/api/modify").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 내정보수정기능
+                .requestMatchers("/account/api/updatePassword").hasRole("ACTIVE")	// 가입한 사용자만 접근 가능 내정보비밀번호변경
+                .requestMatchers("/account/api/re-apply").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 내정보에서권한재신청
+                
+                .requestMatchers("/main").hasAnyRole("ADMIN", "MASTER", "USER")				// 가입한 사용자만 접근 가능 메인페이지
+                .requestMatchers("/api/external/exchange-rate").hasRole("ACTIVE")			// 가입한 사용자만 접근 가능 메인페이지 환율체크
+                .requestMatchers("/api/external/oil-news").hasRole("ACTIVE")				// 가입한 사용자만 접근 가능 메인페이지 오일뉴스
+                
+                .requestMatchers("/trade/**").hasRole("MASTER")
+                .requestMatchers("/users/**").hasRole("MASTER")
+                .requestMatchers("/payment/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                .requestMatchers("/order/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                .requestMatchers("/document/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                .requestMatchers("/cart/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                
                 .anyRequest().permitAll()
             )
+            
+            // 예외 처리 설정: 인증되지 않은 사용자가 접근 시 리다이렉트
+            .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        // 로그인하지 않은 사용자가 권한이 필요한 페이지 접근 시 /home/index로 보냄
+                        response.sendRedirect("/home/index");
+                    })
+                )
+            
             // 사용자 인증 설정
             .userDetailsService(customUserDetailsService)
             .sessionManagement(session -> session
@@ -52,7 +77,7 @@ public class SecurityConfig {
                     .frameOptions(frame -> frame.sameOrigin())
              )
             .formLogin(form -> form
-                    .loginPage("/login")
+                    .loginPage("/home/index")
                     .loginProcessingUrl("/loginProc")
                     .usernameParameter("userId")
                     .passwordParameter("password")
