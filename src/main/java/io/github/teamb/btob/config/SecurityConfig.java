@@ -60,7 +60,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/file/**").hasAnyRole("ADMIN", "MASTER", "USER")					// 첨부파일
                 /* =============== JM PART END =============== */
                 
+                /* =============== JG PART =============== */
                 
+                .requestMatchers("/trade/**").hasRole("MASTER")
+                .requestMatchers("/users/**").hasRole("MASTER")
+                .requestMatchers("/payment/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                .requestMatchers("/order/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                .requestMatchers("/document/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                .requestMatchers("/cart/**").hasAnyRole("ADMIN", "MASTER", "USER")
+                
+                /* =============== JG PART END =============== */
+                
+                /* =============== SH PART =============== */
                 .requestMatchers("/notice/write", "/notice/edit/**", "/notice/update", "/notice/delete/**").hasRole("ADMIN")
                 .requestMatchers("/admin/delivery/**").hasRole("ADMIN")
                 .requestMatchers("/admin/stats/**").hasRole("ADMIN")
@@ -69,7 +80,7 @@ public class SecurityConfig {
                 .requestMatchers("/users/**", "/trade/**").hasRole("MASTER")
                 
                 .requestMatchers("/index/**").hasAnyRole("ADMIN", "MASTER", "USER")				// 테스트 페이지?
-                
+                /* =============== SH PART END =============== */
                 .anyRequest().permitAll()
             )
             
