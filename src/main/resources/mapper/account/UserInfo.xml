@@ -146,7 +146,6 @@
 					phone = #{phone},
 					email = #{email},
 					position = #{position},
-					user_type = #{userType},
 					upd_dtime = CURRENT_TIMESTAMP,
 					upd_id = #{updId}
 		        WHERE 1=1
@@ -155,7 +154,7 @@
 		        
 	    </update>
 	    
-	    <!-- 회사정보 수정 마스터, 관리자만 가능 -->
+	    <!-- 회사정보 수정 마스터만 가능 -->
 	    <update id="updateCompanyInfo"
 	    	parameterType="io.github.teamb.btob.dto.account.CompanyInfoDTO">
 	    		
@@ -169,7 +168,6 @@
 	    			zip_code = #{zipCode},
 	    			biz_number = #{bizNumber},
 	    			customs_num = #{customsNum},
-	    			master_id = #{masterId},
 	    			upd_dtime = CURRENT_TIMESTAMP,
 	    			upd_id = #{updId}
 	    		WHERE 1=1
@@ -313,6 +311,19 @@
 					FROM 
 						TB_USERS
 					WHERE user_id = #{userId} 
+		
+		</select>
+		
+		<!-- 사용자 이메일 중복 체크 ( 회원가입 ) -->
+		<select id="selectEmailDuplicateChk"
+			parameterType="String"
+			resultType="int">
+			
+					SELECT 
+						COUNT(email)
+					FROM 
+						TB_USERS
+					WHERE email = #{email} 
 		
 		</select>
 

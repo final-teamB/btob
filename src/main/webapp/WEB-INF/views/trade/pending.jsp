@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     options: { theme: 'docType' }
                 }
             },
-            { header: '문서번호', name: 'orderNo', align: 'left'},
+            { header: '주문번호', name: 'orderNo'},
             { header: '요청자', name: 'userName'},
             { header: '연락처', name: 'phone'},
             { header: '신청일시', name: 'regDtime'},

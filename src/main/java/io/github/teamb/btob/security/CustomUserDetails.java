@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import io.github.teamb.btob.dto.account.LoginValidateDTO;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 //record는 자바 14에서 나온 것으로 데이터만 담는 불변 클래스
@@ -49,7 +48,7 @@ public class CustomUserDetails implements UserDetails {
 			     }
 			     
 			     // 2. ROLE 권한 (접두사 ROLE_ 필수) -- 버튼 권한
-			     if (loginValidateDTO.getUserType() != null) {
+			     if (loginValidateDTO.getAppStatus() != null) {
 			
 			         authorities.add(
 			                 new SimpleGrantedAuthority("ROLE_" + loginValidateDTO.getAppStatus().toUpperCase())
@@ -120,7 +119,7 @@ public class CustomUserDetails implements UserDetails {
 		  * INACTIVE(사용불가)
 		  * LOCKED(계정잠금)
 		  * SLEEP(휴먼계정)
-		  * DELETED(폐지)
+		  * STOP(폐지)
 		  * BANNED(벤처리)
 		  * EXPIRED(만료)
 		  * ====================
@@ -136,8 +135,9 @@ public class CustomUserDetails implements UserDetails {
 		
 		     return ("ACTIVE".equals(loginValidateDTO.getAccStatus()))
 		    		 && !("BANNED".equals(loginValidateDTO.getAccStatus()))
-		    		 && !("DELETED".equals(loginValidateDTO.getAccStatus()))
-		    		 && !("INACTIVE".equals(loginValidateDTO.getAccStatus()));
+		    		 && !("STOP".equals(loginValidateDTO.getAccStatus()))
+		    		 && !("INACTIVE".equals(loginValidateDTO.getAccStatus()))
+		    		 && !("SLEEP".equals(loginValidateDTO.getAccStatus()));
 		 }
 		
 		 /**

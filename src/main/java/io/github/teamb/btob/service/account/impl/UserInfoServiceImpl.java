@@ -17,6 +17,7 @@ import io.github.teamb.btob.dto.account.UserInfoModifyRequestDTO;
 import io.github.teamb.btob.dto.account.UserInfoRegisterRequestDTO;
 import io.github.teamb.btob.dto.common.SelectBoxListDTO;
 import io.github.teamb.btob.dto.common.SelectBoxVO;
+import io.github.teamb.btob.dto.mgmtAdm.compy.UpdateCompyDTO;
 import io.github.teamb.btob.mapper.account.UserInfoMapper;
 import io.github.teamb.btob.security.PasswordEncryptor;
 import io.github.teamb.btob.service.account.UserInfoService;
@@ -299,111 +300,66 @@ public class UserInfoServiceImpl implements UserInfoService{
 			loginUserNo = loginUserProvider.getLoginUserNo();
 		}
 		
-		UserInfoDTO updateUser;
-		CompanyInfoDTO updateCompany;
-		int result = 0;
-		
-		// 사용자테이블 변경 DTO 파라미터 검증
-		if (!commonService.nullEmptyChkValidate(userInfoModifyRequestDTO.getUpdateUserInfo())) {
-			throw new Exception("파라미터 오류가 발생하였습니다.");
-		} else {
-			updateUser = userInfoModifyRequestDTO.getUpdateUserInfo();
-			// 업데이트 사용자
-			updateUser.setUpdId(loginUserId);
-			updateUser.setUserId(loginUserId);
-			updateUser.setUserNo(loginUserNo);
-			
-			// 개인정보 수정 시 체크
-			// 만약 타입을 변경한다고 했을 때
-			// 사원 -> 마스터 권한 요청하는 경우
-			// 마스터가 있는지 없는지 확인
-			// 마스터 -> 사원 권한으로 요청하는 경우
-			String userType = updateUser.getUserType();
-			
-			UserInfoDTO chkParam = userInfoMapper.selectUserById(loginUserId);
-			
-			///////////////////// 권한이 일반인 경우 ////////////////////////
-			
-			// 개인정보 수정 시 추가로 일반 사원이 마스터 권한 요청 하는 경우
-			// 현재 권한이 유저타입이고 변경 요청이 마스터 권한
-			if (chkParam.getUserType().equals("USER") && 
-					userType.equals("MASTER")) {
-				
-				// 현재 대표자가 공석인 경우 신청 가능
-				if (chkParam.getIsRepresentative().equals("N")) {
-					
-					result = userInfoMapper.updateUserInfo(updateUser);
-					
-					if (result < 1) {
-						throw new Exception("일반 사원 정보 수정 시 오류가 발생했습니다.");
-					}
-				// 대표자가 있으면 신청 불가
-				} else {
-					throw new Exception("요청이 불가능한 권한이 포함되어있습니다.");
-				}
-			
-			// 개인정보 수정 시 권한 요청이 없는 경우	
-			} else {
-				
-				result = userInfoMapper.updateUserInfo(updateUser);
-				
-				log.info("사용자 일반 사원 사용자 테이블 업데이트 result : " +  result);
-			}
-			
-			///////////////////// 권한이 마스터인 경우 ////////////////////////
-			
-			// 마스터 -> 사원 권한으로 요청하는 경우
-			// 마스터 사용자는 1명 양도할 사용자를 선택해야한다.
-			// 현재 권한이 유저타입이고 변경 요청이 마스터 권한
-			if (chkParam.getUserType().equals("MASTER") && 
-					userType.equals("USER")) {
-				
-				// 양도할 사용자 확인
-				// null 이면 false로 떨어집니다.
-				if ( !(commonService.nullEmptyChkValidate(updateUser.getAssignee())) ) {
-					throw new Exception("양도 받을 사용자가 없습니다.");
-				}
-				
-				// 양도할 사용자가 있다면
-				result = userInfoMapper.updateUserInfo(chkParam);
-				
-				// 업데이트에 성공했다면 회사테이블의 마스터 ID도 변경해야합니다.
-				if ( result > 0 ) {
-					
-					if (!commonService.nullEmptyChkValidate(userInfoModifyRequestDTO.getUpdateCompanyInfo())) {
-						throw new Exception("회사 파라미터 오류가 발생하였습니다.");
-					}
-					
-					CompanyInfoDTO companyUpdate = userInfoModifyRequestDTO.getUpdateCompanyInfo();
-					// 업데이트 사용자
-					companyUpdate.setUpdId(loginUserId);
-					
-					// 양도자에게 마스터 권한 부여
-					companyUpdate.setMasterId(updateUser.getAssignee());
-					// 회사테이블 업데이트
-					result = userInfoMapper.updateCompanyInfo(companyUpdate);
-					
-					log.info("사용자 마스터 회사테이블 업데이트 result : " +  result);
-				}
-			}
-			///////////////////// 그 밖인 경우 ////////////////////////
+		// 2. 파라미터 검증
+	    if (!commonService.nullEmptyChkValidate(userInfoModifyRequestDTO.getUpdateUserInfo())) {
+	        throw new Exception("파라미터 오류가 발생하였습니다.");
+	    }
 
-			// 업데이트
-			result = userInfoMapper.updateUserInfo(updateUser);
-			
-			
-			// null 이 아니면 업데이트
-			// 회사정보 업데이트 안할수도 있어서 throw 안함
-			if (commonService.nullEmptyChkValidate(userInfoModifyRequestDTO.getUpdateCompanyInfo())) {
-				
-				updateCompany = userInfoModifyRequestDTO.getUpdateCompanyInfo();
-				updateCompany.setUpdId(loginUserId);
-				
-				userInfoMapper.updateCompanyInfo(updateCompany);
-			}
-		}
-		
-		return result;
+	    UserInfoDTO updateUser = userInfoModifyRequestDTO.getUpdateUserInfo();
+	    
+	    UserInfoDTO currentUser = userInfoMapper.selectUserById(loginUserId);
+	    
+	    // 입력받은 이메일이 현재 내 이메일과 다를 때만 중복 체크 실행
+	    if (!(updateUser.getEmail().equals(currentUser.getEmail()))) {
+	    	
+	        Integer pmchk = userInfoMapper.selectEmailDuplicateChk(updateUser.getEmail());
+	        
+	        if (pmchk > 0) {
+	            throw new Exception("중복된 이메일은 사용이 불가능합니다.");
+	        }
+	    }
+	    
+	    updateUser.setUpdId(loginUserId);
+	    updateUser.setUserId(loginUserId);
+	    updateUser.setUserNo(loginUserNo);
+
+	    // DB에 저장된 현재 사용자의 실제 정보 조회
+	    UserInfoDTO chkParam = userInfoMapper.selectUserById(loginUserId);
+	    String currentType = chkParam.getUserType(); // 현재 권한
+	    //String requestType = updateUser.getUserType(); // 변경 요청 권한
+	    
+	    int result = 1;
+	    
+	    // 마스터 사용자인경우
+	    if ( currentType.equals("MASTER") ) {
+	    	
+	    	userInfoMapper.updateUserInfo(updateUser);
+	    	log.info("마스터 사용자 개인 정보 업데이트 완료");
+	    	
+	    	if (!commonService.nullEmptyChkValidate(userInfoModifyRequestDTO.getUpdateCompanyInfo())) {
+		        throw new Exception("파라미터 오류가 발생하였습니다.");
+		    }
+	    	
+	    	CompanyInfoDTO updateCompyDTO = userInfoModifyRequestDTO.getUpdateCompanyInfo();
+	    	
+	    	if ( loginUserId.equals(updateCompyDTO.getMasterId()) ) {
+	    	
+	    		updateCompyDTO.setUpdId(loginUserId);
+		    	updateCompyDTO.setMasterId(loginUserId);
+		    	userInfoMapper.updateCompanyInfo(updateCompyDTO);
+	            log.info("마스터 사용자 회사 정보 업데이트 완료");
+	    	} else {
+	    		throw new Exception("해당 로그인 사용자는 대표 사용자가 아닙니다.");
+	    	}
+        // 개인 사용자 및 관리자인경우
+	    } else if ( currentType.equals("USER") || currentType.equals("ADMIN") ) {
+	    	
+	    	userInfoMapper.updateUserInfo(updateUser);
+	    	log.info("개인 사용자 및 관리자 개인 정보 업데이트 완료");
+	    	
+	    }
+	    
+	    return result;
 	}
 	
 	
@@ -731,6 +687,32 @@ public class UserInfoServiceImpl implements UserInfoService{
 		
 		if (userInfoMapper.selectUserIdDuplicateChk(userId) > 0) {
 			throw new Exception("중복된 ID로 사용이 불가능합니다.");
+		} else {
+			result = true;
+		}
+
+		return result;
+	}
+
+	/**
+	 * 
+	 * 회원가입시 중복 이메일 체크
+	 * @author GD
+	 * @since 2026. 2. 26.
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 * 수정일        수정자       수정내용
+	 * ----------  --------    ---------------------------
+	 * 2026. 2. 26.  GD       최초 생성
+	 */
+	@Override
+	public boolean userEmailDuplicationChk(String email) throws Exception {
+		
+		boolean result = false;
+		
+		if (userInfoMapper.selectEmailDuplicateChk(email) > 0) {
+			throw new Exception("이미 가입된 이메일로 사용이 불가능합니다.");
 		} else {
 			result = true;
 		}
