@@ -1,6 +1,7 @@
 package io.github.teamb.btob.controller.notice;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -36,8 +37,8 @@ public class NoticeController {
 
     private final NoticeService noticeService;
     
-    @Value("${file.upload.path.NOTICE}")
-    private String uploadPath;	
+    @Value("${file.upload.root}${file.upload.path.NOTICE}")
+    private String uploadPath;
 
     // 일반 사용자가 보는 목록 
     @GetMapping("/user/list") 
@@ -81,6 +82,8 @@ public class NoticeController {
                     String originalFileName = file.getOriginalFilename();
                     String savedFileName = UUID.randomUUID().toString() + "_" + originalFileName;
                     
+                    System.out.println("파일 저장 경로: " + uploadPath + savedFileName);
+                    
                     File dir = new File(uploadPath);
                     if (!dir.exists()) dir.mkdirs();
                     file.transferTo(new File(uploadPath + savedFileName));
@@ -105,7 +108,15 @@ public class NoticeController {
     // 파일 다운로드 실행
     @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {
-        UrlResource resource = new UrlResource("file:" + uploadPath + fileName);
+    	System.out.println("다운로드 시도 경로: " + uploadPath + fileName);
+        File file = new File(uploadPath + fileName);
+        
+        if (!file.exists()) {
+            throw new FileNotFoundException("파일이 존재하지 않습니다: " + uploadPath + fileName);
+        }
+
+        Resource resource = new UrlResource(file.toURI()); // file.toURI()를 쓰면 자동으로 file:/ 경로를 만들어줍니다.
+        
         String encodedFileName = UriUtils.encode(fileName.substring(fileName.indexOf("_") + 1), StandardCharsets.UTF_8);
         String contentDisposition = "attachment; filename=\"" + encodedFileName + "\"";
 
