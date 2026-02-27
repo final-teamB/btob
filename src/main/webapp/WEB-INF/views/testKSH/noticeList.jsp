@@ -7,115 +7,107 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-/* [1] 전역 버튼 스타일 무력화: 클래스명을 붙여서 우선순위를 높임 */
-    .tui-grid-cell-content button.real-delete-btn {
-        padding: 0.25rem 0.75rem !important;   /* px-3 py-1 */
-	    font-size: 0.75rem !important;         /* text-xs */
-	    font-weight: 700 !important;           /* font-bold */
-	    color: #1d4ed8 !important;             /* text-blue-700 */
-	    background-color: #ffffff !important;  /* bg-white */
-	    border: 1px solid #60a5fa !important;  /* border-blue-400 */
-	    border-radius: 0.375rem !important;    /* rounded-md */
-	    text-decoration: none !important;     /* 밑줄 제거 */
-	    transition: background-color 0.2s ease !important;
-    }
-
-    /* [2] 호버 효과 강제 적용 */
-    .tui-grid-cell-content button.real-delete-btn:hover {
-        background-color: #eff6ff !important;  /* hover:bg-blue-50 */
-    }
-
-    /* 기존 그리드 레이아웃 유지 */
-    .tui-grid-cell { cursor: pointer !important; }
-    #dg-container { width: 100%; margin-top: 1rem; }
-    .grid-relative-wrapper { position: relative; width: 100%; }
-    #dg-search-input { padding-left: 1rem !important; padding-right: 2.5rem !important; }
-    /* FAQ 관리 페이지 스타일 완벽 이식 */
-    .tui-grid-cell { cursor: pointer !important; }
-    #dg-container { width: 100%; margin-top: 1rem; }
-    .grid-relative-wrapper { position: relative; width: 100%; }
-
-    #dg-search-input {
-        padding-left: 1rem !important;
-        padding-right: 2.5rem !important;
+    /* [1] 배경 및 기본 컨테이너 설정 - FAQ 스타일 이식 */
+    body { background-color: #f9fafb; }
+    
+    .admin-main-container { 
+        width: 100%;
+        min-height: auto;
+        padding-bottom: 0.25rem;
+        margin-bottom: 0 !important;
     }
     
+    /* [2] 하얀색 카드 디자인 - 그리드 영역을 감싸는 박스 */
+    .grid-card { 
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb; 
+        border-radius: 0.75rem; 
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); 
+        margin-bottom: 1rem;
+    }
+
+    #dg-container { width: 100%; margin-top: 1rem; }
+    .grid-relative-wrapper { position: relative; width: 100%; min-height: 400px; }
+    
+    /* [3] 그리드 내 버튼 스타일 - FAQ '삭제' 버튼 스타일로 통일 */
     .real-delete-btn {
-        all: unset !important;
+    height:10px;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        
-        /* 사용자 관리 페이지 '저장' 버튼과 동일한 스타일 */
-        padding: 0.25rem 0.75rem !important; 
-        background-color: #ffffff !important;
-        color: #1d4ed8 !important; /* text-blue-700 */
-        
-        font-size: 12px !important;            
-        font-weight: 700 !important;           
-        border-radius: 6px !important;         
-        border: 1px solid #93c5fd !important; /* border-blue-300 */
-        
-        cursor: pointer !important;
+        height: 32px !important;
+        padding: 0 12px !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        color: #1d4ed8 !important;
+        border: 1px solid #60a5fa !important;
+        border-radius: 0.375rem !important;
+        background-color: #fff !important;
+        cursor: pointer;
         transition: all 0.2s ease !important;
     }
-
-    /* 마우스 올렸을 때 (사용자 관리 페이지 hover 효과) */
-    .real-delete-btn:hover {
-        background-color: #eff6ff !important; /* bg-blue-50 */
-        border-color: #2563eb !important;     /* border-blue-600 */
-    }
     
-    /* 1. 필터 셀렉트 박스 및 검색창 크기 확대 */
-    #dg-common-filter-wrapper select, 
-    #dg-search-category, 
-    #dg-search-input {
-        padding-left: 1rem !important;
-        padding-right: 2.5rem !important;
-    }
+    .real-delete-btn:hover { background-color: #eff6ff !important; }
+    
+    /* [최종 해결책] 모든 종류의 셀 높이를 강제로 통일 */
+.tui-grid-container .tui-grid-cell {
+    height: 52px !important; /* 50px보다 조금 여유를 주는 게 정렬에 유리함 */
+    background-color: #fff !important;
+}
 
-    /* 2. '구분', '검색어' 라벨 텍스트 크기 확대 */
-    .search-group label, 
-    .filter-label,
-    div.text-sm.font-bold { 
-        margin-bottom: 0.5rem !important;
-        display: inline-block;
-    }
+/* No. 컬럼(메타열)과 일반 셀의 내부 높이 강제 고정 */
+.tui-grid-container .tui-grid-cell-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 52px !important; /* 위와 동일하게 */
+    padding: 0 !important;
+    line-height: normal !important;
+}
+
+/* 제목 열은 왼쪽 정렬 유지 */
+.tui-grid-container .tui-grid-cell[data-column-name="title"] .tui-grid-cell-content {
+    justify-content: flex-start !important;
+    padding-left: 1rem !important;
+}
+
+/* 그리드 레이아웃 깨짐 방지 */
+.tui-grid-border-line {
+    display: none !important; /* 불필요한 미세 라인 제거로 어긋남 방지 */
+}
 </style>
 
-<div class="max-w-screen-2xl mx-auto">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        공지사항 관리
-                    </h2>
-                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                        ADMIN
-                    </span>
-                </div>
-                <p class="text-sm text-gray-500 mt-1">
-                    시스템 공지사항을 조회하고 작성 및 수정할 수 있습니다.
-                </p>
+<div class="admin-main-container my-6 space-y-6">
+    <div class="px-8 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full text-left">
+            <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-bold text-gray-900">공지사항 관리</h2>
+                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
+                    전체 <span id="total-count-display">${noticeList.size()}</span>건
+                </span>
             </div>
-
-            <div class="flex items-center gap-2">
-                <sec:authorize access="hasRole('ADMIN')">
-                    <button type="button" onclick="handleAddAction()"
-                            class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95 flex items-center shadow-md">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        공지사항 등록
-                    </button>
-                </sec:authorize>
-            </div>
+            <p class="text-sm text-gray-500 mt-1">시스템 공지사항을 조회하고 작성 및 수정할 수 있습니다.</p>
         </div>
+        
+        <div class="mt-4 md:mt-0">
+            <button type="button" onclick="handleAddAction()"
+                    class="min-w-[140px] p-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition active:scale-95 flex items-center justify-center shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                공지사항 등록
+            </button>
+        </div>
+    </div>
 
-        <div class="grid-relative-wrapper">
-            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
+    <div class="px-5" style="margin-top: 1rem !important;">
+        <div class="grid-card p-6">
+            <div class="grid-relative-wrapper">
+                <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                    <jsp:param name="showSearchArea" value="true" />
+                    <jsp:param name="showPerPage" value="true" />
+                </jsp:include>
+            </div>
         </div>
     </div>
 </div>

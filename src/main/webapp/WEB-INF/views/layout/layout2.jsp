@@ -45,7 +45,13 @@
     <jsp:include page="/WEB-INF/views/layout/header.jsp" />
         
     <div class="flex pt-16">
-        <jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
+        <sec:authorize access="hasRole('ADMIN')">
+            <jsp:include page="/WEB-INF/views/layout/adminSidebar.jsp" />
+        </sec:authorize>
+    
+        <sec:authorize access="hasAnyRole('USER', 'MASTER')">
+            <jsp:include page="/WEB-INF/views/layout/userSidebar.jsp" />
+        </sec:authorize>
         
         <div class="flex flex-col flex-1 min-h-screen lg:pl-64 transition-all duration-300"> 
 	        <main class="p-5 flex-1 bg-gray-50 dark:bg-gray-900">
