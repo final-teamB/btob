@@ -375,9 +375,16 @@ public class FileServiceImpl implements FileService {
 	            throw new IOException("업로드 경로를 생성할 수 없습니다: " + dir.getPath());
 	        }
 	    }
+	    
+	    //log.info("#### [STEP 1] 시스템ID: {}, 파일명: {}", fileDto.getSystemId(), fileDto.getOrgFileNm());
+	    //log.info("#### [STEP 2] 임시폴더설정값: {}", imgTempPath);
 
 	    // 2. 임시 경로에서 파일 확인 (D:\temp\img 등)
 	    File tempFile = new File(imgTempPath, fileDto.getOrgFileNm());
+	    
+	    //log.info("#### [STEP 3] 최종 임시파일 경로: {}", tempFile.getAbsolutePath());
+	    //log.info("#### [STEP 4] 임시파일 존재 여부: {}", tempFile.exists());
+	    
 	    if (!tempFile.exists()) {
 	        log.warn("파일이 임시 경로에 없습니다: {}", fileDto.getOrgFileNm());
 	        return null;
