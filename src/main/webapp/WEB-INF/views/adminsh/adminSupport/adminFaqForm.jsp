@@ -88,35 +88,14 @@
 </div>
 
 <script>
-    let faqEditorInstance = null;
-
-    function initFaqEditor() {
-        const el = document.querySelector('#faqEditor');
-        if (!el || typeof ClassicEditor === 'undefined') return;
-
-        ClassicEditor.create(el, {
-            placeholder: '답변 내용을 입력하세요...',
-            toolbar: {
-                items: ['bold', 'italic', 'underline', '|', 'numberedList', 'bulletedList', '|', 'removeFormat', 'undo', 'redo'],
-                shouldNotGroupWhenFull: true
-            }
-        }).then(editor => {
-            faqEditorInstance = editor;
-            // 로드 시점에 높이가 좁아지는 것을 방지
-            editor.editing.view.change(writer => {
-                writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
-            });
-        }).catch(err => console.error(err));
-    }
-
-    // 모달 로딩 시간을 고려하여 실행
-    setTimeout(initFaqEditor, 100);
-
-    function submitFaqForm() {
+   function submitFaqForm() {
         const $form = $('#faqSubmitForm');
+        const editorEl = document.querySelector('#faqEditor');
 
-        if (faqEditorInstance) {
-            $form.find('[name=answer]').val(faqEditorInstance.getData());
+        // [핵심] 에디터 인스턴스에서 데이터를 가져와서 textarea에 동기화
+        if (editorEl && editorEl.ckeditorInstance) {
+            const data = editorEl.ckeditorInstance.getData();
+            $form.find('[name=answer]').val(data);
         }
 
         const question = $form.find('[name=question]').val().trim();
@@ -129,6 +108,7 @@
 
         if (!confirm("내용을 저장하시겠습니까?")) return;
 
+        // AJAX 전송 로직...
         $.ajax({
             url: "/support/admin/saveFaq",
             type: "POST",
@@ -140,9 +120,6 @@
                 } else {
                     alert("저장에 실패했습니다.");
                 }
-            },
-            error: function() {
-                alert("서버 통신 에러가 발생했습니다.");
             }
         });
     }

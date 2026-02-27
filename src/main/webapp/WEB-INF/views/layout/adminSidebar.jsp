@@ -15,11 +15,23 @@
                 <div class="flex-1 px-3 space-y-1 bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                     
                     <ul class="pb-2 space-y-2">
-                        <li class="px-3 py-2 text-xs font-semibold text-blue-600 uppercase tracking-wider dark:text-blue-400">
-                            System Admin
-                        </li>
-
-                        <li>
+					  <li class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+					    상품 조회 및 견적
+					  </li>
+					  <li>
+					    <a href="/usr/productView/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+					      <span class="w-3 h-3 bg-yellow-300 rounded-full shadow-sm"></span>
+					      <span class="ml-4 font-medium" sidebar-toggle-item>상품 카탈로그</span>
+					    </a>
+					  </li>
+					</ul>
+                    
+                    <ul class="pt-4 pb-2 space-y-2">
+                        <li class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+						  마이오피스
+						</li>
+						
+						<li>
                             <a href="${cp}/admin/user/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
                                 <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -45,6 +57,15 @@
                                 <span class="ml-3" sidebar-toggle-item>주문관리</span>
                             </a>
                         </li>
+                        
+                        <li>
+    <a href="${cp}/admin/etphist/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+        <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="ml-3" sidebar-toggle-item>주문이력 관리</span>
+    </a>
+</li>
 
                         <li>
                             <a href="${cp}/admin/delivery/list" class="flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
