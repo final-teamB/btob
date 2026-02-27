@@ -55,7 +55,7 @@
 			    		options: {
 			    			buttons: [
 		                        { text: '승인', action: 'APPROVED', color: 'text-blue-500' },
-		                        { text: '거부', action: 'REJECTED', color: 'text-red-500' }
+		                        { text: '반려', action: 'REJECTED', color: 'text-red-500' }
 		                    ]
 			    		}
 			    	}
@@ -77,7 +77,7 @@
 	    };
 
 	    function processUser(userNo, appStatus, userName) {
-	        const msg = appStatus === 'APPROVED' ? "승인" : "거부";
+	        const msg = appStatus === 'APPROVED' ? "승인" : "반려";
 	        if (!confirm(userName + " 님을 " + msg + "하시겠습니까?")) return;
 	    
 	        fetch("${pageContext.request.contextPath}/users/pendingAction", {
