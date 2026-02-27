@@ -29,15 +29,16 @@ import io.github.teamb.btob.entity.NoticeFile;
 import io.github.teamb.btob.service.notice.NoticeService;
 import lombok.RequiredArgsConstructor;
 
-@Controller
+// @Controller
 @RequestMapping("/notice")
 @RequiredArgsConstructor
-public class NoticeController {
+public class NoticeController_test {
 
     private final NoticeService noticeService;
     
-    @Value("${file.upload.root}${file.upload.path.NOTICE}")
-    private String uploadPath;	
+    @Value("${file.upload.path.NOTICE}")
+    private String uploadPath;
+    
 
     // 일반 사용자가 보는 목록 
     @GetMapping("/user/list") 
