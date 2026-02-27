@@ -102,86 +102,69 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    let deliveryGrid, orderChart, chartRawData = []; 
-    let currentMode = 'count';
+    let deliveryGrid, orderChart;
+    let chartRawData = []; 
+    let currentMode = 'count'; // 초기 모드: 주문 건수
 
     document.addEventListener('DOMContentLoaded', function() {
         refreshData();
         
-        // 데이터 최신화 버튼 이벤트
-        document.getElementById('btnRefresh').addEventListener('click', function() {
-            refreshData();
-        });
+        // 최신화 버튼 이벤트
+        const btnRefresh = document.getElementById('btnRefresh');
+        if(btnRefresh) {
+            btnRefresh.addEventListener('click', executeBatch);
+        }
     });
 
-    /**
-     * 전체 데이터 비동기 로드
-     */
+    // 1. 실제 데이터 갱신 (서버 배치 실행)
+    function executeBatch() {
+        const btn = document.getElementById('btnRefresh');
+        btn.disabled = true;
+        btn.innerText = '갱신 중...';
+
+        fetch('${pageContext.request.contextPath}/admin/stats/refresh', { method: 'PUT' })
+            .then(res => res.text())
+            .then(result => {
+                if (result.trim() === 'success') {
+                    alert('데이터 최신화 완료!');
+                    refreshData();
+                } else {
+                    alert('갱신 실패: ' + result);
+                }
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = '데이터 최신화';
+            });
+    }
+
+    // 2. 데이터 가져오기 및 화면 초기화
     function refreshData() {
         const isDark = document.documentElement.classList.contains('dark');
         fetch('${pageContext.request.contextPath}/admin/stats/data')
             .then(res => res.json())
             .then(data => {
                 const stats = data.orderStats || [];
-                // 차트용: 과거 -> 현재순 (최근 7개)
+                if (stats.length === 0) return;
+
+                // 차트용 (과거순)
                 chartRawData = [...stats].sort((a, b) => new Date(a.executedAt) - new Date(b.executedAt)).slice(-7);
-                
-                createOrderChart(chartRawData, isDark);
-                
-                // 그리드용: 최신순 (최근 7개)
+                // 그리드용 (최신순)
                 const gridData = [...stats].sort((a, b) => new Date(b.executedAt) - new Date(a.executedAt)).slice(0, 7);
+
+                createOrderChart(chartRawData, isDark);
                 initStatsGrid(gridData, isDark);
+                
+                // 현재 모드에 맞춰 차트 다시 업데이트 (매출금액 유지 등)
+                const activeBtn = (currentMode === 'count') ? document.getElementById('btnCount') : document.getElementById('btnAmount');
+                updateChart(currentMode, activeBtn);
             });
     }
 
-    function initStatsGrid(gridData, isDark) {
-        const container = document.getElementById('dg-container');
-        if(!container) return;
-        container.innerHTML = '';
-
-        deliveryGrid = new DataGrid({
-            containerId: 'dg-container',
-            data: gridData,
-            rowHeaders: [],
-            bodyHeight: 'auto',
-            columns: [
-                { header: '기준일', name: 'statsDate', align: 'center', 
-                  formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 10) : '-' },
-                { header: '최신화 시간', name: 'executedAt', align: 'center', 
-                  formatter: ({value}) => value ? value.replace('T', ' ').substring(0, 19) : '-' },
-                { header: '총 주문', name: 'totalOrderCount', align: 'center', 
-                  formatter: ({value}) => `<span class="font-bold text-gray-900 dark:text-gray-100">\${(value || 0).toLocaleString()}건</span>` },
-                { header: '총 매출액', name: 'totalSalesAmount', align: 'center', 
-                  formatter: ({value}) => `<span class="text-blue-600 dark:text-blue-400 font-bold">\${(value || 0).toLocaleString()}원</span>` }
-            ],
-            pageOptions: { useClient: true, perPage: 7 }
-        });
-    }
-
-    /**
-     * 비동기 필터 초기화
-     */
-    function resetFilter() {
-        const titleEl = document.getElementById('dg-title');
-        if (titleEl) titleEl.innerText = "주문 통계 상세 리포트 (전체)";
-        
-        // 탭 버튼 초기화
-        const btnCount = document.getElementById('btnCount');
-        if(btnCount) updateChart('count', btnCount);
-        
-        refreshData();
-    }
-
+    // 3. 차트 생성
     function createOrderChart(stats, isDark) {
         const ctx = document.getElementById('orderChart').getContext('2d');
         if(orderChart) orderChart.destroy();
-
-        const theme = {
-            line: isDark ? '#F3F4F6' : '#111827',
-            area: isDark ? 'rgba(243, 244, 246, 0.1)' : 'rgba(17, 24, 39, 0.05)',
-            text: isDark ? '#9CA3AF' : '#6B7280',
-            grid: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F3F4F6'
-        };
 
         orderChart = new Chart(ctx, {
             type: 'line',
@@ -193,45 +176,34 @@
                 datasets: [{
                     label: '주문 건수(건)',
                     data: stats.map(s => s.totalOrderCount),
-                    borderColor: theme.line,
-                    backgroundColor: theme.area,
-                    fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: theme.line,
-                    borderWidth: 2
+                    borderColor: isDark ? '#F3F4F6' : '#111827',
+                    backgroundColor: isDark ? 'rgba(243,244,246,0.1)' : 'rgba(17,24,39,0.05)',
+                    fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        position: 'bottom', 
-                        labels: { color: theme.text, font: { family: 'Pretendard' }, padding: 20 } 
-                    } 
-                },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: theme.text } },
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: theme.grid }, 
-                        ticks: { color: theme.text, callback: v => v.toLocaleString() + '건' } 
-                    }
+                    y: { beginAtZero: true, ticks: { color: isDark ? '#9CA3AF' : '#6B7280' } },
+                    x: { ticks: { color: isDark ? '#9CA3AF' : '#6B7280' } }
                 }
             }
         });
     }
 
+    // 4. [중요] 매출금액 / 주문건수 전환 기능
     function updateChart(mode, btn) {
         currentMode = mode;
-        if (!orderChart) return;
+        if (!orderChart || chartRawData.length === 0) return;
         const isDark = document.documentElement.classList.contains('dark');
 
-        // 탭 버튼 스타일 전환
+        // 버튼 스타일 처리
         document.querySelectorAll('.btn-tab').forEach(tab => {
             tab.className = isDark 
                 ? "btn-tab px-4 py-2 text-sm font-medium text-gray-400 bg-gray-700 rounded-lg hover:bg-gray-600 transition-all ml-1"
                 : "btn-tab px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all ml-1";
         });
-        
         btn.className = isDark
             ? "btn-tab px-4 py-2 text-sm font-bold text-gray-900 bg-gray-100 rounded-lg shadow-sm transition-all"
             : "btn-tab px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg shadow-sm transition-all";
@@ -252,5 +224,23 @@
             orderChart.options.scales.y.ticks.callback = v => v.toLocaleString() + '건';
         }
         orderChart.update();
+    }
+
+    // 그리드 생성 (생략된 기존 로직 유지)
+    function initStatsGrid(gridData, isDark) {
+        const container = document.getElementById('dg-container');
+        if(!container) return;
+        container.innerHTML = '';
+        deliveryGrid = new DataGrid({
+            containerId: 'dg-container',
+            data: gridData,
+            columns: [
+                { header: '기준일', name: 'statsDate', align: 'center', formatter: ({value}) => value ? value.substring(0, 10) : '-' },
+                { header: '최신화 시간', name: 'executedAt', align: 'center', formatter: ({value}) => value ? value.substring(0, 19).replace('T', ' ') : '-' },
+                { header: '총 주문', name: 'totalOrderCount', align: 'center', formatter: ({value}) => `<b>\${value.toLocaleString()}건</b>` },
+                { header: '총 매출액', name: 'totalSalesAmount', align: 'center', formatter: ({value}) => `<span class="text-blue-500">\${value.toLocaleString()}원</span>` }
+            ],
+            pageOptions: { useClient: true, perPage: 7 }
+        });
     }
 </script>

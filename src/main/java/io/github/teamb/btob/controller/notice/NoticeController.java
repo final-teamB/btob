@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -34,7 +35,9 @@ import lombok.RequiredArgsConstructor;
 public class NoticeController {
 
     private final NoticeService noticeService;
-    private final String uploadPath = "C:/uploads/"; // 파일 저장 경로
+    
+    @Value("${file.upload.path.NOTICE}")
+    private String uploadPath;	
 
     // 일반 사용자가 보는 목록 
     @GetMapping("/user/list") 
