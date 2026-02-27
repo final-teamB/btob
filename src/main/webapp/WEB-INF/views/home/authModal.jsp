@@ -75,7 +75,38 @@
                 <div id="regStep1" class="space-y-6">
                     <div class="bg-white/5 border border-white/10 rounded-2xl p-6 h-48 overflow-y-auto text-sm text-gray-400 leading-relaxed">
                         <p class="font-bold text-white mb-2">[이용약관 및 개인정보 처리방침]</p>
-                        TradeHuB 서비스 이용을 위해 본 약관에 동의가 필요합니다... (내용 중략)
+                        	<div class="space-y-4">
+						        <section>
+						            <p class="font-bold text-gray-200 mb-1">제 1 조 (목적)</p>
+						            <p>본 약관은 TradeHuB(이하 "회사")가 제공하는 글로벌 무역 파트너 플랫폼 서비스의 이용 조건 및 절차, 이용자와 회사의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+						        </section>
+						
+						        <section>
+						            <p class="font-bold text-gray-200 mb-1">제 2 조 (개인정보의 수집 항목)</p>
+						            <p>회사는 회원가입 및 서비스 제공을 위해 아래와 같은 정보를 수집합니다.</p>
+						            <ul class="list-disc ml-4 space-y-1">
+						                <li>필수항목: 아이디(Gmail), 비밀번호, 이름, 직급, 휴대폰 번호, 이메일</li>
+						                <li>기업회원 추가항목: 회사명, 사업자등록번호, 회사연락처, 통관번호, 주소(국문/영문)</li>
+						            </ul>
+						        </section>
+						
+						        <section>
+						            <p class="font-bold text-gray-200 mb-1">제 3 조 (개인정보의 이용 목적)</p>
+						            <p>수집된 정보는 사용자 식별, 서비스 제공, 계약 이행, 부정 이용 방지 및 관리자 승인 절차를 위해 사용됩니다.</p>
+						        </section>
+						
+						        <section>
+						            <p class="font-bold text-gray-200 mb-1">제 4 조 (정보의 보유 및 이용 기간)</p>
+						            <p>회원 탈퇴 시까지 또는 서비스 종료 시까지 보관함을 원칙으로 하며, 관계 법령에 따라 보존할 필요가 있는 경우 해당 기간까지 보관합니다.</p>
+						        </section>
+						
+						        <section>
+						            <p class="font-bold text-gray-200 mb-1">제 5 조 (이용자의 의무)</p>
+						            <p>이용자는 본인의 계정 정보를 타인에게 양도하거나 대여할 수 없으며, 허위 정보를 등록하여 발생하는 모든 책임은 이용자 본인에게 있습니다.</p>
+						        </section>
+						        
+						        <p class="text-xs mt-4">※ 본 약관에 동의하지 않을 권리가 있으며, 동의 거부 시 서비스 이용이 제한될 수 있습니다.</p>
+						    </div>
                     </div>
                     <label class="flex items-center gap-4 text-white text-lg cursor-pointer p-3 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
                         <input type="checkbox" id="agreeTerms" class="w-6 h-6 rounded border-white/10 bg-white/5">
@@ -171,8 +202,10 @@
                                 <input type="text" id="addrRoad" placeholder="한글 도로명 주소" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg" readonly>
                                 <input type="text" id="addrEng" placeholder="영문 주소" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg" readonly>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <input type="text" id="bizNo" placeholder="사업자 등록번호" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
-                                    <input type="text" id="customsNo" placeholder="통관번호" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
+                                    <input type="text" id="bizNo" oninput="autoHyphenBiz(this)" maxlength="12" placeholder="사업자 등록번호 (000-00-00000)" 
+								           class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg focus:outline-none focus:border-blue-500 transition-all">
+								    <input type="text" id="customsNo" maxlength="15" placeholder="통관번호 (최대 15자)" 
+								           class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg focus:outline-none focus:border-blue-500 transition-all">
                                 </div>
                             </div>
                         </div>
@@ -300,6 +333,10 @@
         document.body.style.overflow = 'auto';
         resetRegisterStep();
         
+        
+     	// 로그인 폼의 입력값도 비워주고 싶다면 추가
+        document.getElementById('loginId').value = '';
+        document.getElementById('loginPw').value = '';
      	// [추가] 정보 찾기 중이었을 경우 타이머 중지 및 폼 초기화
         if(typeof timerInterval !== 'undefined') clearInterval(timerInterval);
     }
@@ -359,12 +396,54 @@
             .replace(/(\-{1,2})$/g, "");
     }
 
+    /**
+     * 사업자 번호 자동 하이픈 (000-00-00000)
+     */
+    function autoHyphenBiz(target) {
+        target.value = target.value
+            .replace(/[^0-9]/g, '')
+            .replace(/^(\d{3})(\d{2})(\d{5})$/, `$1-$2-$3`)
+            .replace(/--/g, '-');
+    }
+    
     /* -----------------------------------------------------------
      * [회원가입 로직: 단계 및 데이터 제어]
      * ----------------------------------------------------------- */
     function resetRegisterStep() {
         currentRegStep = 1;
         nextStep(1);
+        
+     	// 2. 모든 입력 필드(input) 초기화
+        const registerForm = document.getElementById('registerForm');
+        const allInputs = registerForm.querySelectorAll('input');
+        allInputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false; // 약관 동의 체크 해제
+            } else {
+                input.value = ''; // 아이디, 비밀번호, 이름 등 모든 텍스트 초기화
+            }
+        });
+
+        // 3. 셀렉트 박스(소속 회사) 초기화
+        const companySelect = document.getElementById('companySelect');
+        if (companySelect) companySelect.selectedIndex = 0;
+
+        // 4. 중복 체크 상태 및 메시지 초기화
+        isIdChecked = false;
+        checkedId = "";
+        isEmailChecked = false;
+        checkedEmail = "";
+
+        const idMsg = document.getElementById('idCheckMsg');
+        const emailMsg = document.getElementById('emailCheckMsg');
+        if (idMsg) { idMsg.innerText = ''; idMsg.classList.add('hidden'); }
+        if (emailMsg) { emailMsg.innerText = ''; emailMsg.classList.add('hidden'); }
+
+        // 5. MASTER용 추가 필드(주소 등) 숨기기 처리
+        const ownerFields = document.getElementById('ownerFields');
+        const userCompanyArea = document.getElementById('userCompanyArea');
+        if (ownerFields) ownerFields.classList.add('hidden');
+        if (userCompanyArea) userCompanyArea.classList.remove('hidden');
     }
 
     function nextStep(step) {
@@ -546,6 +625,7 @@
         var addrEng = document.getElementById('addrEng').value;
         var bizNo = document.getElementById('bizNo').value;
         var customsNo = document.getElementById('customsNo').value;
+        var bizRegex = /^\d{3}-\d{2}-\d{5}$/;
 
         if (selectedUserType === 'MASTER') {
             finalCompanyName = document.getElementById('ownerCompanyName').value.trim();
@@ -555,6 +635,16 @@
             if (!finalCompanyPhone) { showAlert("회사 연락처를 입력해주세요.", 'error'); return; }
             if (!zipCode || !addrKor) { showAlert("주소 찾기를 통해 회사 주소를 입력해주세요.", 'error'); return; }
             if (!bizNo) { showAlert("사업자 등록번호를 입력해주세요.", 'error'); return; }
+            
+            if (!bizRegex.test(bizNo)) { 
+                showAlert("사업자 등록번호 형식이 올바르지 않습니다.\n(000-00-00000 형식)", 'error'); 
+                return; 
+            }
+
+            if (customsNo && customsNo.length > 15) {
+                showAlert("통관번호는 최대 15자까지만 입력 가능합니다.", 'error');
+                return;
+            }
         } else {
             var select = document.getElementById('companySelect');
             if (!select.value) { showAlert("소속 회사를 선택해주세요.", 'error'); return; }
