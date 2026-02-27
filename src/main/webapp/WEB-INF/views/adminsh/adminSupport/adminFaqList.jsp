@@ -282,9 +282,38 @@
     	openFaqModal(0);
     }
     
- // 모달 열기 함수 (AJAX로 폼 불러오기)
+ // FAQ 상세/등록 폼 내부 스크립트 부분
+    let faqEditorInstance = null; // 전역 또는 폼 스코프 변수
+
+    async function initFaqEditor() {
+        const el = document.querySelector('#faqEditor');
+        if (!el) return;
+
+        if (faqEditorInstance) {
+            try {
+                await faqEditorInstance.destroy();
+            } catch (e) {}
+            faqEditorInstance = null;
+        }
+
+        if (typeof ClassicEditor !== 'undefined') {
+            ClassicEditor.create(el, {
+                placeholder: '답변 내용을 입력하세요...',
+                toolbar: ['bold', 'italic', 'underline', '|', 'numberedList', 'bulletedList', '|', 'undo', 'redo']
+            }).then(editor => {
+                el.ckeditorInstance = editor; // 요소 자체에 인스턴스 저장
+                faqEditorInstance = editor;    // 기존 submit 함수와 호환을 위해 유지
+                
+                // 높이 고정 (시원하게 보이도록)
+                editor.editing.view.change(writer => {
+                    writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
+                });
+            }).catch(err => console.error(err));
+        }
+    }
+    
     function openFaqModal(faqId) {
-    	const url = faqId > 0 ? '/support/modifyFaq/' + faqId : '/support/registerFaq';
+        const url = faqId > 0 ? '/support/modifyFaq/' + faqId : '/support/registerFaq';
         
         $.ajax({
             url: url + "?isModal=Y",
@@ -293,12 +322,21 @@
                 $('#faqModalContent').html(html);
                 $('#faqModal').removeClass('hidden');
                 document.body.style.overflow = 'hidden';
+
+                // 공지사항 관리와 동일하게 setTimeout으로 안정적인 초기화 호출
+                if (typeof initFaqEditor === 'function') {
+                    setTimeout(initFaqEditor, 150);
+                }
+            },
+            error: function() {
+                alert("정보를 불러오는 데 실패했습니다.");
             }
         });
     }
 
     function closeFaqModal() {
-    	$('#faqModal').addClass('hidden');
+        $('#faqModal').addClass('hidden');
+        $('#faqModalContent').empty(); 
         document.body.style.overflow = 'auto';
     }
 </script>

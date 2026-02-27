@@ -278,20 +278,53 @@
         openNoticeModal(0);
     }
 
-    // 모달 열기 함수 (AJAX로 noticeEdit.jsp 내용을 가져옴)
+    async function initEditor() {
+        const el = document.querySelector('#modalEditor');
+        if (!el) return;
+
+        // 기존 인스턴스가 있다면 파괴
+        if (el.ckeditorInstance) {
+            try {
+                await el.ckeditorInstance.destroy();
+            } catch (e) {
+                console.error('Destroy error:', e);
+            }
+            delete el.ckeditorInstance;
+        }
+
+        // CKEditor 생성
+        if (typeof ClassicEditor !== 'undefined') {
+            ClassicEditor.create(el, {
+                placeholder: '상세 설명을 입력하세요...',
+                toolbar: {
+                    items: ['bold', 'italic', 'underline', '|', 'numberedList', 'bulletedList', '|', 'removeFormat', 'undo', 'redo'],
+                    shouldNotGroupWhenFull: true
+                }
+            }).then(editor => {
+                el.ckeditorInstance = editor;
+            }).catch(err => console.error('CKEditor Error:', err));
+        }
+    }
+
+    // 2. 모달 열기 함수 수정
     function openNoticeModal(id) {
         const url = id > 0 ? '/notice/edit/' + id : '/notice/edit/0';
         $.ajax({
-            url: url + "?isModal=Y", // 모달 요청임을 알리는 파라미터
+            url: url + "?isModal=Y",
             type: "GET",
             success: function(html) {
                 $('#noticeModalContent').html(html);
                 $('#noticeModal').removeClass('hidden');
                 document.body.style.overflow = 'hidden';
+                
+                // 핵심: HTML이 박힌 직후가 아니라, 브라우저가 렌더링할 시간을 준 뒤 실행
+                setTimeout(() => {
+                    initEditor();
+                }, 100);
             }
         });
     }
-
+ 	
     function closeNoticeModal() {
         $('#noticeModal').addClass('hidden');
         document.body.style.overflow = 'auto';

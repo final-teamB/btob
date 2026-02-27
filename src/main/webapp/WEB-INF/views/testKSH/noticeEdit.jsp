@@ -120,9 +120,11 @@
             return;
         }
         const el = document.querySelector('#modalEditor');
-        if (!el || el.dataset.initialized) return;
-        el.dataset.initialized = 'true';
-
+        if (!el) return;
+        if (el.ckeditorInstance) {
+            await el.ckeditorInstance.destroy();
+            delete el.ckeditorInstance;
+        }
         ClassicEditor.create(el, {
             placeholder: '상세 설명을 입력하세요...',
             toolbar: {
@@ -134,7 +136,6 @@
             console.log('에디터 로드 성공');
         }).catch(err => console.error(err));
     }
-    setTimeout(initEditor, 100);
 
     // 파일 선택 시 호출
     function updateFileName(input) {
@@ -184,9 +185,12 @@
 
     // 폼 제출 시 파일 input에 동기화
     document.getElementById('noticeForm').addEventListener('submit', function() {
-    	const editorInstance = document.querySelector('#modalEditor').ckeditorInstance;
-    	
-    	if (selectedFiles.length > 0) {
+    	const el = document.querySelector('#modalEditor');
+        if (el && el.ckeditorInstance) {
+            el.value = el.ckeditorInstance.getData();
+        }
+        
+        if (selectedFiles.length > 0) {
             const dt = new DataTransfer();
             selectedFiles.forEach(function(file) { dt.items.add(file); });
             document.getElementById('noticeFiles').files = dt.files;
