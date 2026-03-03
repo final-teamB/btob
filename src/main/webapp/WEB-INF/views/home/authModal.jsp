@@ -192,7 +192,7 @@
                                 <p class="text-blue-400 text-sm font-black ml-1">신규 회사 및 사업자 정보 등록</p>
                                 <div class="grid grid-cols-2 gap-4">
 							        <input type="text" id="ownerCompanyName" placeholder="등록할 회사명" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
-							        <input type="text" id="ownerCompanyPhone" oninput="autoHyphen(this)" maxlength="13" placeholder="회사 연락처 (02-000-0000)" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
+							        <input type="text" id="ownerCompanyPhone" oninput="autoHyphenCompany(this)" maxlength="13" placeholder="회사 연락처 (02-000-0000)" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white text-lg">
 							    </div>
                                 
                                 <div class="flex gap-3">
@@ -261,10 +261,10 @@
     function checkDuplicateId() {
         var userId = document.getElementById('regId').value.trim();
         var msgEl = document.getElementById('idCheckMsg');
-        var gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        var gmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (!userId) { showAlert('아이디를 입력해주세요.', 'error'); return; }
-        if (!gmailRegex.test(userId)) { showAlert('아이디는 @gmail.com 형식이어야 합니다.', 'error'); return; }
+        if (!gmailRegex.test(userId)) { showAlert('아이디는 이메일 형식이어야 합니다.', 'error'); return; }
 
         fetch('/account/api/check-duplicate-id?userId=' + encodeURIComponent(userId))
             .then(function(response) { return response.json(); })
@@ -293,10 +293,10 @@
     function checkDuplicateEmail() {
         var email = document.getElementById('regEmail').value.trim();
         var msgEl = document.getElementById('emailCheckMsg');
-        var gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        var gmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (!email) { showAlert('이메일을 입력해주세요.', 'error'); return; }
-        if (!gmailRegex.test(email)) { showAlert('이메일은 @gmail.com 형식이어야 합니다.', 'error'); return; }
+        if (!gmailRegex.test(email)) { showAlert('이메일형식이 잘못되었습니다.', 'error'); return; }
 
         fetch('/account/api/check-duplicate-email?email=' + encodeURIComponent(email))
             .then(function(response) { return response.json(); })
@@ -394,6 +394,39 @@
             .replace(/[^0-9]/g, '')
             .replace(/^(\d{0,3})(\d{0,4})(\d{0,4})$/g, "$1-$2-$3")
             .replace(/(\-{1,2})$/g, "");
+    }
+    
+ 	// 2. [추가] 회사 연락처용 (02-123-4567, 031-1234-5678 등)
+    function autoHyphenCompany(target) {
+    	// 1. 숫자 이외의 문자 제거
+        var str = target.value.replace(/[^0-9]/g, '');
+        var tmp = '';
+
+        if (str.length < 4) {
+            // 3자리 미만일 때는 그대로 (ex: 02, 031)
+            tmp = str;
+        } else if (str.length < 7) {
+            // 4~6자리일 때 (ex: 02-123, 031-123)
+            tmp = str.substr(0, str.startsWith('02') ? 2 : 3) + '-' + str.substr(str.startsWith('02') ? 2 : 3);
+        } else if (str.length < 11) {
+            // 7~10자리일 때
+            if (str.startsWith('02')) {
+                // 서울(02)은 국번이 3자리인 경우(02-123-4567)와 4자리인 경우(02-1234-5678) 구분
+                if (str.length === 9) { // 02-123-4567
+                    tmp = str.substr(0, 2) + '-' + str.substr(2, 3) + '-' + str.substr(5);
+                } else { // 02-1234-5678
+                    tmp = str.substr(0, 2) + '-' + str.substr(2, 4) + '-' + str.substr(6);
+                }
+            } else {
+                // 지방(031 등)은 국번이 3자리인 경우(031-123-4567)
+                tmp = str.substr(0, 3) + '-' + str.substr(3, 3) + '-' + str.substr(6);
+            }
+        } else {
+            // 11자리일 때 (ex: 031-1234-5678, 070-1234-5678)
+            tmp = str.substr(0, 3) + '-' + str.substr(3, 4) + '-' + str.substr(7);
+        }
+
+        target.value = tmp; 
     }
 
     /**
@@ -591,13 +624,13 @@
         }
         
         // 유효성 검사
-        var gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        var gmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         var pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()])[A-Za-z\d!@#$%^&*()]{8,20}$/;
         var phoneRegex = /^01[016789]-\d{3,4}-\d{4}$/;
 
      	// 3. 필수 입력값 및 형식 체크 (순차적으로 검사)
         if (!userId) { showAlert("아이디(Gmail)를 입력해주세요.", 'error'); return; }
-        if (!gmailRegex.test(userId)) { showAlert("아이디는 @gmail.com 형식이어야 합니다.", 'error'); return; }
+        if (!gmailRegex.test(userId)) { showAlert("아이디는 이메일 형식이어야 합니다.", 'error'); return; }
         
         if (!password) { showAlert("비밀번호를 입력해주세요.", 'error'); return; }
         if (!pwRegex.test(password)) { 
@@ -614,7 +647,7 @@
         if (!phoneRegex.test(phone)) { showAlert("휴대폰 번호 형식을 확인해주세요. (01X-0000-0000)", 'error'); return; }
         
         if (!email) { showAlert("이메일 주소를 입력해주세요.", 'error'); return; }
-        if (!gmailRegex.test(email)) { showAlert("이메일은 @gmail.com 형식이어야 합니다.", 'error'); return; }
+        if (!gmailRegex.test(email)) { showAlert("이메일형식이 잘못되었습니다.", 'error'); return; }
 
         // 회사 정보 설정
         var finalCompanyName = "";
@@ -633,6 +666,12 @@
             
             if (!finalCompanyName) { showAlert("등록할 회사명을 입력해주세요.", 'error'); return; }
             if (!finalCompanyPhone) { showAlert("회사 연락처를 입력해주세요.", 'error'); return; }
+         	// [수정] 회사 연락처 정규식 (2~3자리 - 3~4자리 - 4자리)
+            var compPhoneRegex = /^\d{2,3}-\d{3,4}-\d{4}$/;
+            if (!compPhoneRegex.test(finalCompanyPhone)) {
+                showAlert("회사 연락처 형식이 올바르지 않습니다.\n(예: 02-123-4567 또는 031-123-4567)", 'error');
+                return;
+            }
             if (!zipCode || !addrKor) { showAlert("주소 찾기를 통해 회사 주소를 입력해주세요.", 'error'); return; }
             if (!bizNo) { showAlert("사업자 등록번호를 입력해주세요.", 'error'); return; }
             
