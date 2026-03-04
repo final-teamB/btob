@@ -38,6 +38,10 @@
 </style>
 </head>
 <body class="py-10">
+<%-- 이 건이 '반려' 상태인지 체크 (하나라도 해당하면 true) --%>
+<c:set var="isRejected" value="${info.orderStatus eq 'et999' || info.orderStatus eq 'od999' || info.orderStatus eq 'pr999'}" />
+<%-- 이 건이 '수정 불가능(읽기 전용)' 상태인지 체크 --%>
+<c:set var="isReadOnly" value="${not empty info.estNo && !isRejected}" />
 
     <div class="max-w-screen-2xl mx-auto px-4">
         <div class="bg-white p-12 rounded-xl shadow-lg border border-gray-100 print-shadow-none">
@@ -145,12 +149,12 @@
                                 
                                 <td class="py-5 px-4 bg-blue-50/30">
                                     <c:choose>
-                                        <c:when test="${not empty info.estNo}">
-                                            <div class="text-right text-blue-700 font-bold font-mono px-2">
-                                                <fmt:formatNumber value="${item.targetProductPrc}" pattern="#,###"/>
-                                                <input type="hidden" class="target-prc-input" value="${item.targetProductPrc}">
-                                            </div>
-                                        </c:when>
+                                 		 <c:when test="${isReadOnly}">
+								            <div class="text-right text-blue-700 font-bold font-mono px-2">
+								                <fmt:formatNumber value="${item.targetProductPrc}" pattern="#,###"/>
+								                <input type="hidden" class="target-prc-input" value="${item.targetProductPrc}">
+								            </div>
+								        </c:when>
                                         <c:otherwise>
                                             <input type="number" class="target-prc-input w-full bg-transparent text-right text-blue-700 font-bold font-mono outline-none"
                                                    value="${not empty item.targetProductPrc ? item.targetProductPrc : 0}" 
@@ -174,7 +178,7 @@
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 italic">Special Memo</p>
                     <div class="p-6 border-2 border-dotted border-gray-200 rounded-xl bg-gray-50 text-gray-700 min-h-[140px] shadow-inner">
                         <c:choose>
-                            <c:when test="${not empty info.estNo}">
+                            <c:when test="${isReadOnly}">
                                 <div class="whitespace-pre-wrap leading-relaxed"><c:out value="${info.estdtMemo}" default="별도의 기재 사항이 없습니다." /></div>
                             </c:when>
                             <c:otherwise>
@@ -230,12 +234,10 @@
             <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-between items-center">
                 <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm">프린트 / PDF</button>
                 <div class="flex gap-2">
-                    <c:if test="${empty info.estNo && (userType eq 'USER' || userType eq 'MASTER')}">
+                    <c:if test="${(empty info.estNo || isRejected) && (userType eq 'USER' || userType eq 'MASTER')}">
                         <button type="button" onclick="fn_confirmOrder()" class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl transition">견적 요청하기</button>
                     </c:if>
-                    <c:if test="${not empty info.estNo}">
                         <button type="button" onclick="window.close()" class="px-8 py-2 text-sm font-bold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">닫기</button>
-                    </c:if>
                 </div>
             </div>
 	      </c:otherwise>
