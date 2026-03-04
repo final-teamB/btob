@@ -10,6 +10,7 @@ import io.github.teamb.btob.common.security.LoginUserProvider;
 import io.github.teamb.btob.dto.bizworkflow.ApprovalDecisionRequestDTO;
 import io.github.teamb.btob.dto.document.DocumentInsertDTO;
 import io.github.teamb.btob.dto.trade.TradePendingDTO;
+import io.github.teamb.btob.mapper.cart.CartMapper;
 import io.github.teamb.btob.mapper.document.TradeDocMapper;
 import io.github.teamb.btob.mapper.trade.TradeApprovalMapper;
 import io.github.teamb.btob.service.BizWorkflow.impl.BizWorkflowServiceImpl;
@@ -24,6 +25,7 @@ public class TradeApprovalService {
 	private final BizWorkflowServiceImpl bizWorkflowServiceImpl;
 	private final LoginUserProvider loginUserProvider;
 	private final NotificationService notificationService;
+	private final CartMapper cartMapper;
 	private final TradeDocMapper tradeDocMapper;
 
 		
@@ -54,7 +56,8 @@ public class TradeApprovalService {
 	    
 	    // 승인(od002) / 반려(od999) 판단
 	    String status = (String) params.get("status");
-	    requestDto.setApprovalStatus("od002".equals(status) ? "APPROVED" : "REJECTED");
+	    String approvalStatus = "od002".equals(status) ? "APPROVED" : "REJECTED"; // 승인/반려 결정
+	    requestDto.setApprovalStatus(approvalStatus);
 	    requestDto.setRequestEtpStatus(status); 
 	    requestDto.setRejtRsn(rejectReason);
 	    
@@ -71,38 +74,44 @@ public class TradeApprovalService {
 	    // 3. 공통 워크플로우 서비스 호출 (자동으로 TB_ORDER_MST 업데이트 + 이력 생성)
 	    bizWorkflowServiceImpl.modifyEtpStatusAndLogHist(requestDto);
 	    	    
-	    if ("od002".equals(status)) {
+	    if ("APPROVED".equals(approvalStatus)) {
+	        // --- 승인 시: 발주서(PO) 생성 로직 (기존 유지) ---
 	        try {
-	            // [추가] 견적서 ID 존재 여부 확인 (params에 estId가 담겨온다고 가정)
-	            // 만약 params에 없다면 DB에서 order_id로 est_id를 조회하는 과정이 필요할 수 있습니다.
-	        	Integer estId = tradeApprovalmapper.getEstIdByOrderId(orderId); 
-	        	boolean isFromEstimate = (estId != null && estId > 0);
+	            Integer estId = tradeApprovalmapper.getEstIdByOrderId(orderId); 
+	            boolean isFromEstimate = (estId != null && estId > 0);
 
 	            if (!isFromEstimate) {
-	                // 1. 문서 번호 생성 (PO-회사코드-날짜-순번)
 	                String docNo = tradeDocMapper.selectFormattedDocNo("PO", receiverId);
-	                
-	                // 2. DTO 객체 생성 및 데이터 빌드
 	                DocumentInsertDTO docDto = new DocumentInsertDTO();
 	                docDto.setDocNo(docNo);
 	                docDto.setDocType("PURCHASE_ORDER");
-	                
 	                String orderNo = (String) params.get("orderNo");
 	                docDto.setDocTitle("[" + orderNo + "] 물품 공급 발주서");
 	                docDto.setOrderId(orderId);
 	                docDto.setOwnerUserId(receiverId); 
 	                docDto.setRegId(loginUserId);
 	                
-	                // 3. Mapper 호출
 	                tradeDocMapper.insertDocument(docDto);
-	                System.out.println("일반 주문 승인 - 발주서 생성 완료: " + docNo);
-	            } else {
-	                System.out.println("견적 기반 주문 - 발주서 생성을 건너뜁니다. (estId: " + estId + ")");
 	            }
-	            
 	        } catch (Exception e) {
 	            System.err.println("발주서(PO) 생성 중 오류 발생: " + e.getMessage());
-	            e.printStackTrace();
+	        }
+	    } else if ("REJECTED".equals(approvalStatus)) {
+	        // --- 반려 시: 장바구니 상태 복구 및 문서 무효화 로직 ---
+	        try {
+	            String orderNo = (String) params.get("orderNo");
+	            if (orderNo != null) {
+	                // 1. 장바구니 상태를 PENDING으로 변경 (사용자가 수정 가능하도록)
+	                // 앞서 CartMapper 인터페이스와 XML의 오타(oder_no -> order_no)를 수정하셨는지 확인해주세요!	            
+	                cartMapper.updateCartStatusPending(orderNo, loginUserId);
+	                
+	                // 2. (선택사항) 기존에 생성된 문서가 있다면 사용불가(N) 처리
+	                tradeDocMapper.updateDocUseYnByOrderId(orderId, "N", loginUserId);
+	                
+	                System.out.println("주문 반려 - 장바구니 상태 복구 완료: " + orderNo);
+	            }
+	        } catch (Exception e) {
+	            System.err.println("반려 처리 중 장바구니 복구 오류: " + e.getMessage());
 	        }
 	    }
 	    

@@ -43,4 +43,6 @@ public interface CartMapper {
 
 	int getCartCount(String userId);
 	
+	void updateCartStatusPending(String orderNo, String userId);
+	
 }

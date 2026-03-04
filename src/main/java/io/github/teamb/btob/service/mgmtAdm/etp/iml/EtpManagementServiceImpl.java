@@ -18,6 +18,7 @@ import io.github.teamb.btob.dto.common.SelectBoxVO;
 import io.github.teamb.btob.dto.document.DocumentInsertDTO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.EtpApprovRejctRequestDTO;
 import io.github.teamb.btob.dto.mgmtAdm.etp.SearchEtpListDTO;
+import io.github.teamb.btob.mapper.cart.CartMapper;
 import io.github.teamb.btob.mapper.document.TradeDocMapper;
 import io.github.teamb.btob.mapper.mgmtAdm.EtpMgmtAdmMapper;
 import io.github.teamb.btob.mapper.trade.TradeApprovalMapper;
@@ -39,6 +40,7 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 	private final TradeDocMapper tradeDocMapper;
 	private final TradeApprovalMapper tradeApprovalmapper;
 	private final LoginUserProvider loginUserProvider;
+	private final CartMapper cartMapper;
 
 	/**
 	 * 
@@ -189,6 +191,8 @@ public class EtpManagementServiceImpl implements EtpManagementService {
 	            // tradeDocMapper에 해당 주문건의 문서들을 N처리하는 메서드 호출
 	            // 관리자나 시스템이 수정하는 것이므로 수정자 ID 등을 같이 넘겨주면 좋습니다.
 	            int updatedCnt = tradeDocMapper.updateDocUseYnByOrderId(ordId, "N", LoginUserId);
+	            String orderNo = tradeDocMapper.selectOrderNo(ordId);
+	            cartMapper.updateCartStatusPending(orderNo,LoginUserId);
 	        } catch (Exception e) {
 	        	log.error("▶ 반려 시 관련 문서 N 처리 중 오류 발생: {}", e.getMessage());
 	        }
