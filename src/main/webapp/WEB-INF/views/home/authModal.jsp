@@ -19,9 +19,12 @@
         
             <div id="loginForm" class="space-y-8">
                 <div class="text-left mb-8">
-                    <h2 class="text-3xl font-black text-white mb-3">반가워요! 👋</h2>
-                    <p class="text-gray-400 text-lg">글로벌 무역 파트너, TradeHuB에 접속하세요.</p>
-                </div>
+				    <h2 class="text-white mb-6"> 
+				    	<span class="block text-3xl font-black tracking-tight mb-2">GDJ95-A TradeHuB</span>
+				        <span class="block text-xl font-bold text-gray-300 tracking-tight">글로벌 에너지의 중심 🌐</span>
+				    </h2>
+				    <p class="text-gray-400 text-lg leading-relaxed">글로벌 시장을 연결하는 가장 효율적인 유류 거래 파트너입니다.</p>
+				</div>
                 <div class="space-y-5">
                     <div class="relative">
                         <i data-lucide="user" class="absolute left-5 top-4.5 w-6 h-6 text-gray-500"></i>
