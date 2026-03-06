@@ -87,7 +87,7 @@ public class MainController {
 
         // 만약 모든 시도가 실패했다면 최종 방어 코드
         if (result.isEmpty()) {
-            result.add(Map.of("currency", "USD", "rate", "1,350.00", "name", "미국 달러(서버점검)"));
+            result.add(Map.of("currency", "USD", "rate", "1,478.57", "name", "미국 달러(서버점검)"));
         }
         
         return result;

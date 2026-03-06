@@ -55,15 +55,21 @@
     
     <nav class="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                    <i data-lucide="layers" class="text-white w-6 h-6"></i>
-                </div>
-                <div>
-                    <span class="text-xl font-black text-slate-900 tracking-tighter">GDJ95-A TradeHuB</span>
-                    <p class="text-[10px] text-blue-600 font-bold -mt-1 tracking-tight">GLOBAL OIL TRADING</p>
-                </div>
-            </div>
+            
+	        <a href="${pageContext.request.contextPath}/" class="flex items-center gap-3 group">
+	            <div class="h-10 w-10 overflow-hidden rounded-lg shadow-sm">
+	                <img src="${pageContext.request.contextPath}/resources/images/coplogo.png" 
+	                     alt="TradeHuB Logo" 
+	                     class="w-full h-full object-contain">
+	            </div>
+	            
+	            <div>
+	                <span class="text-xl font-black text-slate-900 tracking-tighter group-hover:text-blue-600 transition-colors">
+	                    GDJ95-A TradeHuB
+	                </span>
+	                <p class="text-[10px] text-blue-600 font-bold -mt-1 tracking-tight">GLOBAL OIL TRADING</p>
+	            </div>
+	        </a>
             
             <div class="flex items-center gap-8">
                 <!-- 사용안해서 주석 처리 
