@@ -317,7 +317,7 @@
                 }]
             };
         } else {
-            document.getElementById('chartTitle').innerText = "지역별 배송 분포 (Top 5)";
+            document.getElementById('chartTitle').innerText = "지역별 배송 분포";
             config.type = 'bar';
             config.data = {
                 labels: statsData.region ? statsData.region.map(r => r.name) : [],
