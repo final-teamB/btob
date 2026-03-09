@@ -193,7 +193,7 @@
                       return `<span class="px-2 py-1 rounded-full text-xs font-semibold \${bgClass}">\${value || '-'}</span>`;
                   }
                 },
-                { header: '지역', name: 'address', align: 'left' },
+                { header: '지역', name: 'addrKor', align: 'left' },
                 { header: '가입일', name: 'regDate', align: 'center', width: 180 }
             ],
             pageOptions: { useClient: true, perPage: 10 }
@@ -278,7 +278,7 @@
                 }]
             };
         } else if(mode === 'region') {
-            document.getElementById('chartTitle').innerText = "지역별 분포 (Top 5)";
+            document.getElementById('chartTitle').innerText = "지역별 분포";
             config.type = 'bar';
             config.data = {
                 labels: statsData.region.map(r => r.name),

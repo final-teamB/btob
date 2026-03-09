@@ -165,7 +165,7 @@
             data: data || [],
             bodyHeight: 'auto',
             columns: [
-                { header: '주문ID', name: 'orderNo', align: 'center', width: 120 },
+                { header: '주문ID', name: 'orderNo', align: 'center', width: 220 },
                 { header: '배송지', name: 'regionName', align: 'left' },
                 { header: '상태', name: 'statusName', align: 'center', width: 150,
                   formatter: ({value}) => {
@@ -317,7 +317,7 @@
                 }]
             };
         } else {
-            document.getElementById('chartTitle').innerText = "지역별 배송 분포 (Top 5)";
+            document.getElementById('chartTitle').innerText = "지역별 배송 분포";
             config.type = 'bar';
             config.data = {
                 labels: statsData.region ? statsData.region.map(r => r.name) : [],
