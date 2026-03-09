@@ -79,13 +79,14 @@
     <!-- 배송지역별 -->
     <select id="getDeliveryRegionStats" resultType="map">
         SELECT 
-            SUBSTR(TRIM(ship_to_addr), 1, 2) as name, 
-            COUNT(*) as value
-        FROM TB_DELIVERY
-        WHERE use_yn = 'Y' AND ship_to_addr IS NOT NULL
-        GROUP BY SUBSTR(TRIM(ship_to_addr), 1, 2)
-        ORDER BY value DESC
-        LIMIT 5
+	        SUBSTR(TRIM(addr_kor), 1, 2) AS name, 
+	        COUNT(*) AS value
+	    FROM TB_COMPANIES
+	    WHERE use_yn = 'Y' 
+	      AND addr_kor IS NOT NULL
+	    GROUP BY SUBSTR(TRIM(addr_kor), 1, 2)
+	    ORDER BY value DESC
+	    LIMIT 5
     </select>
     
     <!-- 배송 상태별 건수 -->
@@ -114,25 +115,30 @@
     <!-- 상세내역 -->
     <select id="getRecentDeliveryList" resultType="map" parameterType="map">
 	    SELECT 
-	        d.delivery_id as orderId,
-	        o.order_no as orderNo,
-	        d.ship_to_addr as regionName,
-	        d.delivery_status as statusName,
-	        DATE_FORMAT(d.upd_dtime, '%Y-%m-%d %H:%i:%S') as updateTime
-	    FROM TB_DELIVERY d
-	    JOIN TB_ORDER_MST o ON d.order_id = o.order_id
-	    WHERE d.use_yn = 'Y'
-	    
-	    <if test="type == 'status' and value != null and value != ''">
-	        AND d.delivery_status = #{value}
-	    </if>
-	    
-	    <if test="type == 'region' and value != null and value != ''">
-	        AND d.ship_to_addr LIKE CONCAT(#{value}, '%')
-	    </if>
-	    
-	    ORDER BY d.upd_dtime DESC
-	    LIMIT 100
+        d.delivery_id AS orderId,
+        o.order_no AS orderNo,
+        c.company_name AS companyName,    
+        c.addr_kor AS regionName,         
+        d.delivery_status AS statusName,
+        DATE_FORMAT(d.upd_dtime, '%Y-%m-%d %H:%i:%S') AS updateTime
+    FROM TB_DELIVERY d
+    INNER JOIN TB_ORDER_MST o ON d.order_id = o.order_id
+    INNER JOIN TB_USERS u ON o.user_no = u.user_no  LEFT JOIN TB_COMPANIES c ON u.company_cd = c.company_cd WHERE d.use_yn = 'Y'
+    
+    <choose>
+        <when test="type == 'status' and value != null and value != ''">
+            AND d.delivery_status = #{value}
+        </when>
+        <when test="type == 'region' and value != null and value != ''">
+            AND c.addr_kor LIKE CONCAT(#{value}, '%')
+        </when>
+        <when test="type == 'company' and value != null and value != ''">
+            AND c.company_name LIKE CONCAT('%', #{value}, '%')
+        </when>
+    </choose>
+    
+    ORDER BY d.upd_dtime DESC
+    LIMIT 100
 	</select>
 
 	<!-- 사용자 -->

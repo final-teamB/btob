@@ -165,7 +165,7 @@
             data: data || [],
             bodyHeight: 'auto',
             columns: [
-                { header: '주문ID', name: 'orderNo', align: 'center', width: 120 },
+                { header: '주문ID', name: 'orderNo', align: 'center', width: 220 },
                 { header: '배송지', name: 'regionName', align: 'left' },
                 { header: '상태', name: 'statusName', align: 'center', width: 150,
                   formatter: ({value}) => {
