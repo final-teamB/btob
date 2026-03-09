@@ -152,10 +152,10 @@
     
     <!-- 사용자 지역 분포 -->
     <select id="getUserRegionStats" resultType="map">
-        SELECT SUBSTR(TRIM(address), 1, 2) as name, COUNT(*) as value
-        FROM TB_USERS
-        WHERE address IS NOT NULL AND address != ''
-        GROUP BY SUBSTR(TRIM(address), 1, 2)
+        SELECT SUBSTR(TRIM(addr_kor), 1, 2) as name, COUNT(*) as value
+	    FROM TB_COMPANIES
+	    WHERE addr_kor IS NOT NULL AND addr_kor != ''
+	    GROUP BY SUBSTR(TRIM(addr_kor), 1, 2)
     </select>
 
 	<!-- 일별 활성 사용자 수 배치 -->
@@ -170,26 +170,29 @@
     <!-- 상세내역 -->
     <select id="getFilteredUserList" resultType="map" parameterType="map">
 	    SELECT 
-	        u.user_id as userId,
-	        u.user_name as userName,
-	        u.acc_status as accStatus,
-	        u.app_status as appStatus,
-	        u.address as address,
-	        DATE_FORMAT(u.reg_dtime, '%Y-%m-%d %H:%i:%S') as regDate
-	    FROM TB_USERS u
-	    WHERE u.use_yn = 'Y'
-	    
-	    <if test="type != 'all' and type == 'accStatus' and value != null and value != ''">
-	        AND u.acc_status = #{value}
-	    </if>
-	    <if test="type != 'all' and type == 'appStatus' and value != null and value != ''">
-	        AND u.app_status = #{value}
-	    </if>
-	    <if test="type != 'all' and type == 'region' and value != null and value != ''">
-	        AND u.address LIKE CONCAT(#{value}, '%')
-	    </if>
-	    
-	    ORDER BY u.reg_dtime DESC
+        u.user_id as userId,
+        u.user_name as userName,
+        u.acc_status as accStatus,
+        u.app_status as appStatus,
+        DATE_FORMAT(u.reg_dtime, '%Y-%m-%d %H:%i:%S') as regDate,
+        c.addr_kor as addrKor,
+        c.company_name as companyName,
+        c.biz_number as bizNumber
+    FROM TB_USERS u
+    LEFT JOIN TB_COMPANIES c ON u.company_cd = c.company_cd
+    WHERE u.use_yn = 'Y' AND u.user_type != 'ADMIN'
+    
+    <if test="type != 'all' and type == 'accStatus' and value != null and value != ''">
+        AND u.acc_status = #{value}
+    </if>
+    <if test="type != 'all' and type == 'appStatus' and value != null and value != ''">
+        AND u.app_status = #{value}
+    </if>
+    <if test="type != 'all' and type == 'region' and value != null and value != ''">
+        AND u.address LIKE CONCAT(#{value}, '%')
+    </if>
+    
+    ORDER BY u.reg_dtime DESC
 	</select>
 
 	<!-- 상품 -->
