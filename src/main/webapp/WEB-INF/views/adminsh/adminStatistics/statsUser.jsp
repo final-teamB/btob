@@ -278,7 +278,7 @@
                 }]
             };
         } else if(mode === 'region') {
-            document.getElementById('chartTitle').innerText = "지역별 분포 (Top 5)";
+            document.getElementById('chartTitle').innerText = "지역별 분포";
             config.type = 'bar';
             config.data = {
                 labels: statsData.region.map(r => r.name),
