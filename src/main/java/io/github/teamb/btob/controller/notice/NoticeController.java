@@ -36,7 +36,8 @@ public class NoticeController {
 
     private final NoticeService noticeService;
     
-    @Value("${file.upload.root}${file.upload.path.NOTICE}")
+	/* @Value("${file.upload.root}${file.upload.path.NOTICE}")  윈도우 DEV */
+    @Value("${file.upload.path.NOTICE}")	// 운영 PRD
     private String uploadPath;	
 
     // 일반 사용자가 보는 목록 
