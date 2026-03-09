@@ -199,7 +199,14 @@
 
     function fn_reject() {
         const reason = $('#rejectReason').val().trim();
-        if(!reason) return alert("반려 사유를 입력해주세요.");
+        if(!reason) {
+            alert("반려 사유를 입력해주세요.");
+            $('#rejectReason').focus();
+            return;
+        }
+        
+        if(!confirm("입력하신 사유로 반려 처리를 완료하시겠습니까?")) return;
+        
         sendAction("od999", reason);
     }
 

@@ -15,10 +15,22 @@
 	            <svg id="toggleSidebarMobileClose" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 110 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
 	        </button>
 	        
-	        <a href="/main" class="flex items-center">
-	            <img src="https://flowbite-admin-dashboard.vercel.app/images/logo.svg" class="h-8 mr-3" alt="Flowbite Logo" />
-	            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white hidden sm:block">Flowbite</span>
-	        </a>
+	        <a href="/main" class="flex items-center gap-3 group">
+			    <div class="h-10 w-10 overflow-hidden">
+			        <img src="${pageContext.request.contextPath}/resources/images/coplogoHeader.png" 
+			             class="h-full w-full object-contain transition-transform group-hover:scale-105" 
+			             alt="TradeHuB Symbol Logo" />
+			    </div>
+			
+			    <div class="flex flex-col">
+			        <span class="text-xl font-black text-slate-900 tracking-tighter group-hover:text-blue-600 transition-colors whitespace-nowrap dark:text-white">
+			            GDJ95-A TradeHuB
+			        </span>
+			        <p class="text-[10px] text-blue-600 font-bold -mt-1 tracking-tight">
+			            GLOBAL OIL TRADING
+			        </p>
+			    </div>
+			</a>
 	    </div>
 	
 	    <div class="hidden lg:block w-full max-w-md ml-4">

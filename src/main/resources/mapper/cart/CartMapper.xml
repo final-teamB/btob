@@ -160,7 +160,6 @@
         WHERE cart_id = #{cartId}
           AND user_id = #{userId}
           AND cart_status = 'PENDING'
-          AND order_no IS NULL
     </delete>
     
     <!-- 거래바구니 비우기 -->
@@ -231,9 +230,20 @@
 	    SET 
 	        cart_status = #{status},
 	        upd_dtime = NOW(),
+	        upd_id = #{userId},
 	        use_yn = #{useYn}
 	    WHERE order_no = #{orderNo}
 	      AND user_id = #{userId}
+	</update>
+	
+	<!-- 장바구니 상태 PENDING 변경 -->
+	<update id="updateCartStatusPending">
+		UPDATE TB_CART
+		SET 
+			cart_status = 'PENDING',
+			upd_dtime = NOW(),
+			upd_id = #{userId}
+		WHERE order_no = #{orderNo}	
 	</update>
 	
 	<!-- count확인 -->

@@ -257,24 +257,23 @@
 	                            주문 승인 요청
 	                        </button>
 	                    </c:if>
+	                     <button type="button" onclick="window.close()" class="px-8 py-2 text-sm font-bold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">닫기</button>
 	                </div>
 	            </div>
 	
 	            <%-- 반려 사유 입력 영역: '주문 프로세스'일 때만 필요하므로 otherwise 안에 배치 --%>
-	            <div id="rejectArea" class="hidden mt-6 p-6 bg-red-50 border border-red-100 rounded-xl shadow-inner transition-all">
-	                <div class="flex items-center mb-3">
-	                    <div class="w-1 h-4 bg-red-500 mr-2"></div>
-	                    <label class="text-sm font-black text-red-800 uppercase tracking-tighter">Reason for Rejection</label>
-	                </div>
-	                <textarea id="rejectReasonText" 
-	                          class="w-full p-4 border border-red-200 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-sm" 
-	                          rows="3" 
-	                          placeholder="반려 사유를 상세히 입력해 주세요"></textarea>
-	                <div class="mt-3 flex justify-end gap-2">
-	                    <button type="button" onclick="$('#rejectArea').addClass('hidden')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 transition">취소</button>
-	                    <button type="button" onclick="fn_submitReject()" class="px-6 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 shadow-lg shadow-red-200 transition">반려 확정 및 전송</button>
-	                </div>
-	            </div>
+	              <%-- 반려 모달 --%>
+			    <div id="rejectModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+			        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+			            <h3 class="text-xl font-bold text-gray-900 mb-2">주문 반려</h3>
+			            <p class="text-sm text-gray-500 mb-4">반려 사유를 입력해 주세요.</p>
+			            <textarea id="rejectReason" class="w-full h-32 p-4 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-red-500 outline-none resize-none mb-6" placeholder="사유 입력..."></textarea>
+			            <div class="flex justify-end gap-3">
+			                <button onclick="fn_hideRejectModal()" class="px-4 py-2 text-gray-400 font-bold">취소</button>
+			                <button onclick="fn_reject()" class="px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 shadow-lg">반려 처리</button>
+			            </div>
+			        </div>
+			    </div>
 	        </c:otherwise>
 	    </c:choose>
 	</div>
@@ -318,12 +317,11 @@
 	    });
 	}
 	
+	// 반려 모달 열기
 	function fn_processApproval(type) {
 	    if (type === 'REJECT') {
-	        $('#rejectArea').removeClass('hidden');
-	        $('#rejectReasonText').focus();
-	        // 부드럽게 스크롤 이동
-	        document.getElementById('rejectArea').scrollIntoView({ behavior: 'smooth', block: 'center' });
+	        $('#rejectModal').removeClass('hidden'); // ID 매칭: rejectModal
+	        $('#rejectReason').focus();              // ID 매칭: rejectReason
 	        return;
 	    }
 	    
@@ -331,17 +329,29 @@
 	    executeApproval('od002', '');
 	}
 
-	function fn_submitReject() {
-	    const reason = $('#rejectReasonText').val();
+	// 반려 모달 닫기
+	function fn_hideRejectModal() {
+	    $('#rejectModal').addClass('hidden');
+	    $('#rejectReason').val(''); // 입력값 초기화
+	}
+
+	// 반려 실행 (모달 안의 '반려 처리' 버튼 클릭 시)
+	function fn_reject() {
+	    const reason = $('#rejectReason').val();	
 	    if (!reason || !reason.trim()) {
 	        alert("반려 사유를 입력해 주세요.");
-	        $('#rejectReasonText').focus();
+	        $('#rejectReason').focus();
 	        return;
 	    }
 	    
 	    if(!confirm("입력하신 사유로 반려 처리를 완료하시겠습니까?")) return;
 	    executeApproval('od999', reason);
 	}
+	
+	// 모달 배경 클릭 시 닫기
+	$('#rejectModal').on('click', function(e) {
+	    if (e.target === this) fn_hideRejectModal();
+	});
 
 	function executeApproval(status, reason) {
 	    const requestData = {

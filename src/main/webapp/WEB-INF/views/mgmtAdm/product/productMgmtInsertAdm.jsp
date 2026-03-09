@@ -159,7 +159,7 @@
                         </div>
 
                         <div class="flex flex-col h-full">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">상세 상품 설명 (HTML 에디터)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">상세 상품 설명</label>
                             <div class="flex-grow shadow-sm">
                                 <div id="editor-container"></div>
                             </div>
