@@ -10,31 +10,25 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     @media print {
-        /* 1. 페이지 여백 설정 */
-        @page {
-            margin: 15mm 10mm;
+        @page { margin: 15mm 10mm; }
+        .h-full { height: auto !important; min-height: 0 !important; }
+        body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            background-color: white !important;
         }
-
-        /* 2. 요소 잘림 방지 (중요) */
-        tr, 
-        .p-8, 
-        .grid > div,
-        .bg-gray-900 { /* 하단 합계 박스 */
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-
-        /* 3. 여백 및 줄간격 압축 (0.85 배율 보조) */
-        body { padding-top: 0 !important; padding-bottom: 0 !important; }
-        .py-10, .py-12, .mb-12 { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-bottom: 1.5rem !important; }
-        
-        /* 4. PDF 변환 시 불필요한 요소 제거 */
         .no-print { display: none !important; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
-         body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        
+        /* 합계 박스 가로 폭 강제 통일 */
+        .grid-cols-12 { display: flex !important; gap: 1.5rem !important; }
+        .col-span-5 { width: 42% !important; }
+        .col-span-7 { width: 58% !important; }
     }
-    body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; }
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    
+    body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; letter-spacing: -0.025em; }
+    /* 숫자 폰트 가독성을 위한 설정 */
+    .font-mono { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body class="py-10">
@@ -172,78 +166,82 @@
                 </table>
             </div>
 
-            <%-- 4. 하단 메모 및 합계 요약 영역 --%>
-            <div class="grid grid-cols-12 gap-8 mb-12">
-                <div class="col-span-7">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 italic">Special Memo</p>
-                    <div class="p-6 border-2 border-dotted border-gray-200 rounded-xl bg-gray-50 text-gray-700 min-h-[140px] shadow-inner">
-                        <c:choose>
-                            <c:when test="${isReadOnly}">
-                                <div class="whitespace-pre-wrap leading-relaxed"><c:out value="${info.estdtMemo}" default="별도의 기재 사항이 없습니다." /></div>
-                            </c:when>
-                            <c:otherwise>
-                                <textarea id="estdtMemo" class="w-full h-full min-h-[100px] bg-transparent outline-none leading-relaxed resize-none" placeholder="메모를 입력하세요.">${info.estdtMemo}</textarea>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-                </div>
-                <div class="col-span-5">
-                    <div class="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-blue-900/30 h-full flex flex-col justify-center">
-                        <div class="space-y-4 relative z-10">
-                            <div class="flex justify-between items-center text-gray-500 border-b border-gray-800/50 pb-3">
-                                <span class="text-xs font-medium uppercase italic font-mono text-gray-400">Base Total</span>
-                                <span id="baseTotalVal" class="font-mono text-md italic">₩0</span>
-                            </div>
-                            <div class="flex justify-between items-center text-gray-400 border-b border-gray-800 pb-3">
-                                <span class="text-sm font-medium uppercase italic font-mono">Supply Amount</span>
-                                <span id="supplyAmtVal" class="font-mono text-lg italic font-bold text-gray-300">₩0</span>
-                            </div>
-                            <div class="flex justify-between items-center text-gray-500 pb-2">
-                                <span class="text-xs font-medium uppercase italic font-mono">V.A.T (10%)</span>
-                                <span id="vatVal" class="font-mono text-md italic">₩0</span>
-                            </div>
-                            <div class="pt-4 border-t border-gray-800 flex justify-between items-end">
-                                <span class="text-xl font-black text-blue-400 italic uppercase tracking-tighter">Final Est. Total</span>
-                                <div class="text-right leading-none">
-                                    <p class="text-[10px] text-gray-500 mb-2 font-medium uppercase">VAT 포함 (Estimated)</p>
-                                    <p id="finalTotalVal" class="text-5xl font-black text-blue-500 tracking-tighter font-mono italic">₩0</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-			 <%-- 상황 A: 미리보기 모드일 때 (다운로드/닫기만 표시) --%>
-			 <c:choose>
-	        <c:when test="${mode eq 'preview'}">
-	            <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-end gap-3">
-	                <button type="button" onclick="exportPdf(${doc.docId})" 
-	                        class="px-8 py-3 bg-blue-900 text-white text-sm font-bold rounded-lg hover:bg-blue-800 shadow-lg transition">
-	                    PDF 견적서 다운로드
-	                </button>
-	                <button type="button" onclick="window.close()" 
-	                        class="px-8 py-3 bg-gray-100 text-gray-500 text-sm font-bold rounded-lg hover:bg-gray-200 transition">
-	                    닫기
-	                </button>
-	            </div>
-	        </c:when>
-
-            <%-- 5. 하단 버튼 영역 --%>
-            <c:otherwise>
-            <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-between items-center">
-                <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm">프린트 / PDF</button>
-                <div class="flex gap-2">
-                    <c:if test="${(empty info.estNo || isRejected) && (userType eq 'USER' || userType eq 'MASTER')}">
-                        <button type="button" onclick="fn_confirmOrder()" class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl transition">견적 요청하기</button>
-                    </c:if>
-                        <button type="button" onclick="window.close()" class="px-8 py-2 text-sm font-bold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">닫기</button>
-                </div>
-            </div>
-	      </c:otherwise>
-	    </c:choose>
+            <%-- 4. 하단 메모 및 합계 요약 영역 (비율 조정 및 잘림 방지 반영) --%>
+<div class="grid grid-cols-12 gap-8 mb-12 items-stretch">
+    <%-- 왼쪽 메모: 비율 축소 (5/12) --%>
+    <div class="col-span-5 flex flex-col">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 italic">Special Memo</p>
+        <div class="p-6 border-2 border-dotted border-gray-200 rounded-xl bg-gray-50 text-gray-700 flex-grow shadow-inner">
+            <c:choose>
+                <c:when test="${isReadOnly}">
+                    <div class="whitespace-pre-wrap leading-relaxed"><c:out value="${info.estdtMemo}" default="별도의 기재 사항이 없습니다." /></div>
+                </c:when>
+                <c:otherwise>
+                    <textarea id="estdtMemo" class="w-full h-full min-h-[120px] bg-transparent outline-none leading-relaxed resize-none" placeholder="메모를 입력하세요.">${info.estdtMemo}</textarea>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
+
+    <%-- 오른쪽 합계: 비율 확대 (7/12) 및 한 줄 출력 보장 --%>
+    <div class="col-span-7">
+        <div class="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-blue-900/30 h-full flex flex-col justify-center">
+            <div class="space-y-4 relative z-10">
+                <div class="flex justify-between items-center text-gray-500 border-b border-gray-800/50 pb-3">
+                    <span class="text-xs font-medium uppercase italic font-mono text-gray-400">Base Total</span>
+                    <span id="baseTotalVal" class="font-mono text-md italic">₩0</span>
+                </div>
+                <div class="flex justify-between items-center text-gray-400 border-b border-gray-800 pb-3">
+                    <span class="text-sm font-medium uppercase italic font-mono">Supply Amount</span>
+                    <span id="supplyAmtVal" class="font-mono text-lg italic font-bold text-gray-300">₩0</span>
+                </div>
+                <div class="flex justify-between items-center text-gray-500 pb-2">
+                    <span class="text-xs font-medium uppercase italic font-mono">V.A.T (10%)</span>
+                    <span id="vatVal" class="font-mono text-md italic">₩0</span>
+                </div>
+                
+                <%-- 최종 금액 영역: 가로 폭 확보를 위해 flex-col로 변경 --%>
+                <div class="pt-4 border-t border-gray-800 flex flex-col items-end gap-1">
+				    <%-- 라벨을 왼쪽 상단으로 --%>
+				    <span class="text-xl font-black text-blue-400 italic uppercase tracking-tighter self-start">
+				        Final Est. Total
+				    </span>
+				    <div class="text-right leading-none w-full">
+				        <p class="text-[10px] text-gray-500 mb-1 font-medium uppercase">VAT 포함 (Estimated)</p>
+				        <%-- 금액 숫자가 박스 가로 전체를 쓸 수 있도록 설정 --%>
+				        <p id="finalTotalVal" class="text-4xl md:text-5xl font-black text-blue-500 tracking-tighter font-mono italic whitespace-nowrap overflow-visible">
+				            ₩0
+				        </p>
+				    </div>
+				</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%-- 5. 하단 버튼 영역 (c:choose 밖으로 빼서 항상 노출되게 수정) --%>
+<div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-between items-center">
+    <button type="button" onclick="window.print()" class="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm">프린트 / PDF</button>
+    
+    <div class="flex gap-2">
+        <%-- PDF 변환 버튼: 미리보기 모드이거나 이미 승인된 건일 때 노출 --%>
+        <c:if test="${mode eq 'preview'}">
+            <button type="button" onclick="exportPdf(${not empty doc.docId ? doc.docId : 0})" 
+                    class="px-8 py-2 bg-blue-900 text-white text-sm font-bold rounded-lg hover:bg-blue-800 shadow-lg transition">
+                PDF 견적서 다운로드
+            </button>
+        </c:if>
+
+        <%-- 견적 요청 버튼: 작성 중이거나 반려된 건일 때 노출 --%>
+        <c:if test="${(empty info.estNo || isRejected) && (userType eq 'USER' || userType eq 'MASTER') && mode ne 'preview'}">
+            <button type="button" onclick="fn_confirmOrder()" class="px-8 py-2 text-sm font-bold text-white bg-blue-700 rounded-lg hover:bg-blue-800 shadow-xl transition">
+                견적 요청하기
+            </button>
+        </c:if>
+        
+        <button type="button" onclick="window.close()" class="px-8 py-2 text-sm font-bold text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition">닫기</button>
+    </div>
+</div>
 <script>
     $(document).ready(function() {
         updateCalculations();

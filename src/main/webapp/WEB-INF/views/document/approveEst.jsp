@@ -11,12 +11,25 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     @media print {
+        @page { margin: 15mm 10mm; }
+        .h-full { height: auto !important; min-height: 0 !important; }
+        body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            background-color: white !important;
+        }
         .no-print { display: none !important; }
-        body { background: white !important; margin: 0; padding: 0; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+        
+        /* 합계 박스 가로 폭 강제 통일 */
+        .grid-cols-12 { display: flex !important; gap: 1.5rem !important; }
+        .col-span-5 { width: 42% !important; }
+        .col-span-7 { width: 58% !important; }
     }
-    body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; }
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    
+    body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; letter-spacing: -0.025em; }
+    /* 숫자 폰트 가독성을 위한 설정 */
+    .font-mono { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body class="py-10">
@@ -123,43 +136,50 @@
                     </tbody>
                 </table>
             </div>
-
-            <%-- 4. 하단 합계 영역 (동일한 bg-gray-900 + ring-blue-900/30 스타일) --%>
-            <div class="grid grid-cols-12 gap-8 mb-12">
-                <div class="col-span-7">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 italic">Special Memo</p>
-                    <div class="p-6 border-2 border-dotted border-gray-200 rounded-xl bg-gray-50 text-gray-700 min-h-[140px] shadow-inner whitespace-pre-wrap leading-relaxed">
-                        <c:out value="${not empty info.estdtMemo ? info.estdtMemo : '별도의 기재 사항이 없습니다.'}" />
-                    </div>
-                </div>
-                <div class="col-span-5">
-                    <div class="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-blue-900/30 h-full flex flex-col justify-center">
-                        <div class="space-y-4 relative z-10">
-                            <div class="flex justify-between items-center text-gray-500 border-b border-gray-800/50 pb-3">
-                                <span class="text-xs font-medium uppercase italic font-mono text-gray-400">Base Total</span>
-                                <span class="font-mono text-md italic text-gray-400">₩<fmt:formatNumber value="${info.baseTotalAmount}" pattern="#,###"/></span>
-                            </div>
-                            <div class="flex justify-between items-center text-gray-400 border-b border-gray-800 pb-3">
-                                <span class="text-sm font-medium uppercase italic font-mono">Supply Amount</span>
-                                <span class="font-mono text-lg italic font-bold text-gray-300">₩<fmt:formatNumber value="${info.targetTotalAmount / 1.1}" pattern="#,###"/></span>
-                            </div>
-                            <div class="flex justify-between items-center text-gray-500 pb-2">
-                                <span class="text-xs font-medium uppercase italic font-mono">V.A.T (10%)</span>
-                                <span class="font-mono text-md italic text-gray-400">₩<fmt:formatNumber value="${info.targetTotalAmount - (info.targetTotalAmount / 1.1)}" pattern="#,###"/></span>
-                            </div>
-                            <div class="pt-4 border-t border-gray-800 flex justify-between items-end">
-                                <span class="text-xl font-black text-blue-400 italic uppercase tracking-tighter">Final Est. Total</span>
-                                <div class="text-right leading-none">
-                                    <p class="text-[10px] text-gray-500 mb-2 font-medium uppercase">VAT 포함 (Estimated)</p>
-                                    <p class="text-5xl font-black text-blue-500 tracking-tighter font-mono italic">
-                                        ₩<fmt:formatNumber value="${info.targetTotalAmount}" pattern="#,###"/>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+			
+			<%-- 4. 하단 메모 및 합계 요약 영역 (비율 조정 및 잘림 방지 반영) --%>
+			<div class="grid grid-cols-12 gap-8 mb-12 items-stretch">
+			    <%-- 왼쪽 메모: 5/12 비율 --%>
+			    <div class="col-span-5 flex flex-col">
+			        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 italic">Special Memo</p>
+			        <div class="p-6 border-2 border-dotted border-gray-200 rounded-xl bg-gray-50 text-gray-700 flex-grow shadow-inner whitespace-pre-wrap leading-relaxed">
+			            <c:out value="${not empty info.estdtMemo ? info.estdtMemo : '별도의 기재 사항이 없습니다.'}" />
+			        </div>
+			    </div>
+			
+			    <%-- 오른쪽 합계: 7/12 비율로 확장하여 가로 폭 확보 --%>
+			    <div class="col-span-7">
+			        <div class="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-blue-900/30 h-full flex flex-col justify-center">
+			            <div class="space-y-4 relative z-10">
+			                <div class="flex justify-between items-center text-gray-500 border-b border-gray-800/50 pb-3">
+			                    <span class="text-xs font-medium uppercase italic font-mono text-gray-400">Base Total</span>
+			                    <span class="font-mono text-md italic text-gray-400">₩<fmt:formatNumber value="${info.baseTotalAmount}" pattern="#,###"/></span>
+			                </div>
+			                <div class="flex justify-between items-center text-gray-400 border-b border-gray-800 pb-3">
+			                    <span class="text-sm font-medium uppercase italic font-mono">Supply Amount</span>
+			                    <span class="font-mono text-lg italic font-bold text-gray-300">₩<fmt:formatNumber value="${info.targetTotalAmount / 1.1}" pattern="#,###"/></span>
+			                </div>
+			                <div class="flex justify-between items-center text-gray-500 pb-2">
+			                    <span class="text-xs font-medium uppercase italic font-mono">V.A.T (10%)</span>
+			                    <span class="font-mono text-md italic text-gray-400">₩<fmt:formatNumber value="${info.targetTotalAmount - (info.targetTotalAmount / 1.1)}" pattern="#,###"/></span>
+			                </div>
+			                
+			                <%-- 최종 금액 영역: flex-col로 변경하여 숫자가 가로 전체를 사용하도록 수정 --%>
+			                <div class="pt-4 border-t border-gray-800 flex flex-col items-end gap-1">
+			                    <%-- 라벨을 왼쪽 상단으로 배치해 공간 확보 --%>
+			                    <span class="text-xl font-black text-blue-400 italic uppercase tracking-tighter self-start">Final Est. Total</span>
+			                    <div class="text-right leading-none w-full">
+			                        <p class="text-[10px] text-gray-500 mb-2 font-medium uppercase">VAT 포함 (Estimated)</p>
+			                        <%-- 숫자가 길어져도 한 줄로 쭉 나오게 설정 --%>
+			                        <p id="finalTotalVal" class="text-4xl md:text-5xl lg:text-6xl font-black text-blue-500 tracking-tighter font-mono italic whitespace-nowrap overflow-visible">
+			                            ₩<fmt:formatNumber value="${info.targetTotalAmount}" pattern="#,###"/>
+			                        </p>
+			                    </div>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+			</div>
 
             <%-- 5. 하단 버튼 영역 --%>
             <div class="mt-8 pt-8 border-t border-gray-100 no-print flex justify-between items-center">

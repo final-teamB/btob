@@ -10,33 +10,25 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
     @media print {
-        /* 1. 페이지 설정 */
-        @page {
-            margin: 15mm 10mm;
+        @page { margin: 15mm 10mm; }
+        .h-full { height: auto !important; min-height: 0 !important; }
+        body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            background-color: white !important;
         }
-
-        /* 2. 요소 잘림 방지: 테이블 행, 정보 박스, 합계 요약 영역 */
-        tr, 
-        .p-8, 
-        .bg-emerald-50,
-        .bg-gray-900,
-        #rejectArea {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-
-        /* 3. 여백 및 줄간격 압축 (0.85 배율 보조) */
-        body { padding-top: 0 !important; padding-bottom: 0 !important; }
-        .py-10, .py-12, .mb-12 { padding-top: 1rem !important; padding-bottom: 1rem !important; margin-bottom: 1.5rem !important; }
-        
-        /* 4. PDF 변환 시 버튼 및 그림자 제거 */
         .no-print { display: none !important; }
         .print-shadow-none { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
         
-        /* 배경색 강제 적용 */
-        body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        /* 합계 박스 가로 폭 강제 통일 */
+        .grid-cols-12 { display: flex !important; gap: 1.5rem !important; }
+        .col-span-5 { width: 42% !important; }
+        .col-span-7 { width: 58% !important; }
     }
-    body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; }
+    
+    body { font-family: 'Pretendard', sans-serif; background-color: #f9fafb; letter-spacing: -0.025em; }
+    /* 숫자 폰트 가독성을 위한 설정 */
+    .font-mono { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body class="py-10">
@@ -167,22 +159,20 @@
             </div>
 
             <%-- 하단 합계 영역 --%>
-			<div class="flex justify-end">
-			    <div class="w-full md:w-1/2 lg:w-1/3">
+			<div class="flex justify-end mb-12">
+			    <%-- 너비를 1/3에서 1/2 수준으로 확대하여 숫자 공간 확보 --%>
+			    <div class="w-full md:w-3/5 lg:w-1/2">
 			        <div class="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-emerald-900/30 h-full flex flex-col justify-center">
-			            <div class="absolute top-0 right-0 w-40 h-40 bg-emerald-600 opacity-20 -mr-20 -mt-20 rounded-full"></div>
+			            <div class="absolute top-0 right-0 w-40 h-40 bg-emerald-600 opacity-10 -mr-20 -mt-20 rounded-full"></div>
 			            
 			            <div class="space-y-4 relative z-10">
-			                <%-- 1. 공급가액 (전체 금액의 90/110 또는 단순히 합계에서 역산) --%>
-			                <%-- 보통 totalSum이 VAT 포함이라면: 공급가액 = totalSum / 1.1 --%>
-			                <div class="flex justify-between items-center text-gray-400 border-b border-gray-800 pb-3">
-			                    <span class="text-sm font-medium uppercase tracking-tighter italic font-mono">Supply Amount</span>
-			                    <span class="font-mono text-lg italic font-bold text-gray-300">
+			                <div class="flex justify-between items-center text-gray-500 border-b border-gray-800/50 pb-3">
+			                    <span class="text-xs font-medium uppercase tracking-tighter italic font-mono">Supply Amount</span>
+			                    <span class="font-mono text-md italic">
 			                        ₩<fmt:formatNumber value="${totalSum / 1.1}" pattern="#,###"/>
 			                    </span>
 			                </div>
 			
-			                <%-- 2. 부가세 (전체 금액의 10/110) --%>
 			                <div class="flex justify-between items-center text-gray-500 pb-2">
 			                    <span class="text-xs font-medium uppercase tracking-tighter italic font-mono">V.A.T (10%)</span>
 			                    <span class="font-mono text-md italic">
@@ -190,12 +180,12 @@
 			                    </span>
 			                </div>
 			
-			                <%-- 3. 최종 합계 --%>
-			                <div class="pt-4 border-t border-gray-800 flex justify-between items-end">
-			                    <span class="text-xl font-black text-emerald-400 italic uppercase leading-none tracking-tighter">Final Order. Total</span>
-			                    <div class="text-right leading-none">
+			                <%-- 최종 금액: 텍스트는 왼쪽 위, 숫자는 오른쪽 아래로 배치하여 한 줄 확보 --%>
+			                <div class="pt-6 border-t border-gray-800 flex flex-col items-end gap-2">
+			                    <span class="text-xl font-black text-emerald-400 italic uppercase tracking-tighter self-start">Final Order Total</span>
+			                    <div class="text-right leading-none w-full">
 			                        <p class="text-[10px] text-gray-500 mb-2 font-medium uppercase">VAT 포함 (Order)</p>
-			                        <p class="text-5xl font-black text-emerald-500 tracking-tighter font-mono italic">
+			                        <p id="finalOrderTotal" class="text-4xl md:text-5xl font-black text-emerald-500 tracking-tighter font-mono italic whitespace-nowrap">
 			                            ₩<fmt:formatNumber value="${totalSum}" pattern="#,###"/>
 			                        </p>
 			                    </div>
