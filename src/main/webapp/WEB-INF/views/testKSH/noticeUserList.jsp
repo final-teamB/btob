@@ -1,54 +1,76 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- [1] 레이아웃 설정: 검색바 노출, 등록 버튼 미노출 --%>
+<%-- [1] 레이아웃 설정: 검색바 노출, 등록 버튼 미노출 (사용자용이므로) --%>
 <c:set var="showSearchArea" value="true" scope="request" />
 <c:set var="showAddBtn" value="false" scope="request" />
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    /* [1] 그리드 및 레이아웃 스타일 (ADMIN 기준 이식) */
-    .tui-grid-cell { cursor: pointer !important; }
+    /* [1] 배경 및 기본 컨테이너 설정 - 요청하신 관리자 스타일 이식 */
+    body { background-color: #f9fafb; }
+    
+    .admin-main-container { 
+        width: 100%;
+        min-height: auto;
+        padding-bottom: 0.25rem;
+        margin-bottom: 0 !important;
+    }
+
     #dg-container { width: 100%; margin-top: 1rem; }
-    .grid-relative-wrapper { position: relative; width: 100%; }
+    .grid-relative-wrapper { position: relative; width: 100%; min-height: 400px; }
 
-    /* [2] 필터 및 검색창 스타일 강화 */
-    #dg-common-filter-wrapper select, 
-    #dg-search-input {
-        padding-left: 1rem !important;
-        padding-right: 2.5rem !important;
-        height: 42px !important;
-        border-radius: 8px !important;
-        border: 1px solid #e2e8f0 !important;
+    /* [3] 그리드 셀 높이 및 정렬 통일 (관리자 CSS와 동일) */
+    .tui-grid-container .tui-grid-cell {
+        height: 52px !important; 
+        background-color: #fff !important;
+        cursor: pointer !important;
     }
 
-    /* [3] 라벨 텍스트 가시성 */
-    .filter-label, div.text-sm.font-bold { 
-        margin-bottom: 0.5rem !important;
-        display: inline-block;
-        color: #475569;
+    .tui-grid-container .tui-grid-cell-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 52px !important;
+        padding: 0 !important;
+        line-height: normal !important;
     }
+
+    .tui-grid-container .tui-grid-cell[data-column-name="title"] .tui-grid-cell-content {
+        justify-content: flex-start !important;
+        padding-left: 1.5rem !important;
+    }
+
+    .tui-grid-border-line { display: none !important; }
 </style>
 
-<div class="max-w-screen-2xl mx-auto">
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">공지사항</h2>
-                <p class="text-sm text-gray-500 mt-1">시스템의 최신 소식을 확인하세요.</p>
+<div class="admin-main-container my-6">
+    <%-- 상단 헤더 영역 --%>
+    <div class="px-10 py-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div class="w-full text-left">
+            <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-bold text-gray-900">공지사항</h2>
             </div>
+            <p class="text-sm text-gray-500 mt-1">시스템의 최신 소식을 확인하세요.</p>
         </div>
+    </div>
 
-        <div class="grid-relative-wrapper">
-            <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp"/>
+    <%-- 그리드 영역 --%>
+    <div class="px-3">
+        <div class="grid-card px-6">
+            <div class="grid-relative-wrapper">
+                <jsp:include page="/WEB-INF/views/datagrid/datagrid.jsp">
+                    <jsp:param name="showSearchArea" value="true" />
+                    <jsp:param name="showPerPage" value="true" />
+                </jsp:include>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. 서버 데이터 바인딩 (ADMIN 기준: c:out 적용)
+    // 1. 서버 데이터 바인딩
     const rawData = [
         <c:forEach var="item" items="${noticeList}" varStatus="status">
         {
@@ -68,7 +90,7 @@
         const searchInput = document.getElementById('dg-search-input');
         const btnSearch = document.getElementById('dg-btn-search');
 
-        // [카테고리 필터 설정 - ADMIN 기준 동일 이식]
+        // [카테고리 필터 설정]
         if (filterWrapper && filterSelect) {
             filterWrapper.classList.remove('hidden');
             filterWrapper.classList.add('flex');
@@ -91,7 +113,7 @@
             filterSelect.addEventListener('change', () => btnSearch.click());
         }
 
-        // [실시간 검색 Debounce 적용]
+        // [실시간 검색 Debounce]
         if (searchInput) {
             let searchTimeout;
             searchInput.addEventListener('input', () => {
@@ -109,8 +131,9 @@
             btnSearchId: 'dg-btn-search',
             perPageId: 'dg-per-page',
             columns: [
+                { header: '번호', name: 'noticeId', width: 80, align: 'center', sortable: true },
                 { 
-                    header: '카테고리', name: 'category', width: 180, align: 'center',
+                    header: '카테고리', name: 'category', width: 120, align: 'center',
                     formatter: function(props) {
                         const val = props.value;
                         if (!val) return '-';
@@ -127,14 +150,14 @@
                     }
                 },
                 { header: '제목', name: 'title', align: 'left', sortable: true },
-                { header: '작성자', name: 'displayRegId', width: 150, align: 'center' },
+                { header: '작성자', name: 'displayRegId', width: 120, align: 'center' },
                 { header: '등록일', name: 'regDtime', width: 180, align: 'center', sortable: true },
                 { header: '조회수', name: 'viewCount', width: 100, align: 'center', sortable: true }
             ],
             data: rawData
         });
         
-        // [검색 및 필터 통합 로직 - 중복 제거 및 ADMIN 방식 적용]
+        // [검색 및 필터 통합 로직]
         btnSearch.addEventListener('click', function() {
             const catVal = filterSelect ? filterSelect.value : '';
             const keyword = searchInput.value.toLowerCase();
@@ -145,6 +168,10 @@
                 return matchCat && matchKey;
             });
             noticeGrid.grid.resetData(filtered);
+            
+            // 건수 업데이트
+            const countDisplay = document.getElementById('total-count-display');
+            if(countDisplay) countDisplay.innerText = filtered.length;
         });
 
         // [행 클릭 시 상세 페이지 이동]
