@@ -287,12 +287,22 @@
     }
 
     function fn_confirmOrder() {
-        if(!confirm("입력하신 금액으로 견적 요청을 전송하시겠습니까?")) return;
-        
+    	let isValid = true; // 유효성 상태 변수 선언
         const items = [];
         $('.item-row').each(function() {
+        	const fuelNm = $(this).find('td:first').text(); // 품목명 추출
+            const targetPrcInput = $(this).find('.target-prc-input');
+            const targetPrc = Number(targetPrcInput.val()) || 0;
             const qty = Number($(this).data('qty'));
-            const targetPrc = Number($(this).find('.target-prc-input').val()) || 0;
+            
+        	 // 희망 단가가 0 이하인 경우
+            if (targetPrc <= 0) {
+                alert("[" + fuelNm + "]의 희망 단가를 입력해주세요.");
+                targetPrcInput.focus(); // 해당 입력창으로 포커스 이동
+                isValid = false;
+                return false; // each 루프 중단
+            }
+            
             items.push({
                 "cartId": $(this).data('cart-id'),
                 "targetProductPrc": targetPrc,
@@ -300,6 +310,12 @@
             });
         });
 
+     	// 2. 유효성 검사를 통과하지 못했다면 여기서 함수 종료 (서버 전송 안함)
+        if (!isValid) return;
+
+        // 3. 모든 데이터가 정상일 때만 confirm창 띄우고 AJAX 실행
+        if(!confirm("입력하신 금액으로 견적 요청을 전송하시겠습니까?")) return;
+        
         const finalCtrtNm = $('#displayCtrtNm').text().replace(/\s+/g, ' ').trim();
 
         $.ajax({
@@ -312,8 +328,8 @@
                 "targetTotalAmount": Number($('#finalTotalVal').text().replace(/[^0-9]/g, '')),
                 "estdtMemo": $('#estdtMemo').val(),
                 "ctrtNm": finalCtrtNm,
-                "companyName": "${info.companyName}", // 값 추가 및 쉼표 확인
-                "companyPhone": "${info.companyPhone}" // 값 추가
+                "companyName": '<c:out value="${info.companyName}" />', 
+                "companyPhone": '<c:out value="${info.companyPhone}" />'
             }),
             success: function() { 
                 alert("견적 요청이 완료되었습니다.\n거래바구니 목록으로 이동합니다."); // 목적지 안내
@@ -325,7 +341,7 @@
                 window.close(); 
             },
             error: function(e) {
-                alert("오류가 발생했습니다. 콘솔을 확인하세요.");
+                alert("오류가 발생했습니다.");
                 console.log(e);
             }
         });
