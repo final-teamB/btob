@@ -79,7 +79,33 @@ document.addEventListener('DOMContentLoaded', function() {
             ]
     	}
     ]);
+   const searchBtn = document.getElementById('dg-btn-search');
+    if (searchBtn) {
+        searchBtn.onclick = function() {
+            window.fetchData();
+        };
+    }
+
+    // 엔터키 지원 (입력창에서 엔터 치면 조회)
+    const searchInput = document.getElementById('dg-search-input');
+    if (searchInput) {
+        searchInput.onkeypress = function(e) {
+            if (e.key === 'Enter') window.fetchData();
+        };
+    }
 });
+
+window.fetchData = function() {
+    const keyword = document.getElementById('dg-search-input').value;
+    // datagrid.jsp에 설정한 select ID: dg-common-filter
+    const docType = document.getElementById('dg-common-filter')?.value || '';
+    
+    let url = window.location.pathname + "?keyword=" + encodeURIComponent(keyword);
+    if (docType) url += "&docType=" + encodeURIComponent(docType);
+    
+    // 페이지 이동 (서버에서 필터링된 pendingList를 다시 그려줌)
+    location.href = url;
+};
 
 window.handleGridAction = function(rawData, action) {
     if(action === 'OPEN_DETAIL') {

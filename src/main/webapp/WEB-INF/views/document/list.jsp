@@ -62,30 +62,46 @@
 </div>
 	
 <script>
-class MemoCellRenderer {
-    constructor(props) {
-        const el = document.createElement('div');
-        // 중앙 정렬 및 가독성을 위한 스타일 적용
-        el.className = 'w-full flex items-center justify-center py-1';
-        
-        const val = props.value ? String(props.value).trim() : "";
-        
-        if (val !== "" && val !== "null") {
-            // 글자가 길어질 경우를 대비해 최소한의 스타일만 적용
-            el.innerHTML = `
-                <span class="cursor-pointer text-blue-600 hover:underline font-medium px-2" 
-                      style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">
-                    \${val}
-                </span>`;
-        } else {
-            el.innerHTML = `<button type="button" class="px-3 py-1 text-xs font-bold text-white bg-green-500 rounded hover:bg-green-600">등록</button>`;
-        }
-        
-        el.onclick = () => window.handleGridAction(props.grid.getRow(props.rowKey), 'MEMO');
-        this.el = el;
-    }
-    getElement() { return this.el; }
-}
+	class MemoCellRenderer {
+	    constructor(props) {
+	        // [1] 엘리먼트는 한 번만 생성합니다.
+	        this.el = document.createElement('div');
+	        this.el.className = 'w-full flex items-center justify-center py-1';
+	        
+	        // [2] 초기 렌더링 실행
+	        this.render(props);
+	    }
+	
+	    getElement() {
+	        return this.el;
+	    }
+	
+	    // [핵심] 그리드가 페이지를 넘기거나 데이터를 갱신할 때 이 메서드를 강제로 호출합니다.
+	    render(props) {
+	        // [3] props에서 현재 행의 데이터를 다시 가져옵니다.
+	        const rowData = props.grid.getRow(props.rowKey);
+	        if (!rowData) return;
+	
+	        const currentDocId = rowData.docId;
+	        const currentMemo = props.value ? String(props.value).trim() : "";
+	
+	        // [4] 매번 HTML과 클릭 이벤트를 새 데이터로 덮어씌웁니다.
+	        if (currentMemo !== "" && currentMemo !== "null") {
+	            this.el.innerHTML = `
+	                <span class="cursor-pointer text-blue-600 hover:underline font-medium px-2 truncate" style="max-width: 180px;">
+	                    \${currentMemo}
+	                </span>`;
+	        } else {
+	            this.el.innerHTML = `<button type="button" class="px-3 py-1 text-xs font-bold text-white bg-green-500 rounded hover:bg-green-600">등록</button>`;
+	        }
+	
+	        // [5] 클릭 이벤트도 현재 행의 ID를 바라보도록 새로 바인딩합니다.
+	        this.el.onclick = (e) => {
+	            e.stopPropagation();
+	            openMemoModal(currentDocId, currentMemo);
+	        };
+	    }
+	}
 
 	const rawData = [
 		<c:forEach var="d" items="${documentList}" varStatus="status">
@@ -179,7 +195,7 @@ class MemoCellRenderer {
 			    	}
 				}
 			],
-			data: rawData
+			data: filteredData
 			});
 			docGrid.initFilters([
 				  { 
