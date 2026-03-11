@@ -326,5 +326,22 @@
 					WHERE email = #{email} 
 		
 		</select>
+		
+		<!-- 사용자 회사 등록 중복 체크 ( 회원가입 ) -->
+		<select id="selectCompanyDuplicateChk"
+			parameterType="io.github.teamb.btob.dto.account.CompanyInfoDTO"
+			resultType="int">
+			
+					SELECT 
+						COUNT(company_name)
+					FROM 
+						TB_COMPANIES
+					WHERE 1=1
+					AND company_name = #{companyName}
+					AND addr_kor = #{addrKor}
+					AND zip_code = #{zipCode}
+					AND biz_number = #{bizNumber} 
+		
+		</select>
 
 </mapper>

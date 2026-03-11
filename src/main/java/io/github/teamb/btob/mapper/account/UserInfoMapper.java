@@ -57,4 +57,7 @@ public interface UserInfoMapper {
     
     // 13. 사용자 이메일 중복 체크 ( 회원 가입 )
     Integer selectEmailDuplicateChk(String email);
+    
+    // 14. 회사 중복 체크 ( 회원가입 )
+    Integer selectCompanyDuplicateChk(CompanyInfoDTO companyDuplicateChk);
 }
