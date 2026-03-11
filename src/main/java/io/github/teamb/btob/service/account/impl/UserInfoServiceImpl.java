@@ -87,6 +87,22 @@ public class UserInfoServiceImpl implements UserInfoService{
 			
 			companyInfoDTO = userInfoRegisterRequestDTO.getInsertCompanyInfo();
 			
+			String companyName = companyInfoDTO.getCompanyName();
+			String addrKor = companyInfoDTO.getAddrKor();
+			String zipCode = companyInfoDTO.getZipCode();
+			String bizNumber = companyInfoDTO.getBizNumber();
+			
+			CompanyInfoDTO companyDuplicateChk = new CompanyInfoDTO();
+			
+			companyDuplicateChk.setCompanyName(companyName);
+			companyDuplicateChk.setAddrKor(addrKor);
+			companyDuplicateChk.setZipCode(zipCode);
+			companyDuplicateChk.setBizNumber(bizNumber);
+			
+			if ( userInfoMapper.selectCompanyDuplicateChk(companyDuplicateChk) > 0 ) {
+				throw new Exception("이미 등록된 상호입니다");
+			}
+			
 			// ========여기서 회사코드를 생성로직=======
 			String compyNm = companyInfoDTO.getCompanyName();
 			String companyCode = generateCompanyCode(compyNm);
